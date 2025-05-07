@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluetooth Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+        <h1 class="logo">Bluetooth Manager</h1>
+        <div class="header-buttons">
+          <a href="#" class="btn btn-outline">Login</a>
+          <a href="#" class="btn btn-primary">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Lista znalezionych urządzeń -->
+    <div class="section devices-list">
+      <h2>Znalezione urządzenia</h2>
+      <!-- Przycisk do skanowania urządzeń -->
+      <form action="/scan" method="post" style="display: inline-block; margin-right: 10px;">
+        <input type="submit" value="Skanuj urządzenia" class="btn">
+      </form>
+      <hr style="height:10px;border-width:0;color:transparent;">
+      <!-- Przycisk do rozłączenia (widoczny tylko gdy połączono) -->
+      {% if bluetooth_status == 'Dostępny' %}
+      <form action="/disconnect" method="post" style="display: inline-block;">
+        <input type="submit" value="Rozłącz" class="btn btn-warning">
+      </form>
+      {% endif %}
+      
+      <!-- Filtrowanie urządzeń -->
+      {% if devices %}
+        <div class="filter-container">
+          <label for="device-filter">Filtruj urządzenia:</label>
+          <input type="text" id="device-filter" placeholder="Wpisz nazwę lub adres MAC..." class="filter-input">
+        </div>
+        <div class="devices-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nazwa</th>
+                <th>Adres MAC</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for device in devices %}
+              <tr>
+                <td>{{ device.name }}</td>
+                <td>{{ device.address }}</td>
+                <td>
+                  <form action="/connect" method="post" style="display: inline-block; margin-right: 5px;">
+                    <input type="hidden" name="address" value="{{ device.address }}">
+                    <input type="submit" value="Połącz" class="btn btn-small">
+                  </form>
+                  <form action="/unpair" method="post" style="display: inline-block;">
+                    <input type="hidden" name="address" value="{{ device.address }}">
+                    <input type="submit" value="Rozparuj" class="btn btn-small btn-warning">
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>Brak znalezionych urządzeń. Kliknij "Skanuj urządzenia", aby rozpocząć wyszukiwanie.</p>
+      {% endif %}
+    </div>
+
+    <!-- Sekcja wysyłania danych (widoczna tylko gdy połączono) -->
+    {% if bluetooth_status == 'Dostępny' %}
+    <div class="section">
+      <h2>Wysyłanie danych</h2>
+      <form action="/send" method="post">
+        <div>
+          <label for="data">Dane (format HEX, np. 0x01020304):</label>
+          <input type="text" id="data" name="data" placeholder="0x..." required>
+        </div>
+        <div style="margin-top: 10px;">
+          <input type="submit" value="Wyślij" class="btn">
+        </div>
+      </form>
+    </div>
+
+    <!-- Sekcja z konfiguracją własnych przycisków -->
+    <div class="section">
+      <h2>Konfiguracja własnych przycisków</h2>
+      <p>Stwórz własne przyciski z komendami do szybkiego wysyłania danych do urządzenia.</p>
+      
+      <div id="custom-buttons" class="button-container">
+        <!-- Tutaj będą dynamicznie dodawane przyciski -->
+      </div>
+      
+      <div class="command-form">
+        <h3>Stwórz nowy przycisk</h3>
+        <form id="create-button-form">
+          <div>
+            <label for="button-name">Nazwa przycisku:</label>
+            <input type="text" id="button-name" placeholder="np. Włącz LED" required>
+          </div>
+          
+          <div class="commands-section">
+            <h4>Komendy do wysłania:</h4>
+            <div id="commands-container">
+              <!-- Tutaj będą dynamicznie dodawane pola komend -->
+            </div>
+            <button type="button" id="add-command" class="btn btn-small">Dodaj kolejną komendę</button>
+            <p class="hint">Możesz dodać wiele komend, które zostaną wykonane po sobie z określonym opóźnieniem.</p>
+          </div>
+          
+          <div style="margin-top: 15px;">
+            <button type="button" id="add-button" class="btn">Dodaj przycisk</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Sekcja z logami -->
+    <div class="section">
+      <h2>Logi</h2>
+      <div class="log-container">
+        {% if logs %}
+          {% for log in logs|reverse %}
+            <div class="log-entry">{{ log }}</div>
+          {% endfor %}
+        {% else %}
+          <p>Brak logów.</p>
+        {% endif %}
+      </div>
+      <form action="/clear_logs" method="post" style="margin-top: 10px;">
+        <input type="submit" value="Wyczyść logi" class="btn btn-warning">
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+        <p>© 2025 Bluetooth Manager. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Podłączenie skryptu JavaScript -->
+  <script src="{{ url_for('static', filename='js/bluetooth.js') }}"></script>
+</body>
+</html>

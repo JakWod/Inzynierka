@@ -1,0 +1,354 @@
+/* Reset i podstawowe style */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px;
+}
+
+/* Header */
+.header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 15px 0;
+  margin-bottom: 20px;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Przyciski */
+.btn {
+  display: inline-block;
+  padding: 8px 15px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #2980b9;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid white;
+}
+
+.btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+  background-color: #3498db;
+}
+
+.btn-warning {
+  background-color: #e74c3c;
+}
+
+.btn-warning:hover {
+  background-color: #c0392b;
+}
+
+.btn-small {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* Sekcje */
+.section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section h2 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.section h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.section h4 {
+  margin: 10px 0;
+  color: #3a5169;
+}
+
+/* Status połączenia */
+.connection-info {
+  background-color: #e7f3ff;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  border: 1px solid #d1e7ff;
+}
+
+.status-connected {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.status-disconnected {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* Tabela urządzeń */
+.devices-table-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 10px;
+  background-color: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  color: #2c3e50;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Logi */
+.log-container {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-family: monospace;
+  margin-top: 10px;
+}
+
+.log-entry {
+  margin: 5px 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+/* Przyciski niestandardowe */
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.custom-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.custom-button:hover {
+  background-color: #2980b9;
+}
+
+.delete-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: rgba(231, 76, 60, 0.8);
+  color: white;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  transform: translate(30%, -30%);
+}
+
+.delete-button:hover {
+  background-color: rgba(192, 57, 43, 1);
+}
+
+/* Formularz komend */
+.command-form {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.command-form h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.command-form input[type="text"],
+.command-form input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Filtrowanie urządzeń */
+.devices-count {
+  margin: 15px 0 5px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.count-value {
+  background-color: #3498db;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.filter-container {
+  margin: 10px 0;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+/* Pola komend */
+.commands-section {
+  margin-top: 15px;
+  border: 1px solid #eee;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.command-field {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.command-input {
+  flex: 3;
+}
+
+.delay-input {
+  flex: 1;
+  min-width: 100px;
+}
+
+.remove-command {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.remove-command:hover {
+  background-color: #c0392b;
+}
+
+.hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* Footer */
+.footer {
+  background-color: #2c3e50;
+  color: white;
+  padding: 15px 0;
+  text-align: center;
+  margin-top: 30px;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+  .header-container {
+      flex-direction: column;
+      gap: 10px;
+  }
+  
+  .header-buttons {
+      margin-top: 10px;
+  }
+  
+  table th, table td {
+      padding: 8px 5px;
+      font-size: 14px;
+  }
+  
+  .command-field {
+      flex-direction: column;
+      gap: 5px;
+  }
+  
+  .command-input, .delay-input {
+      width: 100%;
+  }
+}
