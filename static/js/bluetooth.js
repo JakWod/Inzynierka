@@ -4,10 +4,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const customButtonsContainer = document.getElementById('custom-buttons');
     const addButtonElement = document.getElementById('add-button');
     const buttonNameInput = document.getElementById('button-name');
-    const buttonDataInput = document.getElementById('button-data');
     const deviceFilterInput = document.getElementById('device-filter');
     const addCommandButton = document.getElementById('add-command');
     const commandsContainer = document.getElementById('commands-container');
+    const scanForm = document.getElementById('scan-form');
+    const scanningIndicator = document.getElementById('scanning-indicator');
     
     // Ładowanie zapisanych przycisków
     loadButtons();
@@ -25,8 +26,29 @@ document.addEventListener('DOMContentLoaded', function() {
         deviceFilterInput.addEventListener('input', filterDevices);
     }
     
+    // Event listener dla formularza skanowania
+    if (scanForm) {
+        scanForm.addEventListener('submit', function() {
+            // Pokaż wskaźnik ładowania
+            if (scanningIndicator) {
+                scanningIndicator.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Sprawdź czy strona została załadowana po przekierowaniu z /scan
+    if (document.referrer.includes('/scan')) {
+        // Ukryj wskaźnik ładowania jeśli był widoczny
+        if (scanningIndicator) {
+            scanningIndicator.style.display = 'none';
+        }
+    }
+    
     // Inicjalizacja pierwszego pola komend
     addCommandField();
+    
+    // Sprawdź czy mamy aktywną sekwencję komend do kontynuowania
+    checkActiveSequence();
     
     /**
      * Dodaje nowe pole do wprowadzania komend
@@ -45,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         delayInput.className = 'delay-input';
         delayInput.placeholder = 'Opóźnienie (ms)';
         delayInput.min = '0';
-        delayInput.value = '0';
+        delayInput.value = '';
         
         const removeButton = document.createElement('button');
         removeButton.type = 'button';
@@ -100,12 +122,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Zbierz wszystkie komendy i opóźnienia
-        const commandFields = commandsContainer.querySelectorAll('.command-field');
+        const formCommandFields = commandsContainer.querySelectorAll('.command-field');
         const commands = [];
         
         let isValid = true;
         
-        commandFields.forEach(field => {
+        formCommandFields.forEach(field => {
             const commandInput = field.querySelector('.command-input');
             const delayInput = field.querySelector('.delay-input');
             
@@ -138,7 +160,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Dodajemy obsługę kliknięcia
         button.addEventListener('click', function() {
-            sendSequentialCommands(commands);
+            console.log(`Kliknięto przycisk "${buttonName}", komendy:`, commands);
+            
+            // Dodaj informację do logów strony
+            addToLog(`Uruchamiam sekwencję ${commands.length} komend z przycisku "${buttonName}"`);
+            
+            // Uruchom sekwencję wykonania komend
+            executeCommandSequence(commands);
         });
         
         // Dodajemy przycisk do usunięcia
@@ -163,93 +191,141 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Czyszczenie formularza
         buttonNameInput.value = '';
+        
         // Czyścimy wszystkie pola komend oprócz pierwszego
-        for (let i = 1; i < commandFields.length; i++) {
-            commandFields[i].remove();
+        const allCommandFields = commandsContainer.querySelectorAll('.command-field');
+        for (let i = 1; i < allCommandFields.length; i++) {
+            allCommandFields[i].remove();
         }
+        
         // Czyścimy pierwsze pole
-        const firstCommandInput = commandFields[0].querySelector('.command-input');
-        const firstDelayInput = commandFields[0].querySelector('.delay-input');
+        const firstCommandInput = allCommandFields[0].querySelector('.command-input');
+        const firstDelayInput = allCommandFields[0].querySelector('.delay-input');
         if (firstCommandInput) firstCommandInput.value = '';
-        if (firstDelayInput) firstDelayInput.value = '0';
+        if (firstDelayInput) firstDelayInput.value = '';
         
         // Zapisujemy przyciski do localStorage
         saveButtons();
     }
     
     /**
-     * Wysyła sekwencję komend z odpowiednimi opóźnieniami
+     * Dodaje wpis do logu na stronie
+     * @param {string} message - Wiadomość do dodania
+     */
+    function addToLog(message) {
+        const logContainer = document.querySelector('.log-container');
+        if (logContainer) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[JAVASCRIPT] ${message}`;
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+        }
+        console.log(message);
+    }
+    
+    /**
+     * Rozpoczyna wykonanie sekwencji komend
      * @param {Array} commands - Tablica obiektów komend z polami data i delay
      */
-    function sendSequentialCommands(commands) {
-        if (commands.length === 0) return;
+    function executeCommandSequence(commands) {
+        if (!commands || commands.length === 0) return;
         
-        // Wysyłamy pierwszą komendę
-        sendCustomCommand(commands[0].data);
+        // Zapisz całą sekwencję do localStorage
+        const sequence = {
+            commands: commands,
+            currentIndex: 0,
+            totalCommands: commands.length
+        };
         
-        // Jeśli jest więcej komend, musimy ustawić przekierowanie strony
-        if (commands.length > 1) {
-            // Zapisujemy pozostałe komendy do wysłania
-            localStorage.setItem('pendingCommands', JSON.stringify(commands.slice(1)));
-            
-            // Dodajemy parametr do URL, który zasygnalizuje, że należy kontynuować sekwencję
-            setTimeout(function() {
-                window.location.href = window.location.pathname + '?continueSequence=true';
-            }, commands[0].delay);
-        }
+        // Zapisz sekwencję do localStorage
+        localStorage.setItem('activeCommandSequence', JSON.stringify(sequence));
+        
+        // Wyślij pierwszą komendę
+        executeNextCommand();
     }
     
     /**
-     * Sprawdza czy są oczekujące komendy do wysłania
+     * Wykonuje następną komendę z aktywnej sekwencji
      */
-    function checkPendingCommands() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('continueSequence')) {
-            const pendingCommandsJSON = localStorage.getItem('pendingCommands');
-            if (pendingCommandsJSON) {
-                try {
-                    const pendingCommands = JSON.parse(pendingCommandsJSON);
-                    if (pendingCommands.length > 0) {
-                        // Usuwamy oczekujące komendy z localStorage
-                        localStorage.removeItem('pendingCommands');
-                        
-                        // Wysyłamy następną komendę
-                        setTimeout(function() {
-                            sendSequentialCommands(pendingCommands);
-                        }, 300); // Krótkie opóźnienie, aby strona zdążyła się załadować
-                    }
-                } catch (e) {
-                    console.error('Błąd podczas przetwarzania oczekujących komend:', e);
-                    localStorage.removeItem('pendingCommands');
-                }
-            }
-            
-            // Usuwamy parametr URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+    function executeNextCommand() {
+        const sequenceJSON = localStorage.getItem('activeCommandSequence');
+        if (!sequenceJSON) return;
+        
+        const sequence = JSON.parse(sequenceJSON);
+        
+        // Sprawdź czy mamy jeszcze komendy do wykonania
+        if (sequence.currentIndex >= sequence.commands.length) {
+            addToLog('Sekwencja komend zakończona');
+            localStorage.removeItem('activeCommandSequence');
+            return;
         }
+        
+        // Pobierz aktualną komendę
+        const currentCommand = sequence.commands[sequence.currentIndex];
+        addToLog(`Wykonuję komendę ${sequence.currentIndex + 1}/${sequence.totalCommands}: ${currentCommand.data}`);
+        
+        // Zaktualizuj index w sekwencji
+        sequence.currentIndex++;
+        localStorage.setItem('activeCommandSequence', JSON.stringify(sequence));
+        
+        // Wyślij aktualną komendę
+        sendCommand(currentCommand.data, currentCommand.delay);
     }
     
-    // Sprawdź czy są oczekujące komendy przy ładowaniu strony
-    checkPendingCommands();
-    
     /**
-     * Wysyła dane z przycisku
-     * @param {string} data - Dane do wysłania w formacie HEX
+     * Wysyła komendę i ustawia timer na następną (jeśli jest)
+     * @param {string} data - Dane do wysłania
+     * @param {number} delay - Opóźnienie przed następną komendą
      */
-    function sendCustomCommand(data) {
-        // Tworzymy ukryty formularz do wysłania danych
+    function sendCommand(data, delay) {
+        // Przygotuj formularz do wysłania danych
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/send';
+        form.id = 'command-form';
         
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'data';
-        input.value = data;
+        const dataInput = document.createElement('input');
+        dataInput.type = 'hidden';
+        dataInput.name = 'data';
+        dataInput.value = data;
         
-        form.appendChild(input);
+        const delayInput = document.createElement('input');
+        delayInput.type = 'hidden';
+        delayInput.name = 'continue_sequence';
+        delayInput.value = 'true';
+        
+        form.appendChild(dataInput);
+        form.appendChild(delayInput);
         document.body.appendChild(form);
-        form.submit();
+        
+        // Dodaj flagę, że jest to część sekwencji i ustawiliśmy już timer
+        localStorage.setItem('commandWithTimer', 'true');
+        localStorage.setItem('commandDelay', delay.toString());
+        
+        setTimeout(() => {
+            form.submit();
+        }, 100); // Krótkie opóźnienie aby logi mogły się zaktualizować
+    }
+    
+    /**
+     * Sprawdza czy jest aktywna sekwencja komend i czy powinniśmy kontynuować
+     */
+    function checkActiveSequence() {
+        const shouldContinue = localStorage.getItem('commandWithTimer');
+        
+        if (shouldContinue) {
+            // Pobierz opóźnienie do następnej komendy
+            const delay = parseInt(localStorage.getItem('commandDelay') || '0');
+            
+            // Usuń flagi
+            localStorage.removeItem('commandWithTimer');
+            localStorage.removeItem('commandDelay');
+            
+            // Ustawienie timera na wykonanie następnej komendy
+            setTimeout(() => {
+                executeNextCommand();
+            }, delay);
+        }
     }
     
     /**
@@ -292,7 +368,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.addEventListener('click', function() {
                         // Obsługa kompatybilności wstecznej
                         const commands = buttonInfo.commands || [{data: buttonInfo.data, delay: 0}];
-                        sendSequentialCommands(commands);
+                        console.log(`Kliknięto przycisk "${buttonInfo.name}", komendy:`, commands);
+                        
+                        // Dodaj informację do logów strony
+                        addToLog(`Uruchamiam sekwencję ${commands.length} komend z przycisku "${buttonInfo.name}"`);
+                        
+                        // Uruchom sekwencję wykonania komend
+                        executeCommandSequence(commands);
                     });
                     
                     // Dodajemy przycisk do usunięcia
