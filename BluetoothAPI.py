@@ -3,18 +3,120 @@ import sys
 import time
 import threading
 import traceback
+import json
+import platform
+import os
+import subprocess
+import re
 from PySide6.QtCore import QCoreApplication, QObject, QTimer, Signal, QEventLoop, QThread
 from PySide6.QtBluetooth import (QBluetoothDeviceDiscoveryAgent,
                               QBluetoothSocket, QBluetoothServiceInfo, QBluetoothAddress, QBluetoothLocalDevice)
 
 # Globalne zmienne do przechowywania stanu
 discovered_devices = []
+paired_devices = []
 logs = []
 bt_client = None
 qt_app = None
+connected_device_address = None
 
 # Inicjalizacja aplikacji Flask
 app = Flask(__name__)
+
+def add_log(message, level="INFO"):
+    """Dodaje wiadomość do logów z poziomem ważności"""
+    log_entry = f"[{level}] {message}"
+    logs.append(log_entry)
+    print(log_entry)  # Wyświetl również w konsoli
+    
+    # Zachowaj tylko ostatnie 500 logów
+    if len(logs) > 500:
+        logs.pop(0)
+
+def reset_bluetooth():
+    """
+    Funkcja resetująca adapter Bluetooth niezależnie od klasy klienta.
+    Ta funkcja może być wywoływana bezpośrednio po rozłączeniu.
+    """
+    try:
+        add_log("Uruchamianie procedury resetowania Bluetooth...", "INFO")
+        
+        # Poczekaj chwilę, aby upewnić się, że rozłączenie się zakończyło
+        time.sleep(1)
+        QCoreApplication.processEvents()
+        
+        # Spróbuj resetować Bluetooth przez Qt API
+        local_device = QBluetoothLocalDevice()
+        if local_device.isValid():
+            current_mode = local_device.hostMode()
+            add_log(f"Aktualny tryb Bluetooth: {current_mode}", "DEBUG")
+            
+            # Zapamiętaj oryginalny tryb
+            original_mode = current_mode
+            
+            add_log("Wyłączam Bluetooth...", "INFO")
+            local_device.setHostMode(QBluetoothLocalDevice.HostMode.HostPoweredOff)
+            
+            # Daj czas adaptera na wyłączenie
+            for i in range(10):  # Timeout: 2 sekundy
+                time.sleep(0.2)
+                QCoreApplication.processEvents()
+                # Sprawdź, czy wyłączenie się powiodło
+                if local_device.hostMode() == QBluetoothLocalDevice.HostMode.HostPoweredOff:
+                    add_log("Bluetooth został wyłączony pomyślnie", "INFO")
+                    break
+            
+            # Teraz spróbuj włączyć Bluetooth
+            add_log("Włączam Bluetooth w trybie Discoverable...", "INFO")
+            local_device.setHostMode(QBluetoothLocalDevice.HostMode.HostDiscoverable)
+            
+            # Daj czas adaptera na włączenie
+            for i in range(15):  # Timeout: 3 sekundy
+                time.sleep(0.2)
+                QCoreApplication.processEvents()
+                current_mode = local_device.hostMode()
+                # Sprawdź, czy włączenie się powiodło
+                if current_mode != QBluetoothLocalDevice.HostMode.HostPoweredOff:
+                    add_log(f"Bluetooth został włączony pomyślnie w trybie: {current_mode}", "INFO")
+                    return True
+            
+            # Jeśli nie udało się włączyć w trybie Discoverable, spróbuj Connectable
+            if local_device.hostMode() == QBluetoothLocalDevice.HostMode.HostPoweredOff:
+                add_log("Próba włączenia w trybie Connectable...", "WARNING")
+                local_device.setHostMode(QBluetoothLocalDevice.HostMode.HostConnectable)
+                
+                # Daj czas adaptera na włączenie
+                for i in range(15):  # Timeout: 3 sekundy
+                    time.sleep(0.2)
+                    QCoreApplication.processEvents()
+                    current_mode = local_device.hostMode()
+                    # Sprawdź, czy włączenie się powiodło
+                    if current_mode != QBluetoothLocalDevice.HostMode.HostPoweredOff:
+                        add_log(f"Bluetooth został włączony pomyślnie w trybie: {current_mode}", "INFO")
+                        return True
+                
+                # Jeśli nadal nie udało się włączyć, spróbuj przywrócić oryginalny tryb
+                if local_device.hostMode() == QBluetoothLocalDevice.HostMode.HostPoweredOff:
+                    add_log("Próba przywrócenia oryginalnego trybu...", "WARNING")
+                    local_device.setHostMode(original_mode)
+                    
+                    time.sleep(1)
+                    QCoreApplication.processEvents()
+                    
+                    if local_device.hostMode() == QBluetoothLocalDevice.HostMode.HostPoweredOff:
+                        add_log("Nie udało się włączyć Bluetooth", "ERROR")
+                        return False
+            
+            add_log(f"Bluetooth działa w trybie: {local_device.hostMode()}", "INFO")
+            return True
+        else:
+            add_log("QBluetoothLocalDevice nie jest ważny", "ERROR")
+            return False
+            
+    except Exception as e:
+        add_log(f"Błąd podczas resetowania Bluetooth: {str(e)}", "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return False
 
 class BluetoothConsoleClient(QObject):
     """Klasa obsługująca komunikację Bluetooth w aplikacji Flask"""
@@ -35,6 +137,7 @@ class BluetoothConsoleClient(QObject):
         self.is_connected = False
         self.connection_error = False
         self.last_error = ""
+        self.connected_device_address = None
     
     def _create_socket(self):
         """Tworzy nowy socket Bluetooth"""
@@ -132,6 +235,9 @@ class BluetoothConsoleClient(QObject):
             # Zwróć status połączenia
             if self.is_connected:
                 add_log(f"Połączono z urządzeniem {address_str} pomyślnie", "INFO")
+                self.connected_device_address = address_str
+                global connected_device_address
+                connected_device_address = address_str
                 return True
             else:
                 if self.last_error:
@@ -208,14 +314,17 @@ class BluetoothConsoleClient(QObject):
             add_log(f"Nieoczekiwany wyjątek podczas rozparowania: {str(e)}", "ERROR")
             add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
             return False
-    
+
     def disconnect(self):
-        """Rozłącza połączenie z urządzeniem"""
+        """
+        Zmodyfikowana metoda disconnect, która po rozłączeniu wywołuje niezależną funkcję
+        resetującą Bluetooth.
+        """
         if not hasattr(self, 'socket') or not self.socket:
             add_log("Brak inicjalizowanego socketu", "WARNING")
             self.is_connected = False
             return False
-            
+                
         if self.socket.state() == QBluetoothSocket.SocketState.ConnectedState:
             add_log("Rozłączanie...", "INFO")
             
@@ -229,36 +338,20 @@ class BluetoothConsoleClient(QObject):
             timeout = 0
             add_log("Oczekiwanie na rozłączenie...", "DEBUG")
             while (self.socket.state() != QBluetoothSocket.SocketState.UnconnectedState and 
-                   timeout < 30):
+                    timeout < 30):
                 QCoreApplication.processEvents()
                 time.sleep(0.1)
                 timeout += 1
-                
+                    
             self.is_connected = False
+            self.connected_device_address = None
+            global connected_device_address
+            connected_device_address = None
 
-            # Próba resetowania adaptera Bluetooth
-            try:
-                local_device = QBluetoothLocalDevice()
-                if local_device.isValid():
-                    # Zapisz aktualny tryb
-                    current_mode = local_device.hostMode()
-                    add_log(f"Aktualny tryb Bluetooth: {current_mode}", "DEBUG")
-                        
-                    # Tymczasowo wyłącz Bluetooth
-                    local_device.setHostMode(QBluetoothLocalDevice.HostMode.HostPoweredOff)
-                    add_log("Tymczasowo wyłączono Bluetooth", "INFO")
-                        
-                    # Daj chwilę na wykonanie operacji
-                    time.sleep(1)
-                    QCoreApplication.processEvents()
-                        
-                    # Przywróć poprzedni tryb
-                    local_device.setHostMode(current_mode)
-                    add_log("Przywrócono poprzedni stan Bluetooth", "INFO")
-                else:
-                    add_log("QBluetoothLocalDevice nie jest ważny", "WARNING")
-            except Exception as e:
-                add_log(f"Błąd podczas manipulacji trybem hosta Bluetooth: {str(e)}", "ERROR")
+            # Zamiast próbować resetować Bluetooth w metodzie, wywołaj dedykowaną funkcję
+            reset_success = reset_bluetooth()
+            if not reset_success:
+                add_log("Resetowanie Bluetooth nie powiodło się - sprawdź logi", "WARNING")
             
             # Jeśli socket nadal nie jest rozłączony, utwórz nowy
             if self.socket.state() != QBluetoothSocket.SocketState.UnconnectedState:
@@ -308,6 +401,9 @@ class BluetoothConsoleClient(QObject):
         """Handler rozłączenia"""
         add_log("Rozłączono z urządzeniem", "INFO")
         self.is_connected = False
+        self.connected_device_address = None
+        global connected_device_address
+        connected_device_address = None
         self.disconnected.emit()
     
     def _on_ready_read(self):
@@ -365,19 +461,6 @@ class BluetoothConsoleClient(QObject):
         """Zatrzymuje oczekiwanie na połączenie po błędzie"""
         timer.stop()
         loop.quit()
-
-
-def add_log(message, level="INFO"):
-    """Dodaje wiadomość do logów z poziomem ważności"""
-    #timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    log_entry = f"[{level}] {message}"
-    logs.append(log_entry)
-    print(log_entry)  # Wyświetl również w konsoli
-    
-    # Zachowaj tylko ostatnie 500 logów
-    if len(logs) > 500:
-        logs.pop(0)
-
 
 def scan_devices():
     """Funkcja do skanowania dostępnych urządzeń Bluetooth"""
@@ -462,6 +545,175 @@ def scan_devices():
     return discovered_devices
 
 
+def get_system_paired_devices():
+    """Pobiera sparowane urządzenia bezpośrednio z systemu operacyjnego"""
+    system_devices = []
+    try:
+        # Sprawdź system operacyjny
+        system = platform.system()
+        
+        if system == "Windows":
+            add_log("Pobieranie sparowanych urządzeń z systemu Windows", "INFO")
+            # Użyj komendy PowerShell do pobrania sparowanych urządzeń Bluetooth
+            try:
+                command = "powershell -command \"& {Get-PnpDevice -Class Bluetooth | Where-Object { $_.FriendlyName -notlike '*Radio*' } | Select-Object FriendlyName, DeviceID, Status | ConvertTo-Json}\""
+                result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
+                
+                if result.returncode == 0 and result.stdout and result.stdout.strip():
+                    try:
+                        # Konwersja wyjścia do JSON
+                        devices_raw = json.loads(result.stdout)
+                        
+                        # PowerShell może zwrócić pojedynczy obiekt zamiast tablicy, jeśli jest tylko jedno urządzenie
+                        if not isinstance(devices_raw, list):
+                            devices_raw = [devices_raw]
+                        
+                        for device in devices_raw:
+                            # Wyciągnij adres MAC z DeviceID (ostatnie 17 znaków przed _C00000000)
+                            mac_address = None
+                            
+                            if 'DeviceID' in device and device['DeviceID']:
+                                match = re.search(r'([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})', 
+                                                  device['DeviceID'], re.IGNORECASE)
+                                
+                                if match:
+                                    mac_address = match.group(1)
+                            
+                            if mac_address and 'FriendlyName' in device:
+                                device_info = {
+                                    'name': device['FriendlyName'],
+                                    'address': mac_address,
+                                    'status': device.get('Status', 'Unknown'),
+                                    'connected': False  # Domyślnie ustawiane na False
+                                }
+                                
+                                # Sprawdź czy urządzenie jest już podłączone
+                                if bt_client and bt_client.is_connected and bt_client.connected_device_address == mac_address:
+                                    device_info['connected'] = True
+                                
+                                system_devices.append(device_info)
+                    except Exception as e:
+                        add_log(f"Błąd podczas parsowania danych z PowerShell: {str(e)}", "ERROR")
+                else:
+                    # Alternatywna metoda uzyskania urządzeń Bluetooth
+                    add_log("Alternatywne pobieranie sparowanych urządzeń Bluetooth w Windows", "INFO")
+                    # Sprawdź podłączone urządzenie Bluetooth
+                    if bt_client and bt_client.is_connected and bt_client.connected_device_address:
+                        # Dodaj chociaż podłączone urządzenie
+                        device_info = {
+                            'name': 'Połączone urządzenie Bluetooth',
+                            'address': bt_client.connected_device_address,
+                            'status': 'Connected',
+                            'connected': True
+                        }
+                        system_devices.append(device_info)
+            except Exception as e:
+                add_log(f"Błąd podczas pobierania urządzeń przez PowerShell: {str(e)}", "ERROR")
+                add_log(f"Szczegóły błędu: {traceback.format_exc()}", "DEBUG")
+                # Próba alternatywnej metody
+                if bt_client and bt_client.is_connected and bt_client.connected_device_address:
+                    # Dodaj chociaż podłączone urządzenie
+                    device_info = {
+                        'name': 'Połączone urządzenie Bluetooth',
+                        'address': bt_client.connected_device_address,
+                        'status': 'Connected',
+                        'connected': True
+                    }
+                    system_devices.append(device_info)
+            
+        elif system == "Linux":
+            # Implementacja dla Linuxa
+            add_log("Pobieranie sparowanych urządzeń z systemu Linux", "INFO")
+            command = "bluetoothctl paired-devices"
+            result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            
+            if result.returncode == 0 and result.stdout:
+                lines = result.stdout.strip().split('\n')
+                for line in lines:
+                    if line.strip():
+                        # Format: Device XX:XX:XX:XX:XX:XX DeviceName
+                        parts = line.strip().split(' ', 2)
+                        if len(parts) >= 3 and parts[0] == "Device":
+                            mac_address = parts[1]
+                            device_name = parts[2] if len(parts) > 2 else "Nieznane urządzenie"
+                            
+                            device_info = {
+                                'name': device_name,
+                                'address': mac_address,
+                                'status': 'Unknown',
+                                'connected': False
+                            }
+                            
+                            # Sprawdź czy urządzenie jest już podłączone
+                            if bt_client and bt_client.is_connected and bt_client.connected_device_address == mac_address:
+                                device_info['connected'] = True
+                                
+                            system_devices.append(device_info)
+            else:
+                add_log(f"Błąd wykonania bluetoothctl: {result.stderr}", "ERROR")
+                
+        elif system == "Darwin":  # macOS
+            # Implementacja dla macOS
+            add_log("Pobieranie sparowanych urządzeń z systemu macOS", "INFO")
+            command = "system_profiler SPBluetoothDataType -json"
+            result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            
+            if result.returncode == 0 and result.stdout:
+                try:
+                    data = json.loads(result.stdout)
+                    bluetooth_data = data.get('SPBluetoothDataType', [{}])[0]
+                    devices_data = bluetooth_data.get('device_title', {})
+                    
+                    for device_name, device_info in devices_data.items():
+                        if 'device_address' in device_info:
+                            mac_address = device_info['device_address']
+                            
+                            device_data = {
+                                'name': device_name,
+                                'address': mac_address,
+                                'status': 'Connected' if device_info.get('device_isconnected', False) else 'Not Connected',
+                                'connected': device_info.get('device_isconnected', False)
+                            }
+                            
+                            system_devices.append(device_data)
+                except Exception as e:
+                    add_log(f"Błąd podczas parsowania danych JSON z system_profiler: {str(e)}", "ERROR")
+            else:
+                add_log(f"Błąd wykonania system_profiler: {result.stderr}", "ERROR")
+        
+        else:
+            add_log(f"Niewspierany system operacyjny: {system}", "ERROR")
+        
+        # Dodatkowe zabezpieczenie - jeśli lista jest pusta, ale mamy podłączone urządzenie
+        if not system_devices and bt_client and bt_client.is_connected and bt_client.connected_device_address:
+            # Dodaj chociaż podłączone urządzenie
+            device_info = {
+                'name': 'Połączone urządzenie Bluetooth',
+                'address': bt_client.connected_device_address,
+                'status': 'Connected',
+                'connected': True
+            }
+            system_devices.append(device_info)
+        
+        add_log(f"Znaleziono {len(system_devices)} sparowanych urządzeń z systemu", "INFO")
+        
+    except Exception as e:
+        add_log(f"Nieoczekiwany błąd podczas pobierania sparowanych urządzeń: {str(e)}", "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        
+        # Dodatkowe zabezpieczenie - jeśli wystąpił błąd, ale mamy podłączone urządzenie
+        if bt_client and bt_client.is_connected and bt_client.connected_device_address:
+            # Dodaj chociaż podłączone urządzenie
+            device_info = {
+                'name': 'Połączone urządzenie Bluetooth',
+                'address': bt_client.connected_device_address,
+                'status': 'Connected',
+                'connected': True
+            }
+            system_devices.append(device_info)
+    
+    return system_devices
+
 class QtThread(QThread):
     """Klasa do obsługi wątku Qt"""
     def run(self):
@@ -532,13 +784,66 @@ def connect():
     """Trasa do łączenia z urządzeniem"""
     address = request.form.get('address')
     add_log(f"Otrzymano żądanie połączenia z adresem: {address}", "DEBUG")
+    
+    connection_success = False
+    device_info = {
+        'name': 'Nieznane urządzenie',
+        'address': address,
+        'connected': False,
+        'type': 'other'
+    }
+    
     if address:
         if bt_client:
-            bt_client.connect_to_device(address)
+            # Próba połączenia
+            connection_success = bt_client.connect_to_device(address)
+            
+            # Jeśli połączenie się powiodło, dodaj urządzenie do lokalnej bazy
+            if connection_success:
+                # Ustaw status połączenia
+                device_info['connected'] = True
+                
+                # Próba pobrania nazwy urządzenia z systemu
+                try:
+                    system_devices = get_system_paired_devices()
+                    matching_device = next((dev for dev in system_devices if dev['address'] == address), None)
+                    
+                    if matching_device:
+                        device_info['name'] = matching_device.get('name', 'Nieznane urządzenie')
+                        # Można też pobrać inne dostępne informacje
+                except Exception as e:
+                    add_log(f"Błąd podczas pobierania informacji o urządzeniu: {str(e)}", "ERROR")
+                
+                # Dodaj skrypt do strony, który doda urządzenie do localStorage po załadowaniu
+                connect_script = f"""
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {{
+                        // Wyślij zdarzenie deviceConnected
+                        window.dispatchEvent(new CustomEvent('deviceConnected', {{
+                            detail: {{
+                                device: {{
+                                    name: "{device_info['name']}",
+                                    address: "{device_info['address']}",
+                                    connected: true,
+                                    type: "{device_info['type']}"
+                                }}
+                            }}
+                        }}));
+                    }});
+                </script>
+                """
+                # Przekieruj na stronę główną z dodatkowym skryptem
+                return render_template('main.html', 
+                              logs=logs, 
+                              devices=discovered_devices, 
+                              bluetooth_status="Dostępny" if bt_client.is_connected else "Niepołączony",
+                              connect_script=connect_script)
         else:
             add_log("Bluetooth nie został zainicjalizowany", "ERROR")
     else:
         add_log("Nie podano adresu MAC", "WARNING")
+    
+    # Jeśli doszliśmy tutaj, przekieruj na stronę główną bez skryptu
     return redirect(url_for('index'))
 
 
@@ -546,10 +851,19 @@ def connect():
 def disconnect():
     """Trasa do rozłączania urządzenia"""
     add_log("Otrzymano żądanie rozłączenia", "DEBUG")
+    disconnect_success = False
+    
     if bt_client and bt_client.is_connected:
-        bt_client.disconnect()
+        disconnect_success = bt_client.disconnect()
     else:
         add_log("Brak aktywnego połączenia", "WARNING")
+    
+    # Dodatkowe bezpośrednie wywołanie resetowania Bluetooth
+    if disconnect_success:
+        add_log("Próba dodatkowego resetowania Bluetooth po rozłączeniu", "INFO")
+        # Dokonujemy dodatkowego resetowania jako zabezpieczenie
+        reset_bluetooth()
+    
     return redirect(url_for('index'))
 
 
@@ -604,7 +918,50 @@ def clear_logs():
     add_log("Logi wyczyszczone", "INFO")
     return redirect(url_for('index'))
 
-# New route to add to the Flask application
+
+# Nowa trasa do pobierania sparowanych urządzeń
+@app.route('/get_paired_devices')
+def get_paired_devices():
+    """Trasa do pobierania listy sparowanych urządzeń"""
+    add_log("Otrzymano żądanie pobrania sparowanych urządzeń", "DEBUG")
+    try:
+        # Pobierz urządzenia z systemu
+        system_devices = get_system_paired_devices()
+        
+        # Dodaj informacje o aktualnie podłączonym urządzeniu
+        if bt_client and bt_client.is_connected and bt_client.connected_device_address:
+            for device in system_devices:
+                if device['address'] == bt_client.connected_device_address:
+                    device['connected'] = True
+        
+        return jsonify({
+            'status': 'success',
+            'devices': system_devices
+        })
+    except Exception as e:
+        add_log(f"Błąd podczas pobierania sparowanych urządzeń: {str(e)}", "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'devices': []
+        }), 500
+
+
+# Nowa trasa do sprawdzania statusu połączenia dla AJAX
+@app.route('/connection_status')
+def connection_status():
+    """Trasa do sprawdzania statusu połączenia dla AJAX"""
+    is_connected = bt_client and bt_client.is_connected
+    address = bt_client.connected_device_address if bt_client and bt_client.is_connected else None
+    
+    return jsonify({
+        'connected': is_connected,
+        'address': address
+    })
+
+
+# Trasa do symulacji połączenia (tylko do testów)
 @app.route('/simulate_connection', methods=['POST'])
 def simulate_connection():
     """Trasa do symulacji połączenia (tylko do testów)"""
@@ -617,6 +974,11 @@ def simulate_connection():
         # Tylko symulujemy połączenie - ustawiamy flagę bez faktycznego łączenia
         bt_client.is_connected = True
         
+        # Ustawiamy przykładowy adres MAC podłączonego urządzenia
+        bt_client.connected_device_address = "00:11:22:33:44:55"
+        global connected_device_address
+        connected_device_address = "00:11:22:33:44:55"
+        
         # Emitujemy sygnał połączenia
         bt_client.connected.emit()
         
@@ -625,6 +987,7 @@ def simulate_connection():
         add_log("Bluetooth nie został zainicjalizowany", "ERROR")
     
     return redirect(url_for('index'))
+
 
 # Funkcja do uruchomienia serwera Flask w osobnym wątku
 def start_flask_server():

@@ -5,96 +5,228 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bluetooth Manager</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+  <!-- Zmienione importowanie Font Awesome na nowszą wersję -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-  <header class="header">
-    <div class="container header-container">
-        <h1 class="logo">Bluetooth Manager</h1>
-        <div class="header-buttons">
-          <a href="#" class="btn btn-outline">Login</a>
-          <a href="#" class="btn btn-primary">Register</a>
-      </div>
-    </div>
-  </header>
-
-  <div class="container">
-    
-    <!-- Lista znalezionych urządzeń -->
-    <div class="section devices-list">
-      <h2>Znalezione urządzenia</h2>
-      <!-- Przycisk do skanowania urządzeń -->
-      <form action="/scan" method="post" style="display: inline-block; margin-right: 10px;" id="scan-form">
-        <input type="submit" value="Skanuj urządzenia" class="btn">
-      </form>
-      
-      <!-- Wskaźnik ładowania podczas skanowania -->
-      <div class="loading-spinner" id="scanning-indicator" style="display: none;">
-        <div class="spinner"></div>
-        <div class="loading-text">Trwa skanowanie urządzeń Bluetooth...</div>
-      </div>
-      
-      <hr style="height:10px;border-width:0;color:transparent;">
-      
-      
-      <!-- Przycisk do symulacji połączenia (tylko do testów) -->
-      <form action="/simulate_connection" method="post" style="display: inline-block;">
-        <input type="submit" value="Symuluj połączenie" class="btn btn-simulate">
-      </form>
-      
-      <!-- Filtrowanie urządzeń -->
-      {% if devices %}
-        <div class="filter-container">
-          <label for="device-filter">Filtruj urządzenia:</label>
-          <input type="text" id="device-filter" placeholder="Wpisz nazwę lub adres MAC..." class="filter-input">
+  <div class="app-container">
+    <!-- Sidebar w stylu Minecraft Launcher -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="user-profile">
+          <!-- Przywrócenie ikony Font Awesome zamiast SVG -->
+          <i class="fab fa-bluetooth-b"></i>
+          <div class="user-info">
+            <span class="username">BluetoothManager</span>
+            <span class="user-subtitle">Wersja 1.0</span>
+          </div>
         </div>
-        <div class="devices-table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Adres MAC</th>
-                <th>Akcje</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for device in devices %}
-              <tr>
-                <td>{{ device.name }}</td>
-                <td>{{ device.address }}</td>
-                <td>
-                  <form action="/connect" method="post" style="display: inline-block; margin-right: 5px;">
-                    <input type="hidden" name="address" value="{{ device.address }}">
-                    <input type="submit" value="Połącz" class="btn btn-small">
-                  </form>
-                  <form action="/unpair" method="post" style="display: inline-block;">
-                    <input type="hidden" name="address" value="{{ device.address }}">
-                    <input type="submit" value="Rozparuj" class="btn btn-small btn-warning">
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <p>Brak znalezionych urządzeń. Kliknij "Skanuj urządzenia", aby rozpocząć wyszukiwanie.</p>
-      {% endif %}
-    </div>
-
-    <!-- Sekcja wysyłania danych (widoczna tylko gdy połączono) -->
-    {% if bluetooth_status == 'Dostępny' %}
-
-    <!-- Sekcja do sterowania urządzeniem -->
-    <div class="section">
-      <h2>Sterowanie urządzeniem</h2>
-      <p>Stwórz własne przyciski z komendami do szybkiego wysyłania danych do urządzenia.</p>
-      
-      <div id="custom-buttons" class="button-container">
-        <!-- Tutaj będą dynamicznie dodawane przyciski -->
       </div>
-      
-      
+
+      <div class="sidebar-menu">
+        <!-- Przycisk Filtry rozwijający filtry -->
+        <div class="menu-item-dropdown">
+          <div class="menu-item active toggle-section" data-target="filters-container">
+            <span>Filtry</span>
+            <i class="fas fa-chevron-down dropdown-toggle open"></i>
+          </div>
+          <div id="filters-container" class="dropdown-filters" style="display: block;">
+            <div class="filter-option filter-search">
+              <input type="text" id="sidebar-filter-name" placeholder="Szukaj po nazwie lub MAC">
+            </div>
+            <div class="filter-option filter-type">
+              <select id="sidebar-filter-type">
+                <option value="">Wszystkie typy</option>
+                <option value="headphones">Słuchawki</option>
+                <option value="speaker">Głośnik</option>
+                <option value="keyboard">Klawiatura</option>
+                <option value="mouse">Mysz</option>
+                <option value="gamepad">Kontroler</option>
+                <option value="other">Inne</option>
+              </select>
+            </div>
+            <div class="clear-filters">
+              <button id="clear-filters-btn" class="clear-filters-btn">
+                Wyczyść filtry
+              </button>
+            </div>
+          </div>
+        </div>
         
+        <!-- Sekcja połączonego urządzenia -->
+        <div id="connected-device-section" style="display: none;">
+          <div class="sidebar-section-header toggle-section" data-target="connected-device-container">
+            <span>AKTUALNIE POŁĄCZONE</span>
+            <i class="fa-solid fa-chevron-down dropdown-toggle open"></i>
+          </div>
+          <div id="connected-device-container">
+            <!-- Tu będzie wyświetlane aktualnie połączone urządzenie -->
+          </div>
+        </div>
+        
+        <!-- Sekcja ulubionych urządzeń -->
+        <div id="favorite-devices-section" style="display: none;">
+          <div class="sidebar-section-header toggle-section" data-target="favorite-devices-container">
+            <span>ULUBIONE</span>
+            <i class="fa-solid fa-chevron-down dropdown-toggle"></i>
+          </div>
+          <div id="favorite-devices-container" class="sidebar-device-list">
+            <!-- Tu będą wyświetlane ulubione urządzenia -->
+          </div>
+        </div>
+        
+        <!-- Sekcja sparowanych urządzeń -->
+        <div class="sidebar-section-header toggle-section" data-target="paired-devices-list">
+          <span>URZĄDZENIA SPAROWANE</span>
+          <i class="fa-solid fa-chevron-down dropdown-toggle"></i>
+        </div>
+        
+        <div id="paired-devices-list" class="sidebar-device-list">
+          <!-- Tu będą dynamicznie dodawane sparowane urządzenia -->
+          <div class="loading-device-item">
+            <div class="loading-spinner-small"></div>
+            <span>Ładowanie urządzeń...</span>
+          </div>
+        </div>
+        
+        <div class="sidebar-footer">
+          <button id="refresh-paired-devices" class="sidebar-button">
+            <i class="fas fa-sync-alt"></i>
+            <span class="button-text">                 Odśwież listę</span>
+          </button>
+          <div class="version-info">v.3.14.2-2.2.2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Główna zawartość -->
+    <div class="main-content">
+      <header class="header">
+        <div class="container header-container">
+          <h1 class="logo">Bluetooth Manager</h1>
+          <div class="header-buttons">
+            <a href="#" class="btn btn-outline">Login</a>
+            <a href="#" class="btn btn-primary">Register</a>
+          </div>
+        </div>
+      </header>
+
+      <div class="container">
+        <!-- Lista znalezionych urządzeń -->
+        <div class="section devices-list">
+          <h2>Znalezione urządzenia</h2>
+          <!-- Przycisk do skanowania urządzeń -->
+          <form action="/scan" method="post" style="display: inline-block; margin-right: 10px;" id="scan-form">
+            <input type="submit" value="Skanuj urządzenia" class="btn">
+          </form>
+          
+          <!-- Wskaźnik ładowania podczas skanowania -->
+          <div class="loading-spinner" id="scanning-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <div class="loading-text">Trwa skanowanie urządzeń Bluetooth...</div>
+          </div>
+          
+          <!-- Filtrowanie urządzeń -->
+          {% if devices %}
+            <div class="filter-container">
+              <label for="device-filter">Filtruj urządzenia:</label>
+              <input type="text" id="device-filter" placeholder="Wpisz nazwę lub adres MAC..." class="filter-input">
+            </div>
+            <div class="devices-table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nazwa</th>
+                    <th>Adres MAC</th>
+                    <th>Akcje</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for device in devices %}
+                  <tr>
+                    <td>{{ device.name }}</td>
+                    <td>{{ device.address }}</td>
+                    <td>
+                      <form action="/connect" method="post" style="display: inline-block; margin-right: 5px;">
+                        <input type="hidden" name="address" value="{{ device.address }}">
+                        <input type="submit" value="Połącz" class="btn btn-small">
+                      </form>
+                      <form action="/unpair" method="post" style="display: inline-block;">
+                        <input type="hidden" name="address" value="{{ device.address }}">
+                        <input type="submit" value="Rozparuj" class="btn btn-small btn-warning">
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p>Brak znalezionych urządzeń. Kliknij "Skanuj urządzenia", aby rozpocząć wyszukiwanie.</p>
+          {% endif %}
+        </div>
+
+        <!-- Sekcja Debug -->
+        <div class="section debug-section">
+          <h2>Debug</h2>
+          <div class="debug-controls">
+            <div class="debug-row">
+              <h3>Zarządzanie urządzeniami</h3>
+              <div class="debug-actions">
+                <form action="/simulate_connection" method="post" style="display: inline-block; margin-right: 10px;">
+                  <input type="submit" value="Symuluj połączenie" class="btn btn-simulate">
+                </form>
+                
+                <button id="add-test-device" class="btn btn-primary">Dodaj testowe urządzenie</button>
+              </div>
+            </div>
+            
+            <div class="debug-row">
+              <h3>Testowe urządzenie</h3>
+              <div class="debug-form">
+                <div class="debug-field">
+                  <label for="test-device-name">Nazwa:</label>
+                  <input type="text" id="test-device-name" value="Testowe Urządzenie">
+                </div>
+                <div class="debug-field">
+                  <label for="test-device-address">Adres MAC:</label>
+                  <input type="text" id="test-device-address" value="00:11:22:33:44:55">
+                </div>
+                <div class="debug-field">
+                  <label for="test-device-type">Typ urządzenia:</label>
+                  <select id="test-device-type">
+                    <option value="headphones">Słuchawki</option>
+                    <option value="speaker">Głośnik</option>
+                    <option value="keyboard">Klawiatura</option>
+                    <option value="mouse">Mysz</option>
+                    <option value="gamepad">Kontroler</option>
+                    <option value="other" selected>Inne</option>
+                  </select>
+                </div>
+                <div class="debug-field">
+                  <label for="test-device-connected">Status:</label>
+                  <select id="test-device-connected">
+                    <option value="false" selected>Niepodłączone</option>
+                    <option value="true">Podłączone</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sekcja wysyłania danych (widoczna tylko gdy połączono) -->
+        {% if bluetooth_status == 'Dostępny' %}
+
+        <!-- Sekcja do sterowania urządzeniem -->
+        <div class="section">
+          <h2>Sterowanie urządzeniem</h2>
+          <p>Stwórz własne przyciski z komendami do szybkiego wysyłania danych do urządzenia.</p>
+          
+          <div id="custom-buttons" class="button-container">
+            <!-- Tutaj będą dynamicznie dodawane przyciski -->
+          </div>
           
           <div class="commands-section">
             <h3>Stwórz nowy przycisk</h3>
@@ -103,54 +235,135 @@
                 <label for="button-name">Nazwa przycisku:</label>
                 <input type="text" id="button-name" placeholder="np. Włącz LED" required>
               </div>
-            <h4>Komendy do wysłania:</h4>
-            <div id="commands-container">
-              <!-- Tutaj będą dynamicznie dodawane pola komend -->
-            </div>
-            <button type="button" id="add-command" class="btn btn-small">Dodaj kolejną komendę</button>
-            <p class="hint">Możesz dodać wiele komend, które zostaną wykonane po sobie z określonym opóźnieniem.</p>
-          </div>
-          
-        </form>
-          <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
-            <button type="button" id="add-button" class="btn">Dodaj przycisk</button>
-            
-            {% if bluetooth_status == 'Dostępny' %}
-            <form action="/disconnect" method="post" style="display: inline-block;">
-              <input type="submit" value="Rozłącz" class="btn btn-warning">
+              <h4>Komendy do wysłania:</h4>
+              <div id="commands-container">
+                <!-- Tutaj będą dynamicznie dodawane pola komend -->
+              </div>
+              <button type="button" id="add-command" class="btn btn-small">Dodaj kolejną komendę</button>
+              <p class="hint">Możesz dodać wiele komend, które zostaną wykonane po sobie z określonym opóźnieniem.</p>
             </form>
+            
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+              <button type="button" id="add-button" class="btn">Dodaj przycisk</button>
+              
+              {% if bluetooth_status == 'Dostępny' %}
+              <form action="/disconnect" method="post" style="display: inline-block;">
+                <input type="submit" value="Rozłącz" class="btn btn-warning">
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Sekcja z logami -->
+        <div class="section">
+          <h2>Logi</h2>
+          <div class="log-container">
+            {% if logs %}
+              {% for log in logs|reverse %}
+                <div class="log-entry">{{ log }}</div>
+              {% endfor %}
+            {% else %}
+              <p>Brak logów.</p>
             {% endif %}
           </div>
-        </form>
-      
-    </div>
-    {% endif %}
-
-    <!-- Sekcja z logami -->
-    <div class="section">
-      <h2>Logi</h2>
-      <div class="log-container">
-        {% if logs %}
-          {% for log in logs|reverse %}
-            <div class="log-entry">{{ log }}</div>
-          {% endfor %}
-        {% else %}
-          <p>Brak logów.</p>
-        {% endif %}
+          <form action="/clear_logs" method="post" style="margin-top: 10px;">
+            <input type="submit" value="Wyczyść logi" class="btn btn-warning">
+          </form>
+        </div>
       </div>
-      <form action="/clear_logs" method="post" style="margin-top: 10px;">
-        <input type="submit" value="Wyczyść logi" class="btn btn-warning">
+    </div>
+  </div>
+  
+  <div id="device-edit-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Edytuj urządzenie</h2>
+      <form id="edit-device-form">
+        <input type="hidden" id="edit-device-address-hidden">
+        <div class="form-group">
+          <label for="edit-device-name">Nazwa urządzenia:</label>
+          <input type="text" id="edit-device-name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-device-type">Typ urządzenia:</label>
+          <select id="edit-device-type">
+            <option value="headphones">Słuchawki</option>
+            <option value="speaker">Głośnik</option>
+            <option value="keyboard">Klawiatura</option>
+            <option value="mouse">Mysz</option>
+            <option value="gamepad">Kontroler</option>
+            <option value="other">Inne</option>
+          </select>
+        </div>
+        <div class="form-group mac-address-display">
+          <label for="edit-device-address-display">Adres MAC:</label>
+          <input type="text" id="edit-device-address-display" disabled>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn">Zapisz</button>
+        </div>
       </form>
     </div>
   </div>
-
-  <footer class="footer">
-    <div class="container">
-        <p>© 2025 Bluetooth Manager. All rights reserved.</p>
-    </div>
-  </footer>
-
-  <!-- Podłączenie skryptu JavaScript -->
+  
+  <!-- Podłączenie skryptów JavaScript i biblioteki ikon -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script> 
   <script src="{{ url_for('static', filename='js/bluetooth.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+  
+  <!-- Skrypt do obsługi sekcji Debug -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Element przycisku do dodawania testowego urządzenia
+      const addTestDeviceBtn = document.getElementById('add-test-device');
+      
+      // Elementy formularza
+      const testDeviceName = document.getElementById('test-device-name');
+      const testDeviceAddress = document.getElementById('test-device-address');
+      const testDeviceType = document.getElementById('test-device-type');
+      const testDeviceConnected = document.getElementById('test-device-connected');
+      
+      // Obsługa dodawania testowego urządzenia
+      if (addTestDeviceBtn) {
+        addTestDeviceBtn.addEventListener('click', function() {
+          // Pobierz dane z formularza
+          const deviceName = testDeviceName.value || 'Testowe Urządzenie';
+          const deviceAddress = testDeviceAddress.value || '00:11:22:33:44:55';
+          const deviceType = testDeviceType.value || 'other';
+          const isConnected = testDeviceConnected.value === 'true';
+          
+          // Utwórz obiekt urządzenia
+          const testDevice = {
+            name: deviceName,
+            address: deviceAddress,
+            type: deviceType,
+            connected: isConnected
+          };
+          
+          // Wyzwól zdarzenie dodania urządzenia
+          window.dispatchEvent(new CustomEvent('deviceConnected', {
+            detail: {
+              device: testDevice
+            }
+          }));
+          
+          // Dodaj log
+          const logContainer = document.querySelector('.log-container');
+          if (logContainer) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[DEBUG] Dodano testowe urządzenie: ${deviceName} (${deviceAddress})`;
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+          }
+        });
+      }
+    });
+  </script>
+  
+  {% if connect_script %}
+    {{ connect_script|safe }}
+  {% endif %}
 </body>
 </html>
