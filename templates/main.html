@@ -100,6 +100,7 @@
       </div>
     </div>
 
+<<<<<<< HEAD
     <!-- Główna zawartość -->
     <div class="main-content">
       <header class="header">
@@ -109,9 +110,41 @@
             <a href="#" class="btn btn-outline">Login</a>
             <a href="#" class="btn btn-primary">Register</a>
           </div>
+=======
+  <div class="container">
+    
+    <!-- Lista znalezionych urządzeń -->
+    <div class="section devices-list">
+      <h2>Znalezione urządzenia</h2>
+      <!-- Przycisk do skanowania urządzeń -->
+      <form action="/scan" method="post" style="display: inline-block; margin-right: 10px;" id="scan-form">
+        <input type="submit" value="Skanuj urządzenia" class="btn">
+      </form>
+      
+      <!-- Wskaźnik ładowania podczas skanowania -->
+      <div class="loading-spinner" id="scanning-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <div class="loading-text">Trwa skanowanie urządzeń Bluetooth...</div>
+      </div>
+      
+      <hr style="height:10px;border-width:0;color:transparent;">
+      
+      
+      <!-- Przycisk do symulacji połączenia (tylko do testów) -->
+      <form action="/simulate_connection" method="post" style="display: inline-block;">
+        <input type="submit" value="Symuluj połączenie" class="btn btn-simulate">
+      </form>
+      
+      <!-- Filtrowanie urządzeń -->
+      {% if devices %}
+        <div class="filter-container">
+          <label for="device-filter">Filtruj urządzenia:</label>
+          <input type="text" id="device-filter" placeholder="Wpisz nazwę lub adres MAC..." class="filter-input">
+>>>>>>> b968e69ee60a84ae00646e851873ef5dccbeef17
         </div>
       </header>
 
+<<<<<<< HEAD
       <div class="container">
         <!-- Lista znalezionych urządzeń -->
         <div class="section devices-list">
@@ -227,6 +260,22 @@
           <div id="custom-buttons" class="button-container">
             <!-- Tutaj będą dynamicznie dodawane przyciski -->
           </div>
+=======
+    <!-- Sekcja wysyłania danych (widoczna tylko gdy połączono) -->
+    {% if bluetooth_status == 'Dostępny' %}
+
+    <!-- Sekcja do sterowania urządzeniem -->
+    <div class="section">
+      <h2>Sterowanie urządzeniem</h2>
+      <p>Stwórz własne przyciski z komendami do szybkiego wysyłania danych do urządzenia.</p>
+      
+      <div id="custom-buttons" class="button-container">
+        <!-- Tutaj będą dynamicznie dodawane przyciski -->
+      </div>
+      
+      
+        
+>>>>>>> b968e69ee60a84ae00646e851873ef5dccbeef17
           
           <div class="commands-section">
             <h3>Stwórz nowy przycisk</h3>
@@ -235,6 +284,7 @@
                 <label for="button-name">Nazwa przycisku:</label>
                 <input type="text" id="button-name" placeholder="np. Włącz LED" required>
               </div>
+<<<<<<< HEAD
               <h4>Komendy do wysłania:</h4>
               <div id="commands-container">
                 <!-- Tutaj będą dynamicznie dodawane pola komend -->
@@ -251,8 +301,14 @@
                 <input type="submit" value="Rozłącz" class="btn btn-warning">
               </form>
               {% endif %}
+=======
+            <h4>Komendy do wysłania:</h4>
+            <div id="commands-container">
+              <!-- Tutaj będą dynamicznie dodawane pola komend -->
+>>>>>>> b968e69ee60a84ae00646e851873ef5dccbeef17
             </div>
           </div>
+<<<<<<< HEAD
         </div>
         {% endif %}
 
@@ -273,6 +329,21 @@
           </form>
         </div>
       </div>
+=======
+          
+        </form>
+          <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+            <button type="button" id="add-button" class="btn">Dodaj przycisk</button>
+            
+            {% if bluetooth_status == 'Dostępny' %}
+            <form action="/disconnect" method="post" style="display: inline-block;">
+              <input type="submit" value="Rozłącz" class="btn btn-warning">
+            </form>
+            {% endif %}
+          </div>
+        </form>
+      
+>>>>>>> b968e69ee60a84ae00646e851873ef5dccbeef17
     </div>
   </div>
   

@@ -918,6 +918,27 @@ def clear_logs():
     add_log("Logi wyczyszczone", "INFO")
     return redirect(url_for('index'))
 
+# New route to add to the Flask application
+@app.route('/simulate_connection', methods=['POST'])
+def simulate_connection():
+    """Trasa do symulacji połączenia (tylko do testów)"""
+    add_log("Otrzymano żądanie symulacji połączenia", "DEBUG")
+    
+    # Symulujemy połączenie
+    global bt_client
+    
+    if bt_client:
+        # Tylko symulujemy połączenie - ustawiamy flagę bez faktycznego łączenia
+        bt_client.is_connected = True
+        
+        # Emitujemy sygnał połączenia
+        bt_client.connected.emit()
+        
+        add_log("Zasymulowano połączenie z urządzeniem", "INFO")
+    else:
+        add_log("Bluetooth nie został zainicjalizowany", "ERROR")
+    
+    return redirect(url_for('index'))
 
 # Nowa trasa do pobierania sparowanych urządzeń
 @app.route('/get_paired_devices')
