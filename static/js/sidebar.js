@@ -371,6 +371,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Dodaj klasę selected do klikniętego urządzenia
             deviceElement.classList.add('selected');
+            
+            // Pokaż informację o zaznaczeniu w konsoli (opcjonalnie)
+            console.log(`Wybrano urządzenie: ${device.name} (${device.address})`);
+            
+            // Możemy dodać dodatkowe funkcjonalności przy kliknięciu
+            // np. wyświetlić szczegóły urządzenia w głównym panelu
         });
         
         return deviceElement;

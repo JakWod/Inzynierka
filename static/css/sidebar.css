@@ -1,22 +1,27 @@
+/* Podstawowe style menu */
 .menu-item:hover {
   background-color: #2c2c2c;
 }
 
 .menu-item.active {
   background-color: #1e1e1e;
-}/* Style dla formularza edycji urządzenia */
+}
+
+/* Style dla formularza edycji urządzenia */
 .mac-address-display input[disabled] {
   background-color: #222;
   color: #999;
   cursor: not-allowed;
   border: 1px solid #444;
-}/* Sidebar w stylu Minecraft Launcher */
+}
+
+/* Sidebar w stylu Minecraft Launcher */
 .sidebar {
   width: 250px;
   height: 100vh;
   background-color: #1e1e1e;
   color: #e0e0e0;
-  overflow-y: scroll;
+  overflow-y: auto; /* Zmienione z scroll na auto */
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -68,14 +73,15 @@
   color: #a0a0a0;
 }
 
+/* Modyfikacja struktury sidebar-menu */
 .sidebar-menu {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  overflow: visible; 
-  padding-bottom: 15px; 
-  padding-top: 56px; 
-  margin-top: -56px; 
+  overflow: visible;
+  padding-top: 0; /* Usuwamy padding-top */
+  margin-top: 0; /* Usuwamy margin-top */
+  position: relative; /* Dodajemy position relative dla kontekstu pozycjonowania */
 }
 
 .menu-item {
@@ -173,8 +179,6 @@
   font-size: 12px; 
 }
 
-
-
 /* Styl dla przycisku czyszczenia filtrów */
 .clear-filters {
   display: flex;
@@ -215,6 +219,15 @@
   font-size: 11px; 
 }
 
+/* Główny obszar treści sidebara - sekcje z urządzeniami */
+.sidebar-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  min-height: 0; /* Umożliwia kurczenie się */
+}
+
 .sidebar-section-header {
   display: flex;
   align-items: center;
@@ -238,7 +251,7 @@
 /* Sekcja dla listy urządzeń */
 .sidebar-device-list {
   overflow-y: visible; 
-  flex-grow: 1;
+  min-height: 0; /* Pozwala na kurczenie */
   margin-top: 10px; /* Dodano margines, aby odsunąć listę od filtra */
 }
 
@@ -248,8 +261,26 @@
   border-bottom: 1px solid #2c3e50;
   padding: 0;
   overflow: visible; 
+  min-height: 0; /* Pozwala na kurczenie */
 }
 
+#connected-device-container .device-item:hover {
+    background-color: #243642 !important;
+}
+
+/* Upewniamy się, że wszystkie sekcje mają odpowiednie style */
+#favorite-devices-section,
+#connected-device-section,
+#paired-devices-section {
+  min-height: auto; /* Pozwala sekcjom na kurczenie się */
+}
+
+#favorite-devices-container,
+#paired-devices-list,
+#connected-device-container {
+  overflow-y: visible;
+  min-height: auto; /* Pozwala kontenerom na kurczenie się */
+}
 
 #connected-device-container .device-item {
   border-left: none; 
@@ -451,7 +482,6 @@
   color: #f1c40f;
 }
 
-
 .connection-status {
   display: none; /* Ukryj wskaźnik statusu połączenia */
 }
@@ -466,6 +496,7 @@
   opacity: 1;
 }
 
+/* Poprawiony footer - zawsze na dole sidebara */
 .sidebar-footer {
   position: sticky;
   bottom: 0;
@@ -473,6 +504,9 @@
   padding: 15px;
   border-top: 1px solid #333;
   z-index: 10; /* Zapewnia, że footer będzie zawsze na wierzchu */
+  width: 100%; /* Zapewnia pełną szerokość stopki */
+  box-sizing: border-box; /* Upewnia się, że padding jest wliczony w szerokość */
+  margin-top: auto; /* Przesuwa footer na koniec sidebara */
 }
 
 .sidebar-button {
@@ -706,22 +740,37 @@
   100% { transform: rotate(360deg); }
 }
 
-.sidebar-menu {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 80px - 76px); /* Odejmujemy wysokość nagłówka i stopki */
+/* Dodane style dla poprawy widoczności zaznaczonych urządzeń */
+
+/* Make selection effect more visible for connected devices */
+.device-item.connected.selected {
+  background-color: #1e3540; /* Darker background when both connected and selected */
+  border-left: 3px solid #27ae60; /* Brighter green border */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); /* Inner glow effect */
 }
 
-#favorite-devices-section,
-#connected-device-section {
-  display: flex;
-  flex-direction: column;
-  min-height: fit-content;
-  overflow: visible; /* Zapewnia, że nie ma lokalnych scrollbarów */
+/* Optional: enhance the hover effect for connected devices */
+.device-item.connected:hover {
+  background-color: #1e3540;
 }
 
-#favorite-devices-container,
-#paired-devices-list {
-  flex-grow: 1;
-  overflow-y: visible; 
+/* Make sure cursor indicates clickability for all devices */
+.device-item {
+  cursor: pointer; /* Change from default to pointer */
+}
+
+/* Optional: add subtle transition for smoother selection effect */
+.device-item {
+  transition: all 0.2s ease;
+}
+
+
+
+/* Add highlight effect to selected device's name */
+.device-item.selected .device-name {
+  color: #3498db;
+}
+
+.device-item.connected.selected .device-name {
+  color: #2ecc71;
 }

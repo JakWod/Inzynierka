@@ -25,6 +25,7 @@ app = Flask(__name__)
 
 def add_log(message, level="INFO"):
     """Dodaje wiadomość do logów z poziomem ważności"""
+    #timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{level}] {message}"
     logs.append(log_entry)
     print(log_entry)  # Wyświetl również w konsoli
@@ -167,6 +168,26 @@ class BluetoothConsoleClient(QObject):
     def connect_to_device(self, address_str, port=1):
         """Łączy się z urządzeniem o podanym adresie MAC"""
         try:
+
+            # if not self.is_connected:
+            #     reset_success = reset_bluetooth()
+            #     if not reset_success:
+            #         add_log("Resetowanie Bluetooth nie powiodło się - sprawdź logi", "WARNING")
+                    
+            #     # Dodajemy dodatkowe sprawdzenie, czy Bluetooth jest włączony
+            #     local_device = QBluetoothLocalDevice()
+            #     if (not local_device.isValid() or 
+            #         local_device.hostMode() == QBluetoothLocalDevice.HostMode.HostPoweredOff):
+            #         local_device.setHostMode(QBluetoothLocalDevice.HostMode.HostDiscoverable)
+            #         # Daj chwilę na włączenie
+            #         time.sleep(2)
+            #         QCoreApplication.processEvents()
+            #     time_seconds = 1
+            #     for i in range(5):
+            #         add_log(f"Mineło {time_seconds} sekund", "INFO")   
+            #         time_seconds += 1
+            #         time.sleep(1)
+
             # Jeśli mamy aktywne połączenie, najpierw rozłącz
             if self.is_connected:
                 add_log("Rozłączanie aktywnego połączenia przed nowym połączeniem", "INFO")
@@ -556,6 +577,7 @@ def get_system_paired_devices():
             add_log("Pobieranie sparowanych urządzeń z systemu Windows", "INFO")
             # Użyj komendy PowerShell do pobrania sparowanych urządzeń Bluetooth
             try:
+                # Zmienione - dodane jawne kodowanie UTF-8
                 command = "powershell -command \"& {Get-PnpDevice -Class Bluetooth | Where-Object { $_.FriendlyName -notlike '*Radio*' } | Select-Object FriendlyName, DeviceID, Status | ConvertTo-Json}\""
                 result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
                 
@@ -568,7 +590,9 @@ def get_system_paired_devices():
                         if not isinstance(devices_raw, list):
                             devices_raw = [devices_raw]
                         
+                        # Parse each device and extract MAC address
                         for device in devices_raw:
+                            # DeviceID format: BTHENUM\{0000110E-0000-1000-8000-00805F9B34FB}_VID&0001000F_PID&0002\7&33B46D3E&0&98:DA:F0:00:A7:01_C00000000
                             # Wyciągnij adres MAC z DeviceID (ostatnie 17 znaków przed _C00000000)
                             mac_address = None
                             
@@ -918,27 +942,6 @@ def clear_logs():
     add_log("Logi wyczyszczone", "INFO")
     return redirect(url_for('index'))
 
-# New route to add to the Flask application
-@app.route('/simulate_connection', methods=['POST'])
-def simulate_connection():
-    """Trasa do symulacji połączenia (tylko do testów)"""
-    add_log("Otrzymano żądanie symulacji połączenia", "DEBUG")
-    
-    # Symulujemy połączenie
-    global bt_client
-    
-    if bt_client:
-        # Tylko symulujemy połączenie - ustawiamy flagę bez faktycznego łączenia
-        bt_client.is_connected = True
-        
-        # Emitujemy sygnał połączenia
-        bt_client.connected.emit()
-        
-        add_log("Zasymulowano połączenie z urządzeniem", "INFO")
-    else:
-        add_log("Bluetooth nie został zainicjalizowany", "ERROR")
-    
-    return redirect(url_for('index'))
 
 # Nowa trasa do pobierania sparowanych urządzeń
 @app.route('/get_paired_devices')

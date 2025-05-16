@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * @returns {boolean} - Czy string jest poprawnym HEX
      */
     function isValidHexFormat(hexString) {
-        // Akceptuje format 0x... lub sam hex bez prefiksu
+        // Akceptujemy format 0x... lub sam hex bez prefiksu
         if (hexString.startsWith('0x')) {
             hexString = hexString.substring(2);
         }
