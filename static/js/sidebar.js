@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (connectedDeviceSection && connectedDeviceContainer) {
             if (connectedDevice) {
                 connectedDeviceSection.style.display = 'block';
+                
                 // Ręcznie dodajemy element urządzenia jako węzeł, a nie jako HTML string
                 // To rozwiązuje problem z brakiem działających eventów w sekcji "AKTUALNIE POŁĄCZONE"
                 const deviceElement = createDeviceElement(connectedDevice, false);

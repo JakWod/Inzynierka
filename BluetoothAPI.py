@@ -985,6 +985,27 @@ def connection_status():
     })
 
 
+# Nowa trasa do pobierania wyników skanowania
+@app.route('/get_discovered_devices')
+def get_discovered_devices():
+    """Trasa do pobierania listy urządzeń znalezionych podczas skanowania"""
+    add_log("Otrzymano żądanie pobrania wyników skanowania", "DEBUG")
+    try:
+        return jsonify({
+            'status': 'success',
+            'devices': discovered_devices,
+            'count': len(discovered_devices)
+        })
+    except Exception as e:
+        add_log(f"Błąd podczas pobierania wyników skanowania: {str(e)}", "ERROR")
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'devices': [],
+            'count': 0
+        }), 500
+
+
 # Trasa do symulacji połączenia (tylko do testów)
 @app.route('/simulate_connection', methods=['POST'])
 def simulate_connection():

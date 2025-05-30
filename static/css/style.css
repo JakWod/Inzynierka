@@ -40,8 +40,15 @@ body {
 .header {
   background-color: #2c3e50;
   color: white;
-  padding: 15px 0;
-  margin-bottom: 20px;
+  padding: 10px 0;
+  margin-bottom: 0;
+  height: 56px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 100; /* Wysoki z-index, żeby był nad innymi elementami */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Delikatny cień pod headerem */
 }
 
 .header-container {
@@ -58,6 +65,119 @@ body {
 .header-buttons {
   display: flex;
   gap: 10px;
+}
+
+/* Minecraft layout z uwzględnieniem sticky header */
+.minecraft-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Pełna wysokość viewport */
+  position: relative;
+  
+}
+
+.minecraft-content {
+  flex-grow: 1;
+  position: relative;
+  background-color: #222;
+  overflow-y: auto;
+  min-height: 100%;
+}
+
+.minecraft-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)),
+    repeating-linear-gradient(
+      45deg,
+      rgba(40, 40, 40, 0.3),
+      rgba(40, 40, 40, 0.3) 10px,
+      rgba(20, 20, 20, 0.3) 10px,
+      rgba(20, 20, 20, 0.3) 20px
+    );
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.minecraft-content-overlay {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 100%;
+}
+
+.minecraft-main-section {
+  position: absolute;
+  top: calc(50vh - 28px); /* Uwzględnienie wysokości sticky header (56px / 2) */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 3;
+}
+
+.minecraft-results-container {
+  width: 100%;
+  padding-top: calc(50vh + 172px); /* Dostosowane do sticky header */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.minecraft-title {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.minecraft-title h1 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-shadow: 2px 2px 0 #222;
+  margin: 0;
+}
+
+.minecraft-title p {
+  font-size: 18px;
+  color: #AAAAAA;
+  margin: 10px 0 0;
+}
+
+.minecraft-play-button {
+  display: inline-block;
+  background-color: #0A9B26;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 15px 60px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #086B1A;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.minecraft-play-button:hover {
+  background-color: #0BB52D;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #086B1A;
+}
+
+.minecraft-play-button:active {
+  background-color: #098822;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #086B1A;
 }
 
 /* Przyciski */
@@ -339,6 +459,469 @@ table th {
   font-style: italic;
 }
 
+/* Sekcja wyników skanowania */
+.scan-results-section {
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 800px;
+  background-color: rgba(44, 44, 44, 0.95);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scan-results-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.scan-results-header h3 {
+  margin: 0 0 15px 0;
+  color: #FFFFFF;
+  font-size: 20px;
+  text-shadow: 1px 1px 0 #222;
+}
+
+/* ======================================
+   KOMUNIKAT INFORMACYJNY W WYNIKACH SKANOWANIA
+   ====================================== */
+
+/* Style dla komunikatu informacyjnego w oknie skanowania */
+.scan-info-message {
+  background-color: rgba(52, 152, 219, 0.15); /* Delikatne niebieskie tło */
+  border: 1px solid rgba(52, 152, 219, 0.4); /* Wyraźniejsza niebieska ramka */
+  border-left: 4px solid #3498db; /* Lewa ramka akcentująca */
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  text-align: left; /* Zmieniono na left dla lepszej czytelności */
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Delikatny cień */
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+.scan-info-message::before {
+  content: "\f05a"; /* Font Awesome info circle icon */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  color: #3498db;
+  font-size: 18px;
+  margin-right: 10px;
+  vertical-align: middle;
+  float: left;
+  margin-top: -3px;
+}
+
+.scan-info-message p {
+  margin: 0;
+  color: #ffffff; /* Białe tło dla lepszej czytelności */
+  font-size: 14px;
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Delikatny cień tekstu */
+  margin-left: 28px; /* Miejsce na ikonę */
+}
+
+/* Wariant z ikoną bluetooth */
+.scan-info-message.bluetooth-variant::before {
+  content: "\f293"; /* Font Awesome bluetooth icon */
+  color: #3498db;
+}
+
+/* Warianty dla różnych stanów wiadomości */
+.scan-info-message.warning {
+  background-color: rgba(241, 196, 15, 0.15);
+  border-color: rgba(241, 196, 15, 0.4);
+  border-left-color: #f1c40f;
+}
+
+.scan-info-message.warning::before {
+  content: "\f071"; /* Font Awesome warning icon */
+  color: #f1c40f;
+}
+
+.scan-info-message.error {
+  background-color: rgba(231, 76, 60, 0.15);
+  border-color: rgba(231, 76, 60, 0.4);
+  border-left-color: #e74c3c;
+}
+
+.scan-info-message.error::before {
+  content: "\f06a"; /* Font Awesome error icon */
+  color: #e74c3c;
+}
+
+.scan-info-message.success {
+  background-color: rgba(46, 204, 113, 0.15);
+  border-color: rgba(46, 204, 113, 0.4);
+  border-left-color: #2ecc71;
+}
+
+.scan-info-message.success::before {
+  content: "\f00c"; /* Font Awesome check icon */
+  color: #2ecc71;
+}
+
+/* Dodatkowe warianty */
+.scan-info-message.connecting {
+  background-color: rgba(155, 89, 182, 0.15);
+  border-color: rgba(155, 89, 182, 0.4);
+  border-left-color: #9b59b6;
+}
+
+.scan-info-message.connecting::before {
+  content: "\f1ce"; /* Font Awesome connecting/sync icon */
+  color: #9b59b6;
+  animation: spinMessage 2s linear infinite; /* Obracająca się ikona dla connecting */
+}
+
+/* Efekt hover dla lepszej interakcji */
+.scan-info-message:hover {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+/* Animacje dla scan-info-message */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animacja obracania się dla stanu connecting */
+@keyframes spinMessage {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Style dla filtra w wynikach skanowania */
+.scan-results-filter {
+  width: 100%;
+  margin-bottom: 0;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scan-results-filter input {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #333;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.scan-results-filter input::placeholder {
+  color: #888;
+}
+
+.scan-results-filter input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.scan-results-container {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: #3498db #2c2c2c;
+}
+
+.scan-results-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scan-results-container::-webkit-scrollbar-track {
+  background: #2c2c2c;
+  border-radius: 4px;
+}
+
+.scan-results-container::-webkit-scrollbar-thumb {
+  background-color: #3498db;
+  border-radius: 4px;
+  border: 2px solid #2c2c2c;
+}
+
+.scan-results-container::-webkit-scrollbar-thumb:hover {
+  background-color: #2980b9;
+}
+
+/* Urządzenie w wynikach skanowania - USUNIĘTY EFEKT HOVER */
+.scan-device-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  /* USUNIĘTO: transition: all 0.2s ease; */
+}
+
+/* USUNIĘTO CAŁKOWICIE: .scan-device-item:hover */
+/* Ta reguła została całkowicie usunięta, aby nie było efektu hover */
+
+.scan-device-item:last-child {
+  margin-bottom: 0;
+}
+
+.scan-device-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(52, 152, 219, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.scan-device-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.scan-device-icon svg path {
+  fill: #3498db;
+}
+
+.scan-device-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.scan-device-name {
+  font-weight: bold;
+  color: #FFFFFF;
+  font-size: 16px;
+  margin-bottom: 4px;
+  text-shadow: 1px 1px 0 #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scan-device-address {
+  color: #AAAAAA;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.scan-device-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.scan-device-connect-btn {
+  background-color: #0A9B26;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  box-shadow: 0 2px 0 #086B1A;
+}
+
+.scan-device-connect-btn:hover {
+  background-color: #0BB52D;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #086B1A;
+}
+
+.scan-device-connect-btn:active {
+  background-color: #098822;
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #086B1A;
+}
+
+.scan-device-add-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  box-shadow: 0 2px 0 #2980b9;
+}
+
+.scan-device-add-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #21618c;
+}
+
+.scan-device-add-btn:active {
+  background-color: #21618c;
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #1b4f72;
+}
+
+/* Akcje wyników skanowania */
+.scan-results-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 15px;
+  border-top: 0px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 10px; /* Dodany margines dla miejsca na link ręcznego dodawania */
+}
+
+/* Link do ręcznego dodawania urządzenia */
+.manual-device-link {
+  text-align: center;
+  padding: 10px 20px;
+  margin-top: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.manual-device-link p {
+  margin: 0;
+  color: #AAAAAA;
+  font-size: 14px;
+}
+
+.manual-device-link a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.manual-device-link a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+.manual-device-link a:active {
+  color: #21618c;
+}
+
+.scan-results-actions .btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scan-results-actions .btn-outline {
+  background-color: transparent;
+  color: #AAAAAA;
+  border: 2px solid #AAAAAA;
+}
+
+.scan-results-actions .btn-outline:hover {
+  background-color: #AAAAAA;
+  color: #222;
+}
+
+.scan-results-actions .btn-primary {
+  background-color: #0A9B26;
+  color: white;
+  box-shadow: 0 2px 0 #086B1A;
+}
+
+.scan-results-actions .btn-primary:hover {
+  background-color: #0BB52D;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #086B1A;
+}
+
+/* Komunikat gdy brak urządzeń */
+.no-scan-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #AAAAAA;
+  font-style: italic;
+}
+
+.no-scan-results i {
+  font-size: 48px;
+  margin-bottom: 15px;
+  color: #666;
+}
+
+/* Responsywność dla scan-info-message */
+@media (max-width: 768px) {
+  .scan-info-message {
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border-left-width: 3px;
+  }
+  
+  .scan-info-message p {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-left: 26px;
+  }
+  
+  .scan-info-message::before {
+    font-size: 16px;
+    margin-right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scan-info-message {
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  
+  .scan-info-message p {
+    font-size: 12px;
+    margin-left: 24px;
+  }
+  
+  .scan-info-message::before {
+    font-size: 14px;
+    margin-right: 6px;
+  }
+}
+
 /* Responsywność */
 @media (max-width: 900px) {
   .app-container {
@@ -347,6 +930,50 @@ table th {
   
   .main-content {
     height: auto;
+  }
+  
+  .minecraft-layout {
+    min-height: auto;
+  }
+  
+  .minecraft-main-section {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 50px 0;
+  }
+  
+  .minecraft-results-container {
+    padding-top: 20px; /* Zmniejszony padding na mobilnych */
+  }
+  
+  .scan-results-section {
+    margin: 0 15px 20px 15px;
+    padding: 15px;
+  }
+  
+  .scan-device-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .scan-device-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .scan-results-actions .btn {
+    width: 100%;
+  }
+  
+  .manual-device-link {
+    padding: 15px 10px;
+  }
+  
+  .manual-device-link p {
+    font-size: 13px;
   }
 }
 
@@ -449,7 +1076,7 @@ table th {
   background-color: #8e44ad;
 }
 
-/* Responsywność */
+/* Responsywność debug */
 @media (max-width: 768px) {
   .debug-form {
     grid-template-columns: 1fr;

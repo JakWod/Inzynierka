@@ -1,0 +1,819 @@
+/* Style dla modalu podglądu komend */
+.commands-preview-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1050; /* Wyższy niż główny modal */
+  overflow: hidden;
+}
+
+.commands-preview-modal .modal-content {
+  width: 500px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  background-color: #2c2c2c;
+  color: #e0e0e0;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  scrollbar-width: thin;
+  scrollbar-color: #444 #222;
+}
+
+.commands-preview-modal .modal-content::-webkit-scrollbar {
+  width: 8px;
+  display: block;
+}
+
+.commands-preview-modal .modal-content::-webkit-scrollbar-track {
+  background: #222;
+}
+
+.commands-preview-modal .modal-content::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 4px;
+  border: 2px solid #222;
+}
+
+.commands-preview-modal h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #3498db;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #444;
+  padding-right: 30px; /* Miejsce na przycisk zamknięcia */
+}
+
+.commands-preview-modal .commands-list {
+  margin-bottom: 20px;
+}
+
+.commands-preview-modal .command-preview {
+  display: flex;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #333;
+  border-radius: 4px;
+}
+
+.commands-preview-modal .command-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  background-color: #3498db;
+  color: white;
+  border-radius: 50%;
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+.commands-preview-modal .command-details {
+  flex-grow: 1;
+}
+
+.commands-preview-modal .command-data {
+  font-family: monospace;
+  font-size: 16px;
+  margin-bottom: 5px;
+  color: white;
+}
+
+.commands-preview-modal .command-delay {
+  font-size: 12px;
+  color: #999;
+}
+
+.commands-preview-modal .button-function {
+  padding: 10px;
+  background-color: #1e1e1e;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 3px solid #3498db;
+}
+
+.commands-preview-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #444;
+}
+
+/* Naprawiony przycisk zamknięcia dla modalu podglądu */
+.commands-preview-modal .close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  color: #aaa;
+  cursor: pointer;
+  z-index: 100;
+  width: 30px;
+  height: 30px;
+  background-color: #2c2c2c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal dla szczegółów urządzenia - przeprojektowany selektor */
+.device-details-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* Zawartość modalu urządzenia - POPRAWIONE aby wyglądało jak modal debugowania */
+.device-details-modal .modal-content {
+  width: 800px; /* Zwiększone z 700px do 800px jak w debug */
+  max-width: 95%; /* Zwiększone z 90% do 95% jak w debug */
+  max-height: 90vh; /* Zwiększone z 80vh do 90vh jak w debug */
+  overflow-y: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE & Edge */
+  background-color: #1e1e1e; /* Zmienione z #2c2c2c na #1e1e1e jak w debug */
+  color: #e0e0e0;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); /* Zmienione z 0.5 na 0.8 jak w debug */
+}
+
+.device-details-modal .modal-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Przycisk zamknięcia modalu urządzenia - naprawiona pozycja */
+.device-details-modal .close-modal {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 24px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+/* Responsywne dostosowanie pozycji przycisku zamknięcia na mniejszych ekranach */
+@media (max-width: 800px) {
+  .device-details-modal .close-modal {
+    right: 20px; /* Stała pozycja od prawej krawędzi na małych ekranach */
+    top: 10px;
+  }
+}
+
+.device-details-modal .device-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #444;
+  position: sticky;
+  top: -20px;
+  background-color: #1e1e1e; /* Zmienione z #2c2c2c na #1e1e1e */
+  z-index: 10;
+  margin-right: 15px;
+}
+
+.device-details-modal .device-info h2 {
+  margin: 0 0 5px 0;
+  color: #fff;
+  font-size: 24px;
+}
+
+.device-details-modal .device-address {
+  font-family: monospace;
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.device-details-modal .device-type {
+  font-size: 14px;
+  color: #3498db;
+  text-transform: capitalize;
+}
+
+.device-details-modal .connection-status {
+  text-align: right;
+}
+
+.device-details-modal .status-text {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.device-details-modal .status-text.connected {
+  color: #2ecc71;
+}
+
+.device-details-modal .status-text:not(.connected) {
+  color: #e74c3c;
+}
+
+.device-details-modal .connection-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Tabs styling */
+.device-details-modal .device-tabs {
+  display: flex;
+  border-bottom: 1px solid #444;
+  margin-bottom: -38px;
+  position: sticky; /* Przylepienie zakładek */
+  top: 76px; /* Odległość od góry po nagłówku */
+  background-color: #1e1e1e; /* Zmienione z #2c2c2c na #1e1e1e */
+  z-index: 9;
+}
+
+.device-details-modal .tab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.device-details-modal .tab-btn:hover {
+  color: #ccc;
+}
+
+.device-details-modal .tab-btn.active {
+  color: #fff;
+  border-bottom-color: #3498db;
+}
+
+.device-details-modal .tab-panel {
+  display: none;
+}
+
+.device-details-modal .tab-panel.active {
+  display: block;
+}
+
+/* Control tab */
+.device-details-modal .control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Sekcja przycisków urządzenia */
+.device-details-modal .device-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  min-height: 50px;
+  padding: 10px 0;
+}
+
+.device-details-modal .no-buttons-message,
+.device-details-modal .no-logs-message {
+  width: 100%;
+  padding: 15px;
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+/* Akcje kontrolne - zawsze widoczny przycisk rozparowania */
+.device-details-modal .control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -25px 0;
+  justify-content: space-between;
+}
+
+.device-details-modal .unpair-action {
+  margin-top: 25px;
+  display: block;
+  width: 100%;
+  padding-top: 15px;
+  border-top: 1px solid #444;
+}
+
+/* Command form styling */
+.device-details-modal .modal-form-section {
+  background: #333;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 15px;
+  position: relative; /* Dodane dla poprawnego pozycjonowania */
+  max-height: 60vh; /* Ograniczenie wysokości formularza */
+  overflow-y: auto; /* Dodanie przewijania */
+}
+
+.device-details-modal .modal-form-section h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  background-color: #333;
+  padding: 5px 0;
+  z-index: 5;
+}
+
+.device-details-modal .commands-container {
+  margin-bottom: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.device-details-modal .command-field {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.device-details-modal .command-input {
+  flex: 3;
+  padding: 8px;
+  background: #222;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 3px;
+}
+
+.device-details-modal .delay-input {
+  flex: 1;
+  min-width: 100px;
+  padding: 8px;
+  background: #222;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 3px;
+}
+
+/* Logs tab */
+.device-details-modal .device-logs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.device-details-modal .logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background-color: #1e1e1e; /* Zmienione z #2c2c2c na #1e1e1e */
+  padding: 5px 0;
+  z-index: 5;
+  margin-bottom: 12px;
+}
+
+.device-details-modal .device-log-content {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #121212;
+  border-radius: 4px;
+  border: 1px solid #444;
+  font-family: monospace;
+}
+
+.device-details-modal .device-log-content .log-entry {
+  padding: 5px 0;
+  border-bottom: 0px solid #333;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Disabled states */
+.device-details-modal .disabled-section {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.device-details-modal .disabled-section::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 5;
+}
+
+/* Przycisk niebezpiecznej akcji (np. rozparowanie) */
+.btn-danger {
+  background-color: #e74c3c;
+  color: white;
+  display: block; /* Zmienione na block */
+  text-align: center;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+/* Ulepszone przyciski sterujące w modalu - nowy design */
+.device-details-modal .device-custom-button {
+  background: linear-gradient(to bottom, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  font-weight: 500;
+  margin: 5px;
+  min-width: 140px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: visible !important; /* Zmodyfikowane: zmiana z hidden na visible dla menu kontekstowego */
+}
+
+.device-details-modal .device-custom-button:hover {
+  background: linear-gradient(to bottom, #2980b9, #2471a3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+.device-details-modal .device-custom-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.device-details-modal .device-custom-button.disabled {
+  background: linear-gradient(to bottom, #95a5a6, #7f8c8d);
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* Ikona dla przycisków */
+.device-details-modal .device-custom-button::before {
+  content: "\f11b"; /* kod ikony Font Awesome (gamepad) */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 24px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Różne ikony w zależności od funkcji przycisku */
+.device-details-modal .device-custom-button[data-function="power"]::before {
+  content: "\f011"; /* ikona power */
+}
+
+.device-details-modal .device-custom-button[data-function="volume-up"]::before {
+  content: "\f028"; /* ikona głośności */
+}
+
+.device-details-modal .device-custom-button[data-function="light"]::before {
+  content: "\f0eb"; /* ikona żarówki */
+}
+
+/* Usuwamy domyślną ikonę dla przycisków bez określonej funkcji */
+.device-details-modal .device-custom-button:not([data-function])::before {
+  content: none;
+}
+
+/* NOWY SPOSÓB USUWANIA PRZYCISKÓW - menu kontekstowe */
+.device-details-modal .device-custom-button .context-menu {
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: auto;
+  background-color: #333;
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 9999;
+  overflow: visible !important;
+  min-width: 150px;
+  width: auto;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #444;
+  font-size: 13px;
+  transform-origin: top left;
+  transform: translate(-15px, 30px) !important; /* Zmienione na -15px aby offset był w lewo */
+}
+
+/* Context menu item styles - more compact */
+.device-details-modal .device-custom-button .context-menu-item {
+  padding: 8px 12px; /* Smaller padding */
+  color: white;
+  cursor: pointer;
+  font-size: 13px; /* Smaller font */
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  width: 100%; /* Ensures full width is clickable */
+  box-sizing: border-box;
+}
+
+.device-details-modal .context-menu-item i {
+  margin-right: 6px; /* Smaller margin */
+  font-size: 13px; /* Smaller icons */
+}
+
+.device-details-modal .context-menu-item:hover {
+  background-color: #e74c3c;
+}
+
+/* Style for edit button - remove constant highlighting */
+.device-details-modal .context-menu-item.edit-option {
+  background-color: transparent; /* Remove permanent blue background */
+}
+
+.device-details-modal .context-menu-item.edit-option:hover {
+  background-color: #3498db; /* Only highlight on hover */
+}
+
+/* Highlight classes for different action types */
+.device-details-modal .context-menu-item.view-option:hover {
+  background-color: #2ecc71; /* Green for view */
+}
+
+.device-details-modal .context-menu-item.delete-option:hover {
+  background-color: #e74c3c; /* Red for delete */
+}
+
+.device-details-modal .device-custom-button .context-menu-item:hover {
+  background-color: #e74c3c;
+}
+
+.device-details-modal .device-custom-button .context-menu-item i {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+/* Dodatek: naprawia problem z edycją przycisku */
+.device-details-modal .device-custom-button .context-menu,
+.device-details-modal .device-custom-button .context-menu * {
+  pointer-events: auto !important; /* Zapewnia, że wszystkie elementy menu są klikalne */
+}
+
+/* Poprawka dla nachodzących menu - dodaje margines do kontenerów przycisków */
+.device-details-modal .device-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  min-height: 50px;
+  padding: 10px 0;
+  margin-bottom: 40px; /* Dodano dodatkowy margines na dole, żeby menu nie nachodzilo na przyciski poniżej */
+}
+
+/* Aktualna pozycja menu względem przycisku guzika z opcjami */
+.device-details-modal .button-options {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px; /* Zwiększony rozmiar dla łatwiejszego kliknięcia */
+  height: 30px; /* Zwiększony rozmiar dla łatwiejszego kliknięcia */
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 50;
+}
+
+.device-details-modal .device-custom-button:hover .button-options {
+  opacity: 1;
+}
+
+.device-details-modal .button-options i {
+  color: white;
+  font-size: 12px;
+}
+
+/* Usunięcie starego przycisku usuwania */
+.device-details-modal .delete-button {
+  display: none;
+}
+
+/* Modal dla ręcznego dodawania urządzenia */
+#add-manual-device-modal .modal-content {
+  width: 500px;
+  max-width: 90%;
+}
+
+#add-manual-device-form .hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* Zapewniamy, że style z sidebar.css nie zostały nadpisane */
+.sidebar .device-item .device-address {
+  font-size: 10px;
+  color: #a0a0a0;
+  font-family: inherit;
+}
+
+/* Responsive adjustments */
+@media (max-width: 700px) {
+  .device-details-modal .device-details-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .device-details-modal .connection-status {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .device-details-modal .connection-actions {
+    flex-direction: row;
+  }
+  
+  .device-details-modal .device-tabs {
+    top: 150px; /* Większa odległość na mobilnych urządzeniach z powodu wyższego nagłówka */
+  }
+}
+
+/* Dodatkowe poprawki dla formularza akcji */
+.device-details-modal .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+  position: sticky;
+  bottom: 0;
+  background-color: #333;
+  padding: 10px 0;
+  z-index: 5;
+}
+
+/* Fix dla kropek menu i menu kontekstowego w niepołączonych urządzeniach */
+/* Fix 1: Przywróć pointer-events dla przycisków opcji w wyłączonych przyciskach */
+.device-details-modal .device-custom-button.disabled .button-options {
+  pointer-events: auto !important; /* Nadpisanie 'none' z rodzica */
+  opacity: 1; /* Zapewnienie widoczności nawet gdy przycisk jest wyłączony */
+}
+
+/* Fix 2: Przywróć pointer-events dla przycisków opcji w wyłączonej sekcji */
+.device-details-modal .disabled-section .button-options {
+  pointer-events: auto !important; /* Nadpisanie 'none' z sekcji rodzica */
+}
+
+.device-details-modal .context-menu-item.edit-option:hover {
+  background-color: #3498db;
+}
+
+/* Lepsze wyróżnienie menu kontekstowego */
+.device-details-modal .device-custom-button.selected .context-menu {
+  border: 2px solid #3498db; /* Wyróżnienie menu dla wybranego przycisku */
+}
+
+/* Poprawka dla interakcji z menu kontekstowym */
+.device-details-modal .disabled-section .device-custom-button .context-menu-item,
+.device-details-modal .device-custom-button.disabled .context-menu-item {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Uczyń przycisk opcji bardziej widocznym przy najechaniu */
+.device-details-modal .device-custom-button.disabled:hover .button-options {
+  background-color: rgba(0, 0, 0, 0.6); /* Ciemniejsze tło dla lepszej widoczności */
+}
+
+/* Animacja dla menu kontekstowego */
+@keyframes popupMenu {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translate(-15px, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate(-15px, 10px);
+  }
+}
+
+.device-details-modal .device-custom-button .context-menu.visible {
+  display: block;
+  animation: popupMenu 0.2s ease-out forwards;
+}
+
+/* NOWE STYLE DLA FILTROWANIA LOGÓW */
+
+/* Style dla formularza filtrowania logów */
+.logs-filter-form {
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #444;
+  max-width: 100%;
+}
+
+.logs-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.logs-filter-row.date-range,
+.logs-filter-row.time-range {
+  position: relative;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 120px;
+}
+
+.filter-field.filter-text {
+  flex: 2;
+}
+
+.filter-field label {
+  font-size: 12px;
+  color: #bbb;
+  margin-bottom: 5px;
+}
+
+.log-filter-input {
+  background-color: #333;
+  border: 1px solid #555;
+  color: #e0e0e0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.log-filter-input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.logs-filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+/* Responsywność dla nowego układu formularza */
+@media (max-width: 700px) {
+  .logs-filter-row.date-range::after,
+  .logs-filter-row.time-range::after {
+    display: none;
+  }
+  
+  .logs-filter-row {
+    margin-bottom: 15px;
+  }
+  
+  .filter-field {
+    width: 100%;
+  }
+}

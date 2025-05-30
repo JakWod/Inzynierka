@@ -4,18 +4,661 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bluetooth Manager</title>
+  
+  <!-- Skrypty i style CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
-  <!-- Zmienione importowanie Font Awesome na nowszą wersję -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/device-modal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/debug-modal.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <style>
+    /* Style dla podświetlenia filtrowanych tekstów */
+    .highlight-text {
+      background-color: #ffff00;
+      color: #000000;
+      font-weight: bold;
+      padding: 1px 2px;
+      border-radius: 2px;
+    }
+    
+    .log-entry.highlight {
+      background-color: rgba(255, 255, 0, 0.1);
+      /* border-left: 3px solid #ffff00; */
+      padding-left: 8px;
+    }
+    
+    /* Style dla podsumowania filtrów */
+    .filter-summary, 
+    .debug-filter-summary {
+      background-color: rgba(52, 152, 219, 0.1);
+      border: 1px solid rgba(52, 152, 219, 0.3);
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #e0e0e0;
+    }
+    
+    .filter-label {
+      font-weight: bold;
+      color: #3498db;
+    }
+    
+    .filter-values {
+      color: #ccc;
+    }
+    
+    /* Style dla komunikatów bez logów */
+    .no-logs-message {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+    }
+    
+    /* Styl dla paska przewijania całej strony */
+    /* Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #3498db #1e1e1e;
+    }
+
+    /* Chrome, Edge i Safari */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1e1e1e;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #3498db;
+      border-radius: 4px;
+      border: 2px solid #1e1e1e;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: #2980b9;
+    }
+
+    /* Kąt i przyciski paska przewijania */
+    ::-webkit-scrollbar-corner {
+      background: #1e1e1e;
+    }
+
+    ::-webkit-scrollbar-button {
+      display: none;
+    }
+
+    /* Specjalne style dla modalnych okien */
+    .device-details-modal .modal-content {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .device-details-modal .modal-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    .device-details-modal .commands-container,
+    .device-details-modal .device-log-content {
+      scrollbar-width: thin;
+      scrollbar-color: #444 #222;
+    }
+
+    .device-details-modal .commands-container::-webkit-scrollbar,
+    .device-details-modal .device-log-content::-webkit-scrollbar {
+      width: 8px;
+      display: block;
+    }
+
+    .device-details-modal .commands-container::-webkit-scrollbar-track,
+    .device-details-modal .device-log-content::-webkit-scrollbar-track {
+      background: #222;
+    }
+
+    .device-details-modal .commands-container::-webkit-scrollbar-thumb,
+    .device-details-modal .device-log-content::-webkit-scrollbar-thumb {
+      background-color: #444;
+      border-radius: 4px;
+      border: 2px solid #222;
+    }
+
+    /* Poprawiony offset dla menu kontekstowego - teraz w lewo */
+    .device-details-modal .device-custom-button .context-menu {
+      transform: translate(-15px, 10px) !important; /* Zmienione na -15px aby offset był w lewo */
+    }
+
+    @keyframes popupMenu {
+      from {
+        opacity: 0;
+        transform: scale(0.8) translate(-15px, 10px); /* Zmienione na -15px aby offset był w lewo */
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translate(-15px, 10px); /* Zmienione na -15px aby offset był w lewo */
+      }
+    }
+
+    /* Style dla filtra w wynikach skanowania */
+    .scan-results-filter {
+      margin-bottom: -10px;
+      padding: 0px;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .scan-results-filter input {
+      width: 100%;
+      padding: 8px 12px;
+      background-color: #333;
+      border: 1px solid #444;
+      color: #e0e0e0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .scan-results-filter input::placeholder {
+      color: #888;
+    }
+
+    .scan-results-filter input:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+  </style>
+  
+  <style>
+    /* Minecraft-style main content */
+    .main-content {
+      background-color: #2C2C2C;
+      color: #E0E0E0;
+      border-left: 1px solid #444; /* Dodana widoczna kreska między sidebarem a main content */
+    }
+    
+    .minecraft-layout {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 56px); /* Zmniejszona wysokość aby dopasować do mniejszego headera */
+      position: relative;
+    }
+    
+    .minecraft-header {
+      padding: 15px;
+      background-color: #1E1E1E;
+      border-bottom: 1px solid #333;
+    }
+    
+    .minecraft-content {
+      flex-grow: 1;
+      position: relative;
+      background-color: #222;
+      overflow-y: auto;
+      min-height: 100%;
+    }
+    
+    .minecraft-content::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)),
+        repeating-linear-gradient(
+          45deg,
+          rgba(40, 40, 40, 0.3),
+          rgba(40, 40, 40, 0.3) 10px,
+          rgba(20, 20, 20, 0.3) 10px,
+          rgba(20, 20, 20, 0.3) 20px
+        );
+      opacity: 0.8;
+      z-index: 1;
+    }
+    
+    .minecraft-content-overlay {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: 100%;
+    }
+    
+    .minecraft-main-section {
+      position: absolute;
+      top: calc(50vh + 5px);
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 3;
+    }
+    
+    .minecraft-results-container {
+      width: 100%;
+      padding-top: calc(50vh + 200px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+    }
+    
+    .minecraft-title {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .minecraft-title h1 {
+      font-size: 32px;
+      font-weight: bold;
+      color: #FFFFFF;
+      text-shadow: 2px 2px 0 #222;
+      margin: 0;
+    }
+    
+    .minecraft-title p {
+      font-size: 18px;
+      color: #AAAAAA;
+      margin: 10px 0 0;
+    }
+    
+    .minecraft-play-button {
+      display: inline-block;
+      background-color: #0A9B26;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 15px 60px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #086B1A;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    
+    .minecraft-play-button:hover {
+      background-color: #0BB52D;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #086B1A;
+    }
+    
+    .minecraft-play-button:active {
+      background-color: #098822;
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #086B1A;
+    }
+    
+    /* Zmniejszony header */
+    .header {
+      background-color: #1e1e1e;
+      padding: 10px 0;
+      margin-bottom: 0;
+      height: 56px;
+      box-sizing: border-box;
+      border-bottom: 1px solid #333;
+    }
+    
+    .header-container {
+      padding: 0 15px;
+    }
+    
+    .logo {
+      font-size: 20px;
+      color: #FFFFFF;
+    }
+    
+    .btn {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    
+    .btn-primary {
+      background-color: #0A9B26;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0BB52D;
+    }
+    
+    /* Przycisk niebezpiecznej akcji (np. rozparowanie) */
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+    
+    /* Sekcja wyników skanowania */
+    .scan-results-section {
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 800px;
+      background-color: rgba(44, 44, 44, 0.95);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .scan-results-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 0px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .scan-results-header h3 {
+      margin: 0 0 25px 0;
+      color: #FFFFFF;
+      font-size: 20px;
+      text-shadow: 1px 1px 0 #222;
+    }
+
+    .scan-results-container {
+      max-height: 453px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      scrollbar-width: thin;
+      scrollbar-color: #3498db #2c2c2c;
+    }
+
+    .scan-results-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .scan-results-container::-webkit-scrollbar-track {
+      background: #2c2c2c;
+      border-radius: 4px;
+    }
+
+    .scan-results-container::-webkit-scrollbar-thumb {
+      background-color: #3498db;
+      border-radius: 4px;
+      border: 2px solid #2c2c2c;
+    }
+
+    .scan-results-container::-webkit-scrollbar-thumb:hover {
+      background-color: #2980b9;
+    }
+
+    /* Urządzenie w wynikach skanowania - USUNIĘTY EFEKT HOVER */
+    .scan-device-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 10px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: none; /* Usunięto animację */
+      cursor: pointer;
+    }
+
+    /* USUNIĘTO EFEKT HOVER */
+    /* .scan-device-item:hover - ta reguła została całkowicie usunięta */
+
+    .scan-device-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .scan-device-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(52, 152, 219, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+
+    .scan-device-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .scan-device-icon svg path {
+      fill: #3498db;
+    }
+
+    .scan-device-info {
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .scan-device-name {
+      font-weight: bold;
+      color: #FFFFFF;
+      font-size: 16px;
+      margin-bottom: 4px;
+      text-shadow: 1px 1px 0 #222;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scan-device-address {
+      color: #AAAAAA;
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .scan-device-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .scan-device-connect-btn {
+      background-color: #0A9B26;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      box-shadow: 0 2px 0 #086B1A;
+    }
+
+    .scan-device-connect-btn:hover {
+      background-color: #0BB52D;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 0 #086B1A;
+    }
+
+    .scan-device-connect-btn:active {
+      background-color: #098822;
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #086B1A;
+    }
+
+    .scan-device-add-btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      box-shadow: 0 2px 0 #2980b9;
+    }
+
+    .scan-device-add-btn:hover {
+      background-color: #2980b9;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 0 #21618c;
+    }
+
+    .scan-device-add-btn:active {
+      background-color: #21618c;
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #1b4f72;
+    }
+
+    /* Akcje wyników skanowania */
+    .scan-results-actions {
+      display: flex;
+      justify-content: center;
+      padding-top: 15px;
+      border-top: 0px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .scan-results-actions .btn {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 600px;
+    }
+
+    .scan-results-actions .btn-outline {
+      background-color: transparent;
+      color: #AAAAAA;
+      border: 2px solid #AAAAAA;
+    }
+
+    .scan-results-actions .btn-outline:hover {
+      background-color: #AAAAAA;
+      color: #222;
+    }
+
+    .scan-results-actions .btn-primary {
+      background-color: #0A9B26;
+      color: white;
+      box-shadow: 0 2px 0 #086B1A;
+    }
+
+    .scan-results-actions .btn-primary:hover {
+      background-color: #0BB52D;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 0 #086B1A;
+    }
+
+    /* Komunikat gdy brak urządzeń */
+    .no-scan-results {
+      text-align: center;
+      padding: 40px 20px;
+      color: #AAAAAA;
+      font-style: italic;
+    }
+
+    .no-scan-results i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #666;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .minecraft-layout {
+        min-height: auto;
+      }
+      
+      .minecraft-results-container {
+        padding-top: 150px;
+      }
+      
+      .scan-results-section {
+        margin: 0 15px 20px 15px;
+        padding: 15px;
+      }
+      
+      .scan-device-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .scan-device-actions {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .scan-results-actions .btn {
+        width: 100%;
+      }
+    }
+
+    /* Ukryte logi dla zapisu informacji */
+    .hidden-logs {
+      display: none;
+      visibility: hidden;
+      position: absolute;
+      left: -9999px;
+    }
+  </style>
 </head>
 <body>
+  <!-- Ukryte pole do przechowywania informacji o urządzeniach -->
+  <input type="hidden" id="has-devices" value="{{ 'true' if devices else 'false' }}">
+  
+  <!-- Ukryte miejsce dla logów, które będzie wykorzystywane przez skrypty -->
+  <div class="hidden-logs">
+    <div class="log-container">
+      {% if logs %}
+        {% for log in logs|reverse %}
+          <div class="log-entry">{{ log }}</div>
+        {% endfor %}
+      {% else %}
+        <p>Brak logów.</p>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- Ukryte formularze dla funkcjonalności debugowania -->
+  <form action="/clear_logs" method="post" style="display: none;" id="hidden-clear-logs-form">
+    <input type="hidden" name="clear" value="true">
+  </form>
+  
+  <form action="/simulate_connection" method="post" style="display: none;" id="hidden-simulate-form">
+    <input type="hidden" name="simulate" value="true">
+  </form>
+  
   <div class="app-container">
-    <!-- Sidebar w stylu Minecraft Launcher -->
+    <!-- Sidebar - keep the original -->
     <div class="sidebar">
       <div class="sidebar-header">
         <div class="user-profile">
-          <!-- Przywrócenie ikony Font Awesome zamiast SVG -->
           <i class="fab fa-bluetooth-b"></i>
           <div class="user-info">
             <span class="username">BluetoothManager</span>
@@ -93,17 +736,18 @@
         <div class="sidebar-footer">
           <button id="refresh-paired-devices" class="sidebar-button">
             <i class="fas fa-sync-alt"></i>
-            <span class="button-text">                 Odśwież listę</span>
+            <span class="button-text">Odśwież listę</span>
           </button>
           <div class="version-info">v.3.14.2-2.2.2</div>
         </div>
       </div>
     </div>
 
-    <!-- Główna zawartość -->
+    <!-- Main content -->
     <div class="main-content">
+      <!-- Original header - zmniejszony rozmiar -->
       <header class="header">
-        <div class="container header-container">
+        <div class="header-container">
           <h1 class="logo">Bluetooth Manager</h1>
           <div class="header-buttons">
             <a href="#" class="btn btn-outline">Login</a>
@@ -112,170 +756,56 @@
         </div>
       </header>
 
-      <div class="container">
-        <!-- Lista znalezionych urządzeń -->
-        <div class="section devices-list">
-          <h2>Znalezione urządzenia</h2>
-          <!-- Przycisk do skanowania urządzeń -->
-          <form action="/scan" method="post" style="display: inline-block; margin-right: 10px;" id="scan-form">
-            <input type="submit" value="Skanuj urządzenia" class="btn">
-          </form>
-          
-          <!-- Wskaźnik ładowania podczas skanowania -->
-          <div class="loading-spinner" id="scanning-indicator" style="display: none;">
-            <div class="spinner"></div>
-            <div class="loading-text">Trwa skanowanie urządzeń Bluetooth...</div>
-          </div>
-          
-          <!-- Filtrowanie urządzeń -->
-          {% if devices %}
-            <div class="filter-container">
-              <label for="device-filter">Filtruj urządzenia:</label>
-              <input type="text" id="device-filter" placeholder="Wpisz nazwę lub adres MAC..." class="filter-input">
-            </div>
-            <div class="devices-table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nazwa</th>
-                    <th>Adres MAC</th>
-                    <th>Akcje</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for device in devices %}
-                  <tr>
-                    <td>{{ device.name }}</td>
-                    <td>{{ device.address }}</td>
-                    <td>
-                      <form action="/connect" method="post" style="display: inline-block; margin-right: 5px;">
-                        <input type="hidden" name="address" value="{{ device.address }}">
-                        <input type="submit" value="Połącz" class="btn btn-small">
-                      </form>
-                      <form action="/unpair" method="post" style="display: inline-block;">
-                        <input type="hidden" name="address" value="{{ device.address }}">
-                        <input type="submit" value="Rozparuj" class="btn btn-small btn-warning">
-                      </form>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <p>Brak znalezionych urządzeń. Kliknij "Skanuj urządzenia", aby rozpocząć wyszukiwanie.</p>
-          {% endif %}
-        </div>
-
-        <!-- Sekcja Debug -->
-        <div class="section debug-section">
-          <h2>Debug</h2>
-          <div class="debug-controls">
-            <div class="debug-row">
-              <h3>Zarządzanie urządzeniami</h3>
-              <div class="debug-actions">
-                <form action="/simulate_connection" method="post" style="display: inline-block; margin-right: 10px;">
-                  <input type="submit" value="Symuluj połączenie" class="btn btn-simulate">
-                </form>
-                
-                <button id="add-test-device" class="btn btn-primary">Dodaj testowe urządzenie</button>
+      <!-- Widok Minecraft z przyciskiem SKANUJ i sekcją wyników -->
+      <div class="minecraft-layout" id="minecraft-layout">
+        <div class="minecraft-content">
+          <div class="minecraft-content-overlay">
+            <!-- Główna sekcja z tytułem i przyciskiem - zawsze wyśrodkowana i w stałym miejscu -->
+            <div class="minecraft-main-section">
+              <div class="minecraft-title">
+                <h1>Bluetooth Manager</h1>
+                <p>Wyszukaj i zarządzaj urządzeniami Bluetooth</p>
               </div>
-            </div>
-            
-            <div class="debug-row">
-              <h3>Testowe urządzenie</h3>
-              <div class="debug-form">
-                <div class="debug-field">
-                  <label for="test-device-name">Nazwa:</label>
-                  <input type="text" id="test-device-name" value="Testowe Urządzenie">
-                </div>
-                <div class="debug-field">
-                  <label for="test-device-address">Adres MAC:</label>
-                  <input type="text" id="test-device-address" value="00:11:22:33:44:55">
-                </div>
-                <div class="debug-field">
-                  <label for="test-device-type">Typ urządzenia:</label>
-                  <select id="test-device-type">
-                    <option value="headphones">Słuchawki</option>
-                    <option value="speaker">Głośnik</option>
-                    <option value="keyboard">Klawiatura</option>
-                    <option value="mouse">Mysz</option>
-                    <option value="gamepad">Kontroler</option>
-                    <option value="other" selected>Inne</option>
-                  </select>
-                </div>
-                <div class="debug-field">
-                  <label for="test-device-connected">Status:</label>
-                  <select id="test-device-connected">
-                    <option value="false" selected>Niepodłączone</option>
-                    <option value="true">Podłączone</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sekcja wysyłania danych (widoczna tylko gdy połączono) -->
-        {% if bluetooth_status == 'Dostępny' %}
-
-        <!-- Sekcja do sterowania urządzeniem -->
-        <div class="section">
-          <h2>Sterowanie urządzeniem</h2>
-          <p>Stwórz własne przyciski z komendami do szybkiego wysyłania danych do urządzenia.</p>
-          
-          <div id="custom-buttons" class="button-container">
-            <!-- Tutaj będą dynamicznie dodawane przyciski -->
-          </div>
-          
-          <div class="commands-section">
-            <h3>Stwórz nowy przycisk</h3>
-            <form id="create-button-form">
-              <div>
-                <label for="button-name">Nazwa przycisku:</label>
-                <input type="text" id="button-name" placeholder="np. Włącz LED" required>
-              </div>
-              <h4>Komendy do wysłania:</h4>
-              <div id="commands-container">
-                <!-- Tutaj będą dynamicznie dodawane pola komend -->
-              </div>
-              <button type="button" id="add-command" class="btn btn-small">Dodaj kolejną komendę</button>
-              <p class="hint">Możesz dodać wiele komend, które zostaną wykonane po sobie z określonym opóźnieniem.</p>
-            </form>
-            
-            <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
-              <button type="button" id="add-button" class="btn">Dodaj przycisk</button>
-              
-              {% if bluetooth_status == 'Dostępny' %}
-              <form action="/disconnect" method="post" style="display: inline-block;">
-                <input type="submit" value="Rozłącz" class="btn btn-warning">
+              <form action="/scan" method="post" id="scan-form">
+                <input type="hidden" name="show_results" value="true">
+                <button type="submit" class="minecraft-play-button">SKANUJ</button>
               </form>
-              {% endif %}
+            </div>
+            
+            <!-- Kontener dla wyników - pojawia się poniżej bez wpływu na główną sekcję -->
+            <div class="minecraft-results-container">
+              <div id="scan-results-section" class="scan-results-section" style="display: none;">
+                <div class="scan-results-header">
+                  <h3>Znalezione urządzenia</h3>
+                  <!-- NOWY FILTR DLA WYNIKÓW SKANOWANIA -->
+                  <div class="scan-results-filter">
+                    <input type="text" id="scan-results-filter-input" placeholder="Filtruj po nazwie lub adresie MAC...">
+                  </div>
+                </div>
+                <div class="scan-info-message">
+                  <p>Upewnij się, że urządzenie jest włączone i wykrywalne. Wybierz urzadzenie poniżej, aby nawiązać połączenie.</p>
+                </div>
+                <div id="scan-results-container" class="scan-results-container">
+                  <!-- Tu będą dynamicznie dodawane znalezione urządzenia -->
+                </div>
+                <!-- Link do ręcznego dodawania urządzenia -->
+                <div class="manual-device-link">
+                  <p>Nie widzisz swojego urządzenia? <a href="#" id="open-manual-device-modal">Dodaj je ręcznie...</a></p>
+                </div>
+                <div class="scan-results-actions">
+                  <button id="clear-scan-results" class="btn btn-outline">Anuluj</button>
+                </div>
+                
+                
+              </div>
             </div>
           </div>
-        </div>
-        {% endif %}
-
-        <!-- Sekcja z logami -->
-        <div class="section">
-          <h2>Logi</h2>
-          <div class="log-container">
-            {% if logs %}
-              {% for log in logs|reverse %}
-                <div class="log-entry">{{ log }}</div>
-              {% endfor %}
-            {% else %}
-              <p>Brak logów.</p>
-            {% endif %}
-          </div>
-          <form action="/clear_logs" method="post" style="margin-top: 10px;">
-            <input type="submit" value="Wyczyść logi" class="btn btn-warning">
-          </form>
         </div>
       </div>
     </div>
   </div>
   
+  <!-- Modal edycji urządzenia -->
   <div id="device-edit-modal" class="modal">
     <div class="modal-content">
       <span class="close-modal">&times;</span>
@@ -308,62 +838,716 @@
     </div>
   </div>
   
-  <!-- Podłączenie skryptów JavaScript i biblioteki ikon -->
+  <!-- Modal szczegółów urządzenia -->
+  <div id="device-details-modal" class="modal device-details-modal">
+    <div class="modal-content device-modal-content">
+      <span class="close-modal" id="close-device-details">&times;</span>
+      
+      <div class="device-details-header">
+        <div class="device-info">
+          <h2 id="modal-device-name">Nazwa urządzenia</h2>
+          <div class="device-address" id="modal-device-address">00:00:00:00:00:00</div>
+          <div class="device-type" id="modal-device-type">Typ urządzenia</div>
+        </div>
+        <div class="connection-status">
+          <span id="modal-device-status" class="status-text">Niepołączone</span>
+          <div class="connection-actions">
+            <button id="modal-connect-btn" class="btn btn-primary btn-small">Połącz</button>
+            <button id="modal-disconnect-btn" class="btn btn-warning btn-small">Rozłącz</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="device-tabs">
+        <button class="tab-btn active" data-tab="control-tab">Sterowanie</button>
+        <button class="tab-btn" data-tab="logs-tab">Logi</button>
+      </div>
+      
+      <div class="tab-content">
+        <!-- Tab sterowania -->
+        <div id="control-tab" class="tab-panel active">
+          <div class="control-section">
+            <h3>Przyciski sterujące</h3>
+            <div class="device-buttons" id="modal-device-buttons">
+              <!-- Przyciski zostaną tu dodane dynamicznie -->
+              <div class="no-buttons-message">Brak zdefiniowanych przycisków dla tego urządzenia.</div>
+            </div>
+            
+            <div class="control-actions">
+              <button id="add-device-button" class="btn btn-primary">Dodaj nowy przycisk</button>
+            </div>
+            
+            <!-- Formularz dodawania przycisku (domyślnie ukryty) -->
+            <div id="modal-button-form" class="modal-form-section" style="display: none;">
+              <h4>Nowy przycisk</h4>
+              <div class="form-group">
+                <label for="modal-button-name">Nazwa przycisku:</label>
+                <input type="text" id="modal-button-name" placeholder="np. Włącz LED">
+              </div>
+              
+              <div class="form-group">
+                <label for="modal-button-function">Funkcja przycisku (opcjonalnie):</label>
+                <select id="modal-button-function">
+                  <option value="">Brak (zwykły przycisk)</option>
+                  <option value="power">Zasilanie</option>
+                  <option value="volume-up">Głośność</option>
+                  <option value="light">Światło/LED</option>
+                </select>
+                <div class="hint">Wybierz funkcję, aby dodać ikonę do przycisku</div>
+              </div>
+              
+              <div class="commands-container" id="modal-commands-container">
+                <div class="command-field">
+                  <input type="text" class="command-input" placeholder="Dane w formacie HEX (np. 0x01020304)">
+                  <input type="number" class="delay-input" placeholder="Opóźnienie (ms)" min="0">
+                  <button type="button" class="remove-command btn-small btn-warning">Usuń</button>
+                </div>
+              </div>
+              
+              <div class="form-actions">
+                <button type="button" id="modal-add-command" class="btn btn-small">Dodaj komendę</button>
+                <button type="button" id="modal-save-button" class="btn">Zapisz przycisk</button>
+                <button type="button" id="modal-cancel-button" class="btn btn-outline">Anuluj</button>
+              </div>
+            </div>
+            
+            <!-- Przycisk Rozparuj - przeniesiony do zakładki control -->
+            <div class="unpair-action">
+              <button id="modal-unpair-btn" class="btn btn-danger">Rozparuj urządzenie</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tab logów -->
+        <div id="logs-tab" class="tab-panel">
+          <div class="device-logs-container">
+            <div class="logs-header">
+              <!-- <h3>Logi urządzenia</h3> -->
+              <!-- <button id="clear-device-logs" class="btn btn-small btn-warning">Wyczyść logi</button> -->
+            </div>
+            
+            <!-- Formularz filtrowania logów -->
+            
+            <div class="logs-filter-form">
+              <div class="logs-filter-row date-range">
+                <div class="filter-field">
+                  <label for="log-filter-date-from">Od daty:</label>
+                  <input type="date" id="log-filter-date-from" class="log-filter-input">
+                </div>
+                <div class="filter-field">
+                  <label for="log-filter-date-to">Do daty:</label>
+                  <input type="date" id="log-filter-date-to" class="log-filter-input">
+                </div>
+              </div>
+              
+              <div class="logs-filter-row time-range">
+                <div class="filter-field">
+                  <label for="log-filter-time-from">Od godziny:</label>
+                  <input type="time" id="log-filter-time-from" class="log-filter-input">
+                </div>
+                <div class="filter-field">
+                  <label for="log-filter-time-to">Do godziny:</label>
+                  <input type="time" id="log-filter-time-to" class="log-filter-input">
+                </div>
+              </div>
+              
+              <div class="logs-filter-row">
+                <div class="filter-field filter-text">
+                  <label for="log-filter-text">Tekst:</label>
+                  <input type="text" id="log-filter-text" class="log-filter-input" placeholder="Filtruj po tekście...">
+                </div>
+              </div>
+              
+              <div class="logs-filter-actions">
+                <button id="apply-log-filters" class="btn btn-small">Zastosuj filtry</button>
+                <button id="clear-log-filters" class="btn btn-small btn-outline">Wyczyść filtry</button>
+              </div>
+            </div>
+            
+            <div class="device-log-content" id="device-log-content">
+              <!-- Logi będą dodawane dynamicznie -->
+              <div class="no-logs-message">Brak logów dla tego urządzenia.</div>
+            </div>
+            <div class="logs-header">
+              <!-- <h3>Logi urządzenia</h3> -->
+              <button id="clear-device-logs" class="btn btn-small btn-warning">Wyczyść logi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal ręcznego dodawania urządzenia -->
+  <div id="add-manual-device-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="close-manual-device-modal">&times;</span>
+      <h2>Dodaj urządzenie ręcznie</h2>
+      <form id="add-manual-device-form">
+        <div class="form-group">
+          <label for="manual-device-name">Nazwa urządzenia:</label>
+          <input type="text" id="manual-device-name" placeholder="np. Moje Słuchawki" required>
+        </div>
+        <div class="form-group">
+          <label for="manual-device-address">Adres MAC:</label>
+          <input type="text" id="manual-device-address" placeholder="Format: 00:11:22:33:44:55" required pattern="([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})">
+          <div class="hint">Format adresu MAC: 00:11:22:33:44:55</div>
+        </div>
+        <div class="form-group">
+          <label for="manual-device-type">Typ urządzenia:</label>
+          <select id="manual-device-type" required>
+            <option value="headphones">Słuchawki</option>
+            <option value="speaker">Głośnik</option>
+            <option value="keyboard">Klawiatura</option>
+            <option value="mouse">Mysz</option>
+            <option value="gamepad">Kontroler</option>
+            <option value="other" selected>Inne</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Dodaj urządzenie</button>
+          <button type="button" id="cancel-manual-device" class="btn btn-outline">Anuluj</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- JavaScript at the end of the body -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script> 
   <script src="{{ url_for('static', filename='js/bluetooth.js') }}"></script>
   <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/device-modal.js') }}"></script>
   
-  <!-- Skrypt do obsługi sekcji Debug -->
+  <!-- Kompletny zaktualizowany JavaScript dla obsługi skanowania z wynikami -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Element przycisku do dodawania testowego urządzenia
-      const addTestDeviceBtn = document.getElementById('add-test-device');
+  document.addEventListener('DOMContentLoaded', function() {
+    const scanForm = document.getElementById('scan-form');
+    const scanResultsSection = document.getElementById('scan-results-section');
+    const scanResultsContainer = document.getElementById('scan-results-container');
+    const clearScanResults = document.getElementById('clear-scan-results');
+    const openManualDeviceModal = document.getElementById('open-manual-device-modal');
+    const manualDeviceModal = document.getElementById('add-manual-device-modal');
+    const scanResultsFilterInput = document.getElementById('scan-results-filter-input');
+    
+    // Obsługa formularza skanowania
+    if (scanForm) {
+      scanForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        startScanning();
+      });
+    }
+    
+    // Obsługa przycisków w sekcji wyników
+    if (clearScanResults) {
+      clearScanResults.addEventListener('click', function() {
+        hideScanResults();
+      });
+    }
+    
+    // Obsługa linku do ręcznego dodawania urządzenia
+    if (openManualDeviceModal) {
+      openManualDeviceModal.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (manualDeviceModal) {
+          manualDeviceModal.style.display = 'block';
+        }
+      });
+    }
+    
+    // NOWA FUNKCJONALNOŚĆ: Filtrowanie wyników skanowania
+    if (scanResultsFilterInput) {
+      scanResultsFilterInput.addEventListener('input', function() {
+        filterScanResults();
+      });
+    }
+    
+    /**
+     * NOWA FUNKCJA: Filtruje wyniki skanowania na podstawie wprowadzonego tekstu
+     */
+    function filterScanResults() {
+      const filterValue = scanResultsFilterInput.value.toLowerCase();
+      const deviceItems = scanResultsContainer.querySelectorAll('.scan-device-item');
       
-      // Elementy formularza
-      const testDeviceName = document.getElementById('test-device-name');
-      const testDeviceAddress = document.getElementById('test-device-address');
-      const testDeviceType = document.getElementById('test-device-type');
-      const testDeviceConnected = document.getElementById('test-device-connected');
+      deviceItems.forEach(device => {
+        const deviceName = device.querySelector('.scan-device-name').textContent.toLowerCase();
+        const deviceAddress = device.querySelector('.scan-device-address').textContent.toLowerCase();
+        
+        const shouldShow = deviceName.includes(filterValue) || deviceAddress.includes(filterValue);
+        device.style.display = shouldShow ? 'flex' : 'none';
+      });
       
-      // Obsługa dodawania testowego urządzenia
-      if (addTestDeviceBtn) {
-        addTestDeviceBtn.addEventListener('click', function() {
-          // Pobierz dane z formularza
-          const deviceName = testDeviceName.value || 'Testowe Urządzenie';
-          const deviceAddress = testDeviceAddress.value || '00:11:22:33:44:55';
-          const deviceType = testDeviceType.value || 'other';
-          const isConnected = testDeviceConnected.value === 'true';
+      // Sprawdź czy są widoczne urządzenia
+      const visibleDevices = Array.from(deviceItems).filter(device => device.style.display !== 'none');
+      
+      if (visibleDevices.length === 0 && deviceItems.length > 0) {
+        // Jeśli nie ma widocznych urządzeń ale są urządzenia w ogóle, pokaż komunikat o braku wyników filtrowania
+        if (!scanResultsContainer.querySelector('.no-filter-results')) {
+          const noResultsMsg = document.createElement('div');
+          noResultsMsg.className = 'no-filter-results no-scan-results';
+          noResultsMsg.innerHTML = `
+            <i class="fas fa-filter"></i>
+            <p>Brak urządzeń pasujących do filtra</p>
+            <p>Spróbuj zmienić kryteria wyszukiwania</p>
+          `;
+          scanResultsContainer.appendChild(noResultsMsg);
+        }
+      } else {
+        // Usuń komunikat o braku wyników filtrowania jeśli istnieje
+        const noResultsMsg = scanResultsContainer.querySelector('.no-filter-results');
+        if (noResultsMsg) {
+          noResultsMsg.remove();
+        }
+      }
+    }
+    
+    /**
+     * Rozpoczyna proces skanowania urządzeń
+     */
+    function startScanning() {
+      const minecraftBtn = document.querySelector('.minecraft-play-button');
+      
+      // Pokaż animację ładowania w przycisku
+      if (minecraftBtn) {
+        minecraftBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SKANOWANIE...';
+        minecraftBtn.disabled = true;
+        minecraftBtn.style.opacity = "0.7";
+      }
+      
+      // Ukryj poprzednie wyniki
+      hideScanResults();
+      
+      // Wyślij zapytanie AJAX
+      fetch('/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'show_results=true'
+      })
+      .then(response => {
+        console.log('Skanowanie zakończone pomyślnie');
+        
+        // Po zakończeniu skanowania, pobierz wyniki
+        setTimeout(() => {
+          fetchScanResults();
           
-          // Utwórz obiekt urządzenia
-          const testDevice = {
-            name: deviceName,
-            address: deviceAddress,
-            type: deviceType,
-            connected: isConnected
-          };
-          
-          // Wyzwól zdarzenie dodania urządzenia
-          window.dispatchEvent(new CustomEvent('deviceConnected', {
-            detail: {
-              device: testDevice
-            }
-          }));
-          
-          // Dodaj log
-          const logContainer = document.querySelector('.log-container');
-          if (logContainer) {
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry';
-            logEntry.textContent = `[DEBUG] Dodano testowe urządzenie: ${deviceName} (${deviceAddress})`;
-            logContainer.insertBefore(logEntry, logContainer.firstChild);
+          // Przywróć przycisk do normalnego stanu
+          if (minecraftBtn) {
+            minecraftBtn.innerHTML = 'SKANUJ';
+            minecraftBtn.disabled = false;
+            minecraftBtn.style.opacity = "1";
           }
+        }, 2000); // 2 sekundy opóźnienia
+      })
+      .catch(error => {
+        console.error('Błąd podczas skanowania:', error);
+        
+        // Dodaj informację o błędzie do logów
+        addToMainLog(`[BŁĄD] Błąd podczas skanowania: ${error}`);
+        
+        // Przywróć przycisk do normalnego stanu
+        if (minecraftBtn) {
+          minecraftBtn.innerHTML = 'SKANUJ';
+          minecraftBtn.disabled = false;
+          minecraftBtn.style.opacity = "1";
+        }
+      });
+    }
+    
+    /**
+     * Pobiera wyniki skanowania z serwera
+     */
+    function fetchScanResults() {
+      fetch('/get_discovered_devices')
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            displayScanResults(data.devices);
+            addToMainLog(`[SKANOWANIE] Znaleziono ${data.devices.length} urządzeń`);
+          } else {
+            console.error('Błąd pobierania wyników:', data.message);
+            addToMainLog(`[BŁĄD] Nie udało się pobrać wyników skanowania`);
+          }
+        })
+        .catch(error => {
+          console.error('Błąd podczas pobierania wyników:', error);
+          addToMainLog(`[BŁĄD] Błąd podczas pobierania wyników skanowania`);
+        });
+    }
+    
+    /**
+     * Wyświetla wyniki skanowania
+     * @param {Array} devices - Lista znalezionych urządzeń
+     */
+    function displayScanResults(devices) {
+      if (!scanResultsContainer || !scanResultsSection) {
+        return;
+      }
+      
+      // Wyczyść kontener
+      scanResultsContainer.innerHTML = '';
+      
+      // Wyczyść filtr
+      if (scanResultsFilterInput) {
+        scanResultsFilterInput.value = '';
+      }
+      
+      if (devices.length === 0) {
+        scanResultsContainer.innerHTML = `
+          <div class="no-scan-results">
+            <i class="fas fa-search"></i>
+            <p>Nie znaleziono żadnych urządzeń Bluetooth</p>
+            <p>Sprawdź, czy urządzenia są włączone i widoczne</p>
+          </div>
+        `;
+      } else {
+        // Dodaj każde znalezione urządzenie
+        devices.forEach(device => {
+          const deviceElement = createScanDeviceElement(device);
+          scanResultsContainer.appendChild(deviceElement);
         });
       }
-    });
+      
+      // Pokaż sekcję wyników
+      scanResultsSection.style.display = 'block';
+      
+      // Przewiń do wyników
+      setTimeout(() => {
+        scanResultsSection.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
+    }
+    
+    /**
+     * Tworzy element DOM dla znalezionego urządzenia
+     * @param {Object} device - Obiekt urządzenia
+     * @returns {HTMLElement} - Element DOM
+     */
+    function createScanDeviceElement(device) {
+      const deviceElement = document.createElement('div');
+      deviceElement.className = 'scan-device-item';
+      
+      // Ikona Bluetooth
+      const iconElement = document.createElement('div');
+      iconElement.className = 'scan-device-icon';
+      iconElement.innerHTML = `
+        <svg viewBox="0 0 448 512">
+          <path d="M292.6 171.1L249.7 214l-.3-86 43.2 43.1m-43.2 219.8l43.1-43.1-42.9-42.9-.2 86zM416 259.4C416 465 344.1 512 230.9 512S32 465 32 259.4 115.4 0 228.6 0 416 53.9 416 259.4zm-158.5 0l79.4-88.6L211.8 36.5v176.9L138 139.6l-27 26.9 92.7 93-92.7 93 26.9 26.9 73.8-73.8 2.3 170 127.4-127.5-83.9-88.7z"/>
+        </svg>
+      `;
+      
+      // Informacje o urządzeniu
+      const infoElement = document.createElement('div');
+      infoElement.className = 'scan-device-info';
+      
+      const nameElement = document.createElement('div');
+      nameElement.className = 'scan-device-name';
+      nameElement.textContent = device.name || 'Nieznane urządzenie';
+      
+      const addressElement = document.createElement('div');
+      addressElement.className = 'scan-device-address';
+      addressElement.textContent = device.address;
+      
+      infoElement.appendChild(nameElement);
+      infoElement.appendChild(addressElement);
+      
+      // Przyciski akcji
+      const actionsElement = document.createElement('div');
+      actionsElement.className = 'scan-device-actions';
+      
+      // Przycisk połączenia
+      const connectBtn = document.createElement('button');
+      connectBtn.className = 'scan-device-connect-btn';
+      connectBtn.textContent = 'Połącz';
+      connectBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        connectToDevice(device.address);
+      });
+      
+      // Przycisk dodania do listy
+      const addBtn = document.createElement('button');
+      addBtn.className = 'scan-device-add-btn';
+      addBtn.textContent = 'Dodaj';
+      addBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        addDeviceToList(device);
+      });
+      
+      actionsElement.appendChild(connectBtn);
+      actionsElement.appendChild(addBtn);
+      
+      // Składaj element
+      deviceElement.appendChild(iconElement);
+      deviceElement.appendChild(infoElement);
+      deviceElement.appendChild(actionsElement);
+      
+      // Obsługa kliknięcia w całe urządzenie
+      deviceElement.addEventListener('click', function() {
+        addDeviceToList(device);
+      });
+      
+      return deviceElement;
+    }
+    
+    /**
+     * Łączy z urządzeniem
+     * @param {string} address - Adres MAC urządzenia
+     */
+    function connectToDevice(address) {
+      addToMainLog(`[POŁĄCZENIE] Próba połączenia z urządzeniem ${address}`);
+      
+      // Utwórz i wyślij formularz
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/connect';
+      
+      const addressInput = document.createElement('input');
+      addressInput.type = 'hidden';
+      addressInput.name = 'address';
+      addressInput.value = address;
+      
+      form.appendChild(addressInput);
+      document.body.appendChild(form);
+      form.submit();
+    }
+    
+    /**
+     * Dodaje urządzenie do listy sparowanych
+     * @param {Object} device - Obiekt urządzenia
+     */
+    function addDeviceToList(device) {
+      // Wyślij zdarzenie deviceConnected
+      window.dispatchEvent(new CustomEvent('deviceConnected', {
+        detail: {
+          device: {
+            name: device.name || 'Nieznane urządzenie',
+            address: device.address,
+            connected: false,
+            type: 'other'
+          }
+        }
+      }));
+      
+      addToMainLog(`[DODANO] Urządzenie ${device.name || 'Nieznane'} dodane do listy`);
+    }
+    
+    /**
+     * Ukrywa sekcję wyników skanowania
+     */
+    function hideScanResults() {
+      if (scanResultsSection) {
+        scanResultsSection.style.display = 'none';
+      }
+      
+      // Wyczyść również filtr
+      if (scanResultsFilterInput) {
+        scanResultsFilterInput.value = '';
+      }
+    }
+    
+    /**
+     * Dodaje wpis do głównych logów aplikacji
+     * @param {string} message - Wiadomość do dodania
+     */
+    function addToMainLog(message) {
+      const logContainer = document.querySelector('.log-container');
+      if (logContainer) {
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        logEntry.textContent = message;
+        logContainer.insertBefore(logEntry, logContainer.firstChild);
+      }
+      console.log(message);
+    }
+    
+    // Modal ręcznego dodawania urządzenia
+    const addManualDeviceForm = document.getElementById('add-manual-device-form');
+    
+    // Obsługa formularza dodawania ręcznego
+    if (addManualDeviceForm) {
+      addManualDeviceForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('manual-device-name').value;
+        const address = document.getElementById('manual-device-address').value;
+        const type = document.getElementById('manual-device-type').value;
+        
+        // Walidacja adresu MAC
+        const macRegex = /([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})/;
+        if (!macRegex.test(address)) {
+          alert('Proszę podać poprawny adres MAC w formacie 00:11:22:33:44:55');
+          return;
+        }
+        
+        // Tworzenie obiektu urządzenia
+        const newDevice = {
+          name: name,
+          address: address,
+          type: type,
+          connected: false
+        };
+        
+        // Dodanie urządzenia
+        window.dispatchEvent(new CustomEvent('deviceConnected', {
+          detail: {
+            device: newDevice
+          }
+        }));
+        
+        // Dodanie log
+        addToMainLog(`[MANUAL] Dodano urządzenie ręcznie: ${name} (${address})`);
+        
+        // Zamknięcie modalu
+        manualDeviceModal.style.display = 'none';
+        
+        // Wyczyszczenie formularza
+        addManualDeviceForm.reset();
+      });
+    }
+    
+    // Ukrycie modalów po kliknięciu na X lub poza modalem
+    setupModals();
+    
+    function setupModals() {
+      // Pobierz wszystkie przyciski zamykania modalów
+      const closeButtons = document.querySelectorAll('.close-modal');
+      const modals = document.querySelectorAll('.modal');
+      const cancelButtons = document.querySelectorAll('[id$="-cancel-button"], [id^="cancel-"]');
+      
+      // Dodaj obsługę kliknięcia na X
+      closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const modal = button.closest('.modal');
+          if (modal) modal.style.display = 'none';
+        });
+      });
+      
+      // Dodaj obsługę kliknięcia poza modalem
+      window.addEventListener('click', function(e) {
+        modals.forEach(modal => {
+          if (e.target === modal) {
+            modal.style.display = 'none';
+          }
+        });
+      });
+      
+      // Obsługa przycisków anulowania
+      cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const modal = button.closest('.modal');
+          if (modal) modal.style.display = 'none';
+        });
+      });
+    }
+  });
   </script>
   
   {% if connect_script %}
     {{ connect_script|safe }}
   {% endif %}
+
+  <!-- Przycisk debugowania (prawy dolny róg) - używam ID zamiast klasy -->
+  <div id="debug-trigger" title="Otwórz narzędzia debugowania">
+    <i class="fas fa-bug"></i>
+  </div>
+
+  <!-- Modal debugowania z filtrami -->
+  <div id="debug-modal" class="debug-modal">
+    <div class="modal-content">
+      <span class="close-modal" id="close-debug-modal">&times;</span>
+      
+      <div class="modal-header">
+        <h2>Narzędzia Debugowania</h2>
+      </div>
+      
+      <div class="debug-section">
+        <h3>Zarządzanie urządzeniami</h3>
+        <div class="debug-actions">
+          <form id="simulate-connection-debug" action="/simulate_connection" method="post">
+            <button type="button" class="btn btn-simulate">Symuluj połączenie</button>
+          </form>
+          <button id="add-test-device-debug" class="btn btn-primary">Dodaj testowe urządzenie</button>
+        </div>
+        
+        <div class="debug-form">
+          <div class="form-group">
+            <label for="debug-device-name">Nazwa:</label>
+            <input type="text" id="debug-device-name" value="Testowe Urządzenie">
+          </div>
+          <div class="form-group">
+            <label for="debug-device-address">Adres MAC:</label>
+            <input type="text" id="debug-device-address" value="00:11:22:33:44:55">
+          </div>
+          <div class="form-group">
+            <label for="debug-device-type">Typ urządzenia:</label>
+            <select id="debug-device-type">
+              <option value="headphones">Słuchawki</option>
+              <option value="speaker">Głośnik</option>
+              <option value="keyboard">Klawiatura</option>
+              <option value="mouse">Mysz</option>
+              <option value="gamepad">Kontroler</option>
+              <option value="other" selected>Inne</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="debug-section">
+        <h3>Logi Systemu</h3>
+        
+        <!-- NOWE: Formularz filtrowania logów debug -->
+        <div class="debug-logs-filter-form">
+          <div class="logs-filter-row date-range">
+            <div class="filter-field">
+              <label for="debug-log-filter-date-from">Od daty:</label>
+              <input type="date" id="debug-log-filter-date-from" class="log-filter-input">
+            </div>
+            <div class="filter-field">
+              <label for="debug-log-filter-date-to">Do daty:</label>
+              <input type="date" id="debug-log-filter-date-to" class="log-filter-input">
+            </div>
+          </div>
+          
+          <div class="logs-filter-row time-range">
+            <div class="filter-field">
+              <label for="debug-log-filter-time-from">Od godziny:</label>
+              <input type="time" id="debug-log-filter-time-from" class="log-filter-input">
+            </div>
+            <div class="filter-field">
+              <label for="debug-log-filter-time-to">Do godziny:</label>
+              <input type="time" id="debug-log-filter-time-to" class="log-filter-input">
+            </div>
+          </div>
+          
+          <div class="logs-filter-row">
+            <div class="filter-field filter-text">
+              <label for="debug-log-filter-text">Tekst:</label>
+              <input type="text" id="debug-log-filter-text" class="log-filter-input" placeholder="Filtruj po tekście...">
+            </div>
+          </div>
+          
+          <div class="logs-filter-actions">
+            <button id="apply-debug-log-filters" class="btn btn-small">Zastosuj filtry</button>
+            <button id="clear-debug-log-filters" class="btn btn-small btn-outline">Wyczyść filtry</button>
+          </div>
+        </div>
+        
+        <div id="debug-log-viewer" class="log-viewer">
+          <!-- Tutaj będą dynamicznie dodawane logi -->
+          <div class="log-entry">Ładowanie logów...</div>
+        </div>
+        <div class="log-controls">
+          <button id="clear-debug-logs" class="btn btn-warning">Wyczyść logi</button>
+          <button id="refresh-debug-logs" class="btn">Odśwież logi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dołączenie dodatkowych skryptów i stylów -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/debug-modal.css') }}">
+  <script src="{{ url_for('static', filename='js/debug-modal.js') }}"></script>
 </body>
 </html>
