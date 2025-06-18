@@ -244,8 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Aktualizuj widok podsumowania
       if (activeFilters.length > 0) {
         // Dodaj informację o logice AND
-        const andInfo = activeFilters.length > 1 ? ' <span style="color: #f39c12; font-weight: bold;">(wszystkie warunki muszą być spełnione)</span>' : '';
-        filterValues.innerHTML = activeFilters.join(' <span style="color: #e74c3c;">AND</span> ') + andInfo;
+        filterValues.innerHTML = activeFilters.join(' <span style="color: #e74c3c;">AND</span> ');
         filterSummary.style.display = 'block';
         console.log('Zaktualizowano podsumowanie filtrów debug:', activeFilters);
       } else {
@@ -380,19 +379,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // WARUNEK AND #1: Filtrowanie po dacie "od"
         if (dateFromFilter) {
           if (!logDate || logDate < dateFromFilter) {
-            console.log(`❌ Debug odrzucono - data ${logDate} jest wcześniejsza niż ${dateFromFilter}`);
+            console.log(`Debug odrzucono - data ${logDate} jest wcześniejsza niż ${dateFromFilter}`);
             return false;
           }
-          console.log(`✅ Debug data "od" OK: ${logDate} >= ${dateFromFilter}`);
+          console.log(`Debug data "od" OK: ${logDate} >= ${dateFromFilter}`);
         }
         
         // WARUNEK AND #2: Filtrowanie po dacie "do"
         if (dateToFilter) {
           if (!logDate || logDate > dateToFilter) {
-            console.log(`❌ Debug odrzucono - data ${logDate} jest późniejsza niż ${dateToFilter}`);
+            console.log(`Debug odrzucono - data ${logDate} jest późniejsza niż ${dateToFilter}`);
             return false;
           }
-          console.log(`✅ Debug data "do" OK: ${logDate} <= ${dateToFilter}`);
+          console.log(`Debug data "do" OK: ${logDate} <= ${dateToFilter}`);
         }
         
         // WARUNEK AND #3 & #4: Filtrowanie po czasie
@@ -400,11 +399,11 @@ document.addEventListener('DOMContentLoaded', function() {
           if (!logTime) {
             // Jeśli nie ma czasu w logu, ale filtry czasu są aktywne, odrzuć tylko jeśli oba filtry są ustawione
             if (timeFromFilter && timeToFilter) {
-              console.log('❌ Debug odrzucono - brak czasu w logu, ale oba filtry czasu są aktywne');
+              console.log('Debug odrzucono - brak czasu w logu, ale oba filtry czasu są aktywne');
               return false;
             }
             // Jeśli tylko jeden filtr czasu jest aktywny, pozwól przejść logom bez czasu
-            console.log('⚠️ Debug - brak czasu w logu, ale tylko jeden filtr czasu aktywny - pozwalamy przejść');
+            console.log('Debug - brak czasu w logu, ale tylko jeden filtr czasu aktywny - pozwalamy przejść');
           } else {
             const logTimeParts = logTime.split(':');
             if (logTimeParts.length >= 2) {
@@ -421,10 +420,10 @@ document.addEventListener('DOMContentLoaded', function() {
                   const fromTimeMinutes = fromHours * 60 + fromMinutes;
                   
                   if (logTimeMinutes < fromTimeMinutes) {
-                    console.log(`❌ Debug odrzucono - czas ${logTime} jest wcześniejszy niż ${timeFromFilter}`);
+                    console.log(`Debug odrzucono - czas ${logTime} jest wcześniejszy niż ${timeFromFilter}`);
                     return false;
                   }
-                  console.log(`✅ Debug czas "od" OK: ${logTime} >= ${timeFromFilter}`);
+                  console.log(`Debug czas "od" OK: ${logTime} >= ${timeFromFilter}`);
                 }
               }
               
@@ -437,10 +436,10 @@ document.addEventListener('DOMContentLoaded', function() {
                   const toTimeMinutes = toHours * 60 + toMinutes;
                   
                   if (logTimeMinutes > toTimeMinutes) {
-                    console.log(`❌ Debug odrzucono - czas ${logTime} jest późniejszy niż ${timeToFilter}`);
+                    console.log(`Debug odrzucono - czas ${logTime} jest późniejszy niż ${timeToFilter}`);
                     return false;
                   }
-                  console.log(`✅ Debug czas "do" OK: ${logTime} <= ${timeToFilter}`);
+                  console.log(`Debug czas "do" OK: ${logTime} <= ${timeToFilter}`);
                 }
               }
             }
@@ -450,14 +449,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // WARUNEK AND #5: Filtrowanie po tekście
         if (textFilter) {
           if (!logText.includes(textFilter)) {
-            console.log(`❌ Debug odrzucono - tekst nie zawiera "${textFilter}"`);
+            console.log(`Debug odrzucono - tekst nie zawiera "${textFilter}"`);
             return false;
           }
-          console.log(`✅ Debug tekst OK: zawiera "${textFilter}"`);
+          console.log(`Debug tekst OK: zawiera "${textFilter}"`);
         }
         
         // Wszystkie warunki AND zostały spełnione
-        console.log('✅ Debug log przeszedł przez wszystkie filtry AND');
+        console.log('Debug log przeszedł przez wszystkie filtry AND');
         return true;
       });
       
@@ -470,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const filterInfo = document.createElement('div');
         filterInfo.className = 'filter-results-info';
         filterInfo.style.cssText = 'margin-top: 5px; font-size: 11px; color: #3498db; font-weight: bold;';
-        filterInfo.textContent = `📊 Debug: Pokazano ${filteredLogs.length} z ${logsArray.length} logów`;
+        filterInfo.textContent = `Debug: Pokazano ${filteredLogs.length} z ${logsArray.length} logów`;
         
         // Usuń poprzednią informację jeśli istnieje
         const existingInfo = filterSummary.querySelector('.filter-results-info');

@@ -12,6 +12,11 @@ from PySide6.QtCore import QCoreApplication, QObject, QTimer, Signal, QEventLoop
 from PySide6.QtBluetooth import (QBluetoothDeviceDiscoveryAgent,
                               QBluetoothSocket, QBluetoothServiceInfo, QBluetoothAddress, QBluetoothLocalDevice)
 
+# Import ctypes tylko na Windows
+if platform.system() == "Windows":
+    import ctypes
+    from ctypes import wintypes
+
 # Globalne zmienne do przechowywania stanu
 discovered_devices = []
 paired_devices = []
@@ -25,7 +30,6 @@ app = Flask(__name__)
 
 def add_log(message, level="INFO"):
     """Dodaje wiadomość do logów z poziomem ważności"""
-    #timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{level}] {message}"
     logs.append(log_entry)
     print(log_entry)  # Wyświetl również w konsoli
@@ -33,6 +37,10 @@ def add_log(message, level="INFO"):
     # Zachowaj tylko ostatnie 500 logów
     if len(logs) > 500:
         logs.pop(0)
+
+def get_current_os():
+    """Zwraca aktualny system operacyjny"""
+    return platform.system()
 
 def reset_bluetooth():
     """
@@ -119,6 +127,281 @@ def reset_bluetooth():
         add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
         return False
 
+# ========================================
+# FUNKCJE LINUXOWE DLA STEROWANIA MEDIAMI
+# ========================================
+
+def linux_check_dependencies():
+    """Sprawdza czy wymagane narzędzia są dostępne w systemie Linux"""
+    required_tools = ['playerctl', 'amixer']
+    missing_tools = []
+    
+    for tool in required_tools:
+        try:
+            subprocess.run([tool, '--version'], capture_output=True, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            missing_tools.append(tool)
+    
+    return missing_tools
+
+def linux_media_play_pause():
+    """Linux: Przełącza odtwarzanie/pauzę"""
+    try:
+        result = subprocess.run(['playerctl', 'play-pause'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            add_log("Linux: Media play/pause wykonane pomyślnie", "INFO")
+            return True
+        else:
+            add_log(f"Linux: Błąd playerctl play-pause: {result.stderr}", "ERROR")
+            return False
+    except subprocess.TimeoutExpired:
+        add_log("Linux: Timeout podczas wykonywania playerctl play-pause", "ERROR")
+        return False
+    except FileNotFoundError:
+        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
+        return False
+    except Exception as e:
+        add_log(f"Linux: Błąd podczas play/pause: {str(e)}", "ERROR")
+        return False
+
+def linux_media_previous():
+    """Linux: Poprzedni utwór"""
+    try:
+        result = subprocess.run(['playerctl', 'previous'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            add_log("Linux: Poprzedni utwór wykonany pomyślnie", "INFO")
+            return True
+        else:
+            add_log(f"Linux: Błąd playerctl previous: {result.stderr}", "ERROR")
+            return False
+    except subprocess.TimeoutExpired:
+        add_log("Linux: Timeout podczas wykonywania playerctl previous", "ERROR")
+        return False
+    except FileNotFoundError:
+        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
+        return False
+    except Exception as e:
+        add_log(f"Linux: Błąd podczas previous: {str(e)}", "ERROR")
+        return False
+
+def linux_media_next():
+    """Linux: Następny utwór"""
+    try:
+        result = subprocess.run(['playerctl', 'next'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            add_log("Linux: Następny utwór wykonany pomyślnie", "INFO")
+            return True
+        else:
+            add_log(f"Linux: Błąd playerctl next: {result.stderr}", "ERROR")
+            return False
+    except subprocess.TimeoutExpired:
+        add_log("Linux: Timeout podczas wykonywania playerctl next", "ERROR")
+        return False
+    except FileNotFoundError:
+        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
+        return False
+    except Exception as e:
+        add_log(f"Linux: Błąd podczas next: {str(e)}", "ERROR")
+        return False
+
+def linux_media_stop():
+    """Linux: Zatrzymanie odtwarzania"""
+    try:
+        result = subprocess.run(['playerctl', 'stop'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            add_log("Linux: Stop wykonany pomyślnie", "INFO")
+            return True
+        else:
+            add_log(f"Linux: Błąd playerctl stop: {result.stderr}", "ERROR")
+            return False
+    except subprocess.TimeoutExpired:
+        add_log("Linux: Timeout podczas wykonywania playerctl stop", "ERROR")
+        return False
+    except FileNotFoundError:
+        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
+        return False
+    except Exception as e:
+        add_log(f"Linux: Błąd podczas stop: {str(e)}", "ERROR")
+        return False
+
+def linux_volume_up():
+    """Linux: Zwiększenie głośności"""
+    try:
+        # Próbuj najpierw amixer
+        result = subprocess.run(['amixer', '-D', 'pulse', 'sset', 'Master', '5%+'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            add_log("Linux: Głośność zwiększona (amixer)", "INFO")
+            return True
+        else:
+            # Jeśli amixer nie działa, spróbuj pactl
+            try:
+                result = subprocess.run(['pactl', 'set-sink-volume', '@DEFAULT_SINK@', '+5%'], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    add_log("Linux: Głośność zwiększona (pactl)", "INFO")
+                    return True
+                else:
+                    add_log(f"Linux: Błąd pactl volume up: {result.stderr}", "ERROR")
+                    return False
+            except FileNotFoundError:
+                add_log("Linux: Ani amixer ani pactl nie są dostępne", "ERROR")
+                return False
+    except subprocess.TimeoutExpired:
+        add_log("Linux: Timeout podczas zmiany głośności", "ERROR")
+        return False
+    except FileNotFoundError:
+        add_log("Linux: amixer nie jest zainstalowany", "ERROR")
+        return False
+    except Exception as e:
+        add_log(f"Linux: Błąd podczas zwiększania głośności: {str(e)}", "ERROR")
+        return False
+
+def linux_volume_down():
+    """Linux: Zmniejszenie głośności"""
+    try:
+        # Próbuj najpierw amixer
+        result = subprocess.run(['amixer', '-D', 'pulse', 'sset', 'Master', '5%-'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            add_log("Linux: Głośność zmniejszona (amixer)", "INFO")
+            return True
+        else:
+            # Jeśli amixer nie działa, spróbuj pactl
+            try:
+                result = subprocess.run(['pactl', 'set-sink-volume', '@DEFAULT_SINK@', '-5%'], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    add_log("Linux: Głośność zmniejszona (pactl)", "INFO")
+                    return True
+                else:
+                    add_log(f"Linux: Błąd pactl volume down: {result.stderr}", "ERROR")
+                    return False
+            except FileNotFoundError:
+                add_log("Linux: Ani amixer ani pactl nie są dostępne", "ERROR")
+                return False
+    except subprocess.TimeoutExpired:
+        add_log("Linux: Timeout podczas zmiany głośności", "ERROR")
+        return False
+    except FileNotFoundError:
+        add_log("Linux: amixer nie jest zainstalowany", "ERROR")
+        return False
+    except Exception as e:
+        add_log(f"Linux: Błąd podczas zmniejszania głośności: {str(e)}", "ERROR")
+        return False
+
+def linux_volume_mute():
+    """Linux: Wyciszenie/przywrócenie dźwięku"""
+    try:
+        # Próbuj najpierw amixer
+        result = subprocess.run(['amixer', '-D', 'pulse', 'sset', 'Master', 'toggle'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            add_log("Linux: Wyciszenie/przywrócenie wykonane (amixer)", "INFO")
+            return True
+        else:
+            # Jeśli amixer nie działa, spróbuj pactl
+            try:
+                result = subprocess.run(['pactl', 'set-sink-mute', '@DEFAULT_SINK@', 'toggle'], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    add_log("Linux: Wyciszenie/przywrócenie wykonane (pactl)", "INFO")
+                    return True
+                else:
+                    add_log(f"Linux: Błąd pactl mute: {result.stderr}", "ERROR")
+                    return False
+            except FileNotFoundError:
+                add_log("Linux: Ani amixer ani pactl nie są dostępne", "ERROR")
+                return False
+    except subprocess.TimeoutExpired:
+        add_log("Linux: Timeout podczas wyciszania", "ERROR")
+        return False
+    except FileNotFoundError:
+        add_log("Linux: amixer nie jest zainstalowany", "ERROR")
+        return False
+    except Exception as e:
+        add_log(f"Linux: Błąd podczas wyciszania: {str(e)}", "ERROR")
+        return False
+
+# ========================================
+# FUNKCJE WINDOWSOWE (ISTNIEJĄCY KOD)
+# ========================================
+
+def windows_send_media_key(vk_code):
+    """Windows: Wysyła klawisz medialny o podanym kodzie VK"""
+    try:
+        if platform.system() != "Windows":
+            return False
+            
+        user32 = ctypes.WinDLL('user32', use_last_error=True)
+        
+        class KEYBDINPUT(ctypes.Structure):
+            _fields_ = [("wVk", wintypes.WORD),
+                        ("wScan", wintypes.WORD),
+                        ("dwFlags", wintypes.DWORD),
+                        ("time", wintypes.DWORD),
+                        ("dwExtraInfo", ctypes.POINTER(ctypes.c_ulong))]
+
+        class MOUSEINPUT(ctypes.Structure):
+            _fields_ = [("dx", wintypes.LONG),
+                        ("dy", wintypes.LONG),
+                        ("mouseData", wintypes.DWORD),
+                        ("dwFlags", wintypes.DWORD),
+                        ("time", wintypes.DWORD),
+                        ("dwExtraInfo", ctypes.POINTER(ctypes.c_ulong))]
+
+        class HARDWAREINPUT(ctypes.Structure):
+            _fields_ = [("uMsg", wintypes.DWORD),
+                        ("wParamL", wintypes.WORD),
+                        ("wParamH", wintypes.WORD)]
+
+        class INPUT_UNION(ctypes.Union):
+            _fields_ = [("ki", KEYBDINPUT),
+                        ("mi", MOUSEINPUT),
+                        ("hi", HARDWAREINPUT)]
+
+        class INPUT(ctypes.Structure):
+            _fields_ = [("type", wintypes.DWORD),
+                        ("u", INPUT_UNION)]
+        
+        INPUT_KEYBOARD = 1
+        KEYEVENTF_KEYUP = 0x0002
+        
+        # Key down event
+        x = INPUT(type=INPUT_KEYBOARD, 
+                 u=INPUT_UNION(ki=KEYBDINPUT(wVk=vk_code, 
+                                            wScan=0, 
+                                            dwFlags=0, 
+                                            time=0, 
+                                            dwExtraInfo=None)))
+        
+        # Key up event
+        x_up = INPUT(type=INPUT_KEYBOARD, 
+                    u=INPUT_UNION(ki=KEYBDINPUT(wVk=vk_code, 
+                                              wScan=0, 
+                                              dwFlags=KEYEVENTF_KEYUP, 
+                                              time=0, 
+                                              dwExtraInfo=None)))
+        
+        # Send key down, wait, then send key up
+        user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+        time.sleep(0.05)
+        user32.SendInput(1, ctypes.byref(x_up), ctypes.sizeof(x_up))
+        
+        return True
+        
+    except Exception as e:
+        add_log(f"Windows: Błąd podczas wysyłania klawisza medialnego: {str(e)}", "ERROR")
+        return False
+
+# ========================================
+# KLASA BLUETOOTH CLIENT (ISTNIEJĄCY KOD)
+# ========================================
+
 class BluetoothConsoleClient(QObject):
     """Klasa obsługująca komunikację Bluetooth w aplikacji Flask"""
     
@@ -168,26 +451,6 @@ class BluetoothConsoleClient(QObject):
     def connect_to_device(self, address_str, port=1):
         """Łączy się z urządzeniem o podanym adresie MAC"""
         try:
-
-            # if not self.is_connected:
-            #     reset_success = reset_bluetooth()
-            #     if not reset_success:
-            #         add_log("Resetowanie Bluetooth nie powiodło się - sprawdź logi", "WARNING")
-                    
-            #     # Dodajemy dodatkowe sprawdzenie, czy Bluetooth jest włączony
-            #     local_device = QBluetoothLocalDevice()
-            #     if (not local_device.isValid() or 
-            #         local_device.hostMode() == QBluetoothLocalDevice.HostMode.HostPoweredOff):
-            #         local_device.setHostMode(QBluetoothLocalDevice.HostMode.HostDiscoverable)
-            #         # Daj chwilę na włączenie
-            #         time.sleep(2)
-            #         QCoreApplication.processEvents()
-            #     time_seconds = 1
-            #     for i in range(5):
-            #         add_log(f"Mineło {time_seconds} sekund", "INFO")   
-            #         time_seconds += 1
-            #         time.sleep(1)
-
             # Jeśli mamy aktywne połączenie, najpierw rozłącz
             if self.is_connected:
                 add_log("Rozłączanie aktywnego połączenia przed nowym połączeniem", "INFO")
@@ -274,6 +537,10 @@ class BluetoothConsoleClient(QObject):
     
     def unpair_device(self, address_str):
         """Rozparowuje urządzenie w systemie Windows używając BluetoothAPI poprzez ctypes"""
+        if platform.system() != "Windows":
+            add_log("Rozparowywanie urządzeń nie jest obsługiwane na tym systemie", "WARNING")
+            return False
+            
         try:
             import ctypes
             from ctypes import windll, byref, Structure, WinError, POINTER, c_ubyte
@@ -482,6 +749,10 @@ class BluetoothConsoleClient(QObject):
         """Zatrzymuje oczekiwanie na połączenie po błędzie"""
         timer.stop()
         loop.quit()
+
+# ========================================
+# POZOSTAŁE FUNKCJE (ISTNIEJĄCY KOD)
+# ========================================
 
 def scan_devices():
     """Funkcja do skanowania dostępnych urządzeń Bluetooth"""
@@ -782,6 +1053,10 @@ def init_bluetooth():
         return False
 
 
+# ========================================
+# TRASY FLASK (ISTNIEJĄCE)
+# ========================================
+
 # Trasy Flask
 @app.route('/')
 def index():
@@ -1034,6 +1309,284 @@ def simulate_connection():
     return redirect(url_for('index'))
 
 
+# ========================================
+# TRASY API DO STEROWANIA MEDIAMI - ZMODYFIKOWANE Z OBSŁUGĄ LINUX
+# ========================================
+
+@app.route('/api/media/play', methods=['POST'])
+def media_play_pause():
+    """
+    Sends a media play/pause command to the system (Windows/Linux)
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Windows":
+            # Windows implementation
+            success = windows_send_media_key(0xB3)  # VK_MEDIA_PLAY_PAUSE
+            if success:
+                add_log("Windows: Media Play/Pause wykonane pomyślnie", "INFO")
+                return jsonify({"success": True, "message": "Media play/pause command sent (Windows)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Windows media command"})
+                
+        elif current_os == "Linux":
+            # Linux implementation
+            success = linux_media_play_pause()
+            if success:
+                return jsonify({"success": True, "message": "Media play/pause command sent (Linux)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Linux media command"})
+                
+        else:
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+    
+    except Exception as e:
+        error_message = f"Błąd podczas wysyłania komendy play/pause: {str(e)}"
+        add_log(error_message, "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({"success": False, "message": error_message})
+
+@app.route('/api/media/volume_up', methods=['POST'])
+def media_volume_up():
+    """
+    Sends a volume up command to the system (Windows/Linux)
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Windows":
+            success = windows_send_media_key(0xAF)  # VK_VOLUME_UP
+            if success:
+                add_log("Windows: Głośność zwiększona", "INFO")
+                return jsonify({"success": True, "message": "Volume up command sent (Windows)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Windows volume up command"})
+                
+        elif current_os == "Linux":
+            success = linux_volume_up()
+            if success:
+                return jsonify({"success": True, "message": "Volume up command sent (Linux)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Linux volume up command"})
+                
+        else:
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+    
+    except Exception as e:
+        error_message = f"Błąd podczas wysyłania komendy volume up: {str(e)}"
+        add_log(error_message, "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({"success": False, "message": error_message})
+
+@app.route('/api/media/volume_down', methods=['POST'])
+def media_volume_down():
+    """
+    Sends a volume down command to the system (Windows/Linux)
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Windows":
+            success = windows_send_media_key(0xAE)  # VK_VOLUME_DOWN
+            if success:
+                add_log("Windows: Głośność zmniejszona", "INFO")
+                return jsonify({"success": True, "message": "Volume down command sent (Windows)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Windows volume down command"})
+                
+        elif current_os == "Linux":
+            success = linux_volume_down()
+            if success:
+                return jsonify({"success": True, "message": "Volume down command sent (Linux)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Linux volume down command"})
+                
+        else:
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+    
+    except Exception as e:
+        error_message = f"Błąd podczas wysyłania komendy volume down: {str(e)}"
+        add_log(error_message, "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({"success": False, "message": error_message})
+
+@app.route('/api/media/previous', methods=['POST'])
+def media_previous():
+    """
+    Sends a previous track command to the system (Windows/Linux)
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Windows":
+            success = windows_send_media_key(0xB1)  # VK_MEDIA_PREV_TRACK
+            if success:
+                add_log("Windows: Poprzedni utwór", "INFO")
+                return jsonify({"success": True, "message": "Previous track command sent (Windows)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Windows previous track command"})
+                
+        elif current_os == "Linux":
+            success = linux_media_previous()
+            if success:
+                return jsonify({"success": True, "message": "Previous track command sent (Linux)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Linux previous track command"})
+                
+        else:
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+    
+    except Exception as e:
+        error_message = f"Błąd podczas wysyłania komendy previous track: {str(e)}"
+        add_log(error_message, "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({"success": False, "message": error_message})
+
+@app.route('/api/media/next', methods=['POST'])
+def media_next():
+    """
+    Sends a next track command to the system (Windows/Linux)
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Windows":
+            success = windows_send_media_key(0xB0)  # VK_MEDIA_NEXT_TRACK
+            if success:
+                add_log("Windows: Następny utwór", "INFO")
+                return jsonify({"success": True, "message": "Next track command sent (Windows)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Windows next track command"})
+                
+        elif current_os == "Linux":
+            success = linux_media_next()
+            if success:
+                return jsonify({"success": True, "message": "Next track command sent (Linux)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Linux next track command"})
+                
+        else:
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+    
+    except Exception as e:
+        error_message = f"Błąd podczas wysyłania komendy next track: {str(e)}"
+        add_log(error_message, "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({"success": False, "message": error_message})
+
+@app.route('/api/media/stop', methods=['POST'])
+def media_stop():
+    """
+    Sends a stop command to the system (Windows/Linux)
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Windows":
+            success = windows_send_media_key(0xB2)  # VK_MEDIA_STOP
+            if success:
+                add_log("Windows: Media zatrzymane", "INFO")
+                return jsonify({"success": True, "message": "Stop command sent (Windows)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Windows stop command"})
+                
+        elif current_os == "Linux":
+            success = linux_media_stop()
+            if success:
+                return jsonify({"success": True, "message": "Stop command sent (Linux)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Linux stop command"})
+                
+        else:
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+    
+    except Exception as e:
+        error_message = f"Błąd podczas wysyłania komendy stop: {str(e)}"
+        add_log(error_message, "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({"success": False, "message": error_message})
+
+@app.route('/api/media/mute', methods=['POST'])
+def media_mute():
+    """
+    Sends a mute/unmute command to the system (Windows/Linux)
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Windows":
+            success = windows_send_media_key(0xAD)  # VK_VOLUME_MUTE
+            if success:
+                add_log("Windows: Dźwięk wyciszony/przywrócony", "INFO")
+                return jsonify({"success": True, "message": "Mute command sent (Windows)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Windows mute command"})
+                
+        elif current_os == "Linux":
+            success = linux_volume_mute()
+            if success:
+                return jsonify({"success": True, "message": "Mute command sent (Linux)"})
+            else:
+                return jsonify({"success": False, "message": "Failed to send Linux mute command"})
+                
+        else:
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+    
+    except Exception as e:
+        error_message = f"Błąd podczas wysyłania komendy mute: {str(e)}"
+        add_log(error_message, "ERROR")
+        add_log(f"Stacktrace: {traceback.format_exc()}", "DEBUG")
+        return jsonify({"success": False, "message": error_message})
+
+# ========================================
+# NOWA TRASA DO SPRAWDZANIA ZALEŻNOŚCI LINUXOWYCH
+# ========================================
+
+@app.route('/api/system/check_dependencies')
+def check_system_dependencies():
+    """
+    Sprawdza czy wymagane narzędzia są dostępne w systemie
+    """
+    try:
+        current_os = get_current_os()
+        
+        if current_os == "Linux":
+            missing_tools = linux_check_dependencies()
+            if missing_tools:
+                return jsonify({
+                    "success": False,
+                    "message": f"Missing required tools: {', '.join(missing_tools)}",
+                    "missing_tools": missing_tools,
+                    "suggestions": {
+                        "playerctl": "sudo apt install playerctl  # or: sudo pacman -S playerctl",
+                        "amixer": "sudo apt install alsa-utils  # or: sudo pacman -S alsa-utils"
+                    }
+                })
+            else:
+                return jsonify({
+                    "success": True,
+                    "message": "All required tools are available",
+                    "missing_tools": []
+                })
+        elif current_os == "Windows":
+            return jsonify({
+                "success": True,
+                "message": "Windows native APIs are available",
+                "missing_tools": []
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "message": f"System {current_os} is not fully supported",
+                "missing_tools": ["system_support"]
+            })
+    
+    except Exception as e:
+        error_message = f"Błąd podczas sprawdzania zależności: {str(e)}"
+        add_log(error_message, "ERROR")
+        return jsonify({"success": False, "message": error_message})
+
 # Funkcja do uruchomienia serwera Flask w osobnym wątku
 def start_flask_server():
     """Uruchamia serwer Flask w osobnym wątku"""
@@ -1041,6 +1594,19 @@ def start_flask_server():
 
 
 if __name__ == "__main__":
+    # Wyświetl informacje o systemie przy starcie
+    current_os = get_current_os()
+    add_log(f"Uruchamianie na systemie: {current_os}", "INFO")
+    
+    if current_os == "Linux":
+        # Sprawdź zależności Linuxowe przy starcie
+        missing_tools = linux_check_dependencies()
+        if missing_tools:
+            add_log(f"Ostrzeżenie: Brakujące narzędzia w systemie Linux: {', '.join(missing_tools)}", "WARNING")
+            add_log("Niektóre funkcje sterowania mediami mogą nie działać prawidłowo", "WARNING")
+        else:
+            add_log("Wszystkie wymagane narzędzia Linux są dostępne", "INFO")
+    
     # Inicjalizacja Qt
     qt_app = QCoreApplication(sys.argv)
     

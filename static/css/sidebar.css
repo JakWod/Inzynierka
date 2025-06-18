@@ -21,34 +21,33 @@
   height: 100vh;
   background-color: #1e1e1e;
   color: #e0e0e0;
-  overflow-y: auto; /* Zmienione z scroll na auto */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  scrollbar-width: none; /* Ukrywa pasek przewijania w Firefox */
-  -ms-overflow-style: none; /* Ukrywa pasek przewijania w IE/Edge */
-  position: relative; /* Potrzebne dla poprawnego działania position: sticky w potomkach */
-  /* POPRAWKA: Dodajemy scroll-padding-top dla lepszego sticky behavior */
-  scroll-padding-top: 56px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+  scroll-padding-top: 112px; /* 56px header + 56px filtry */
 }
 
 .sidebar::-webkit-scrollbar {
-  width: 0; /* Ukrywa pasek przewijania w Chrome/Safari/Webkit */
+  width: 0;
   display: none; 
 }
 
-/* POPRAWIONY header sidebara */
+/* POPRAWIONY header sidebara - STICKY */
 .sidebar-header {
   position: sticky;
   top: 0;
   background-color: #1e1e1e;
   padding: 10px 15px;
-  
-  z-index: 10; /* Zapewnia, że header będzie zawsze na wierzchu */
-  /* POPRAWKA: Dodana stała wysokość nagłówka */
+  z-index: 20; /* Zwiększony z-index dla najwyższego priorytetu */
   height: 56px;
-  min-height: 56px; /* Minimalna wysokość dla bezpieczeństwa */
+  min-height: 56px;
   box-sizing: border-box;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .user-profile {
@@ -84,9 +83,9 @@
   display: flex;
   flex-direction: column;
   overflow: visible;
-  padding-top: 0; /* Usuwamy padding-top */
-  margin-top: -8px; /* Usuwamy margin-top */
-  position: relative; /* Dodajemy position relative dla kontekstu pozycjonowania */
+  padding-top: 0;
+  margin-top: 0;
+  position: relative;
 }
 
 /* POPRAWIONY menu-item */
@@ -99,13 +98,11 @@
   border-left: 3px solid transparent;
   transition: all 0.3s;
   cursor: pointer;
-  font-size: 14px; /* Rozmiar czcionki dla tekstów w menu-item, w tym napisu "Filtry" */
-  /* POPRAWKA: Dodana stała minimalna wysokość */
+  font-size: 14px;
   min-height: 40px;
   box-sizing: border-box;
   margin-top: 8px;
   margin-bottom: 0px;
-  
 }
 
 .menu-item:hover {
@@ -123,26 +120,28 @@
   color: #a0a0a0; 
 }
 
-/* POPRAWIONY kontener filtrów */
+/* POPRAWIONY kontener filtrów - STICKY */
 .menu-item-dropdown {
-  /*position: -webkit-sticky; /* Dla starszych przeglądarek */
-  /*position: sticky;
-  top: 56px; /* POPRAWKA: Dokładnie pod headerem (56px wysokości) */
+  position: sticky;
+  top: 56px; /* Dokładnie pod headerem */
   background-color: #1e1e1e;
-  z-index: 9; /* Niższy niż header, ale wciąż nad zawartością */
-  display: block; /* Upewnia się, że element jest blokiem */
-  /* POPRAWKA: Dodajemy dodatkowe właściwości dla lepszego sticky behavior */
+  z-index: 19; /* Niższy niż header, ale wyższy niż zawartość */
+  display: block;
   margin-top: 0;
-  border-bottom: 1px solid #333; /* Wizualne oddzielenie */
-  /* Wymuszenie nowego stacking context */
+  border-bottom: 1px solid #333;
+  /* Dodatkowe właściwości dla lepszego sticky behavior */
+  will-change: transform;
+  backface-visibility: hidden;
   transform: translateZ(0);
-  
+  /* Wysoka minimalna wysokość dla stabilności */
+  min-height: 40px;
+  /* Dodatkowy cień dla wizualnego oddzielenia */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .dropdown-toggle {
   margin-left: auto;
   transition: transform 0.3s;
-  /* POPRAWKA: Zapobiega kurczeniu się ikony */
   flex-shrink: 0;
 }
 
@@ -150,8 +149,10 @@
   transform: rotate(180deg);
 }
 
-/* POPRAWIONE filtry dropdown */
+/* POPRAWIONE filtry dropdown - również sticky */
 .dropdown-filters {
+  position: sticky;
+  top: 96px; /* Pod headerem + menu-item-dropdown */
   background-color: #252525;
   padding: 5px 0;
   border-bottom: 1px solid #333;
@@ -159,12 +160,13 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #333 #252525;
-  position: relative; 
   width: 100%;
-  z-index: 8; /* POPRAWKA: Niższy niż kontener filtrów */
-  /* POPRAWKA: Dodajemy margines górny dla lepszego wyglądu */
+  z-index: 18; /* Niższy niż menu-item-dropdown */
   margin-top: 0;
-  
+  /* Dodatkowe właściwości dla lepszego sticky */
+  will-change: transform;
+  backface-visibility: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .dropdown-filters::-webkit-scrollbar {
@@ -227,7 +229,7 @@
   justify-content: center;
   width: 90%;
   transition: all 0.2s ease;
-  text-transform: none; /* Zapewnia, że tekst nie jest wymuszany do małych liter */
+  text-transform: none;
 }
 
 .clear-filters-btn:hover {
@@ -251,7 +253,10 @@
   display: flex;
   flex-direction: column;
   overflow: visible;
-  min-height: 0; /* Umożliwia kurczenie się */
+  min-height: 0;
+  /* POPRAWKA: Dodajemy padding-top aby kompensować sticky elements */
+  padding-top: 0;
+  margin-top: 0;
 }
 
 .sidebar-section-header {
@@ -262,7 +267,6 @@
   font-size: 11px;
   color: #a0a0a0;
   background-color: #252525;
-  /* margin-top: -2px; */
   margin-top: 5px;
   cursor: pointer;
 }
@@ -278,8 +282,8 @@
 /* Sekcja dla listy urządzeń */
 .sidebar-device-list {
   overflow-y: visible; 
-  min-height: 0; /* Pozwala na kurczenie */
-  margin-top: 5px; /* Dodano margines, aby odsunąć listę od filtra */
+  min-height: 0;
+  margin-top: 5px;
 }
 
 /* Styl dla połączonego urządzenia */
@@ -288,7 +292,7 @@
   border-bottom: 1px solid #2c3e50;
   padding: 0;
   overflow: visible; 
-  min-height: 0; /* Pozwala na kurczenie */
+  min-height: 0;
 }
 
 #connected-device-container .device-item:hover {
@@ -299,7 +303,7 @@
 #favorite-devices-section,
 #connected-device-section,
 #paired-devices-section {
-  min-height: auto; /* Pozwala sekcjom na kurczenie się */
+  min-height: auto;
 }
 
 #connected-device-section{
@@ -310,7 +314,7 @@
 #paired-devices-list,
 #connected-device-container {
   overflow-y: visible;
-  min-height: auto; /* Pozwala kontenerom na kurczenie się */
+  min-height: auto;
 }
 
 #connected-device-container .device-item {
@@ -318,7 +322,7 @@
 }
 
 #connected-device-container .device-item.connected {
-  background-color: #1a2931; /* Ten kolor tła jest dla aktualnie połączonego urządzenia */
+  background-color: #1a2931;
   margin-bottom: -1px; 
   margin-top: 5px;
 }
@@ -328,12 +332,12 @@
   align-items: center;
   padding: 8px 12px;
   border-bottom: 1px solid #333;
-  cursor: pointer; /* POPRAWKA: Zmiana z default na pointer */
-  transition: all 0.2s ease; /* POPRAWKA: Dodano transition dla smoother selection effect */
+  cursor: pointer;
+  transition: all 0.2s ease;
   margin-bottom: 2px;
   position: relative;
   border-left: 3px solid transparent;
-  box-sizing: border-box; /* Upewnia się, że padding i border są wliczone w szerokość/wysokość */
+  box-sizing: border-box;
 }
 
 .device-item:hover {
@@ -356,9 +360,9 @@
 
 /* POPRAWKA: Make selection effect more visible for connected devices */
 .device-item.connected.selected {
-  background-color: #1e3540; /* Darker background when both connected and selected */
-  border-left: 3px solid #27ae60; /* Brighter green border */
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); /* Inner glow effect */
+  background-color: #1e3540;
+  border-left: 3px solid #27ae60;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 /* POPRAWKA: Add highlight effect to selected device's name */
@@ -379,19 +383,19 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: rgba(52, 152, 219, 0.1); /* Delikatne niebieskie tło dla wszystkich ikon */
+  background-color: rgba(52, 152, 219, 0.1);
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
 }
 
 .device-icon:hover {
-  background-color: rgba(52, 152, 219, 0.2); /* Mocniejsze niebieskie tło przy najechaniu */
+  background-color: rgba(52, 152, 219, 0.2);
   transform: scale(1.1);
 }
 
 .device-icon.connected:hover {
-  background-color: rgba(46, 204, 113, 0.3); /* Mocniejsze zielone tło przy najechaniu */
+  background-color: rgba(46, 204, 113, 0.3);
   transform: scale(1.1);
 }
 
@@ -418,11 +422,11 @@
 }
 
 .device-icon.connected {
-  background-color: rgba(46, 204, 113, 0.2); /* Wyraźniejsze zielone tło */
+  background-color: rgba(46, 204, 113, 0.2);
 }
 
 .device-icon.connected svg path {
-  fill: #2ecc71; /* Zielony kolor SVG dla połączonych urządzeń */
+  fill: #2ecc71;
 }
 
 /* Dymek informacyjny dla ikony Bluetooth */
@@ -535,12 +539,12 @@
 }
 
 .connection-status {
-  display: none; /* Ukryj wskaźnik statusu połączenia */
+  display: none;
 }
 
 /* Poprawa widoczności przycisków akcji dla podłączonego urządzenia */
 .device-item.connected .device-actions {
-  opacity: 0.8; /* Bardziej widoczne przyciski akcji */
+  opacity: 0.8;
 }
 
 /* Pokaż przyciski akcji zawsze dla podłączonego urządzenia */
@@ -548,17 +552,21 @@
   opacity: 1;
 }
 
-/* Poprawiony footer - zawsze na dole sidebara */
+/* POPRAWIONY footer - zawsze na dole sidebara ze sticky */
 .sidebar-footer {
   position: sticky;
   bottom: 0;
   background-color: #1e1e1e;
   padding: 15px;
   border-top: 1px solid #333;
-  z-index: 10; /* Zapewnia, że footer będzie zawsze na wierzchu */
-  width: 100%; /* Zapewnia pełną szerokość stopki */
-  box-sizing: border-box; /* Upewnia się, że padding jest wliczony w szerokość */
-  margin-top: auto; /* Przesuwa footer na koniec sidebara */
+  z-index: 15; /* Wyższy z-index dla stopki */
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: auto;
+  /* Dodatkowe właściwości dla lepszego sticky */
+  will-change: transform;
+  backface-visibility: hidden;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-button {
@@ -581,7 +589,7 @@
 }
 
 .sidebar-button i {
-  margin-right: 20px; /* Zwiększona przerwa między ikoną a tekstem */
+  margin-right: 20px;
 }
 
 .version-info {
@@ -753,16 +761,19 @@
   background-color: #8e44ad;
 }
 
-/* POPRAWKI DLA STICKY BEHAVIOR - dodatkowe zabezpieczenia */
-@supports (height: fit-content) {
-  .sidebar-header {
-    height: fit-content;
-    min-height: 56px;
+/* DODATKOWE ZABEZPIECZENIA DLA STICKY BEHAVIOR */
+@supports (position: sticky) {
+  /* Wymuszenie nowego stacking context dla sticky elements */
+  .sidebar-header,
+  .menu-item-dropdown,
+  .dropdown-filters,
+  .sidebar-footer {
+    isolation: isolate;
   }
   
-  /* Dynamicznie oblicz pozycję sticky na podstawie wysokości headera */
-  .menu-item-dropdown {
-    top: calc(56px + 0px); /* 56px + ewentualny margines */
+  /* Zapewnienie że sticky elements mają prawidłowy containing block */
+  .sidebar {
+    contain: layout style;
   }
 }
 
@@ -772,17 +783,23 @@
     width: 100%;
     height: auto;
     max-height: 50vh; 
+    /* Dostosowanie scroll-padding dla mobilnych */
+    scroll-padding-top: 84px; /* Mniejsze wartości na mobile */
   }
   
   /* POPRAWKA: Dostosowanie sticky dla małych ekranów */
   .sidebar-header {
     height: auto;
-    min-height: 56px;
+    min-height: 48px; /* Mniejsza wysokość na mobile */
     padding: 8px 15px;
   }
   
   .menu-item-dropdown {
-    top: 56px; /* Stała wartość na małych ekranach */
+    top: 48px; /* Dostosowanie do mniejszego headera */
+  }
+  
+  .dropdown-filters {
+    top: 88px; /* Dostosowanie do mniejszej wysokości */
   }
   
   /* Także w responsywnym widoku, pozwalamy listom urządzeń rosnąć */

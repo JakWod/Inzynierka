@@ -291,7 +291,7 @@
 .device-details-modal .device-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 2px;
   min-height: 50px;
   padding: 10px 0;
 }
@@ -508,6 +508,55 @@
   content: "\f0eb"; /* ikona żarówki */
 }
 
+/* ✅ NOWE IKONY DLA PRZYCISKÓW SYSTEMOWYCH - DODANE */
+.device-details-modal .device-custom-button[data-function="system-play"]::before {
+  content: "\f04b"; /* play icon */
+}
+
+.device-details-modal .device-custom-button[data-function="system-volume-up"]::before {
+  content: "\f028"; /* volume up icon */
+}
+
+.device-details-modal .device-custom-button[data-function="system-volume-down"]::before {
+  content: "\f027"; /* volume down icon */
+}
+
+.device-details-modal .device-custom-button[data-function="system-previous"]::before {
+  content: "\f048"; /* step-backward icon */
+}
+
+.device-details-modal .device-custom-button[data-function="system-next"]::before {
+  content: "\f051"; /* step-forward icon */
+}
+
+.device-details-modal .device-custom-button[data-function="system-stop"]::before {
+  content: "\f04d"; /* stop icon */
+}
+
+.device-details-modal .device-custom-button[data-function="system-mute"]::before {
+  content: "\f6a9"; /* volume-mute icon */
+}
+
+/* Style dla przycisków systemowych - wyróżnienie kolorem */
+.device-details-modal .device-custom-button[data-function^="system-"] {
+  background: linear-gradient(to bottom, #9b59b6, #8e44ad);
+}
+
+.device-details-modal .device-custom-button[data-function^="system-"]:hover {
+  background: linear-gradient(to bottom, #8e44ad, #6c3483);
+}
+
+.device-details-modal .device-custom-button[data-function^="system-"]:active {
+  background: linear-gradient(to bottom, #6c3483, #5a2d6b);
+}
+
+/* Efekt aktywacji dla przycisków systemowych */
+.device-details-modal .active-control {
+  transform: scale(0.95) !important;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.1s !important;
+}
+
 /* Usuwamy domyślną ikonę dla przycisków bez określonej funkcji */
 .device-details-modal .device-custom-button:not([data-function])::before {
   content: none;
@@ -595,7 +644,7 @@
 .device-details-modal .device-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 2px;
   min-height: 50px;
   padding: 10px 0;
   margin-bottom: 40px; /* Dodano dodatkowy margines na dole, żeby menu nie nachodzilo na przyciski poniżej */

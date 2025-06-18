@@ -9,6 +9,7 @@
  * - Wykonywanie sekwencji komend
  * - Filtrowanie logów urządzenia z logiką AND
  * - Połączenie, rozłączenie i rozparowanie urządzeń
+ * - System media controls: play/pause, volume up, volume down, previous, next, stop, mute
  */
 
 // Funkcja pomocnicza do formatowania dzisiejszej daty
@@ -66,15 +67,25 @@ document.addEventListener('DOMContentLoaded', function() {
   // GLOBAL VARIABLES - Zmienne globalne
   // ========================================
   
-  let currentDevice = null; // Aktualnie wybrane urządzenie
+  let currentDevice = null; // Aktualnie wybrane
   let activeContextMenu = null; // Aktywne menu kontekstowe dla przycisków
-
+  
+  // System Audio Context for media controls
+  let audioContext = null;
+  let gainNode = null;
+  const DEFAULT_VOLUME = 0.5;
+  let currentVolume = DEFAULT_VOLUME;
+  let isPlaying = false;
+  
   // ========================================
   // INITIALIZATION - Inicjalizacja modułu
   // ========================================
   
   // Initialize modal functionality
   initDeviceModal();
+  
+  // Initialize system audio for media controls
+  initSystemAudio();
 
   /**
    * Initialize the device modal functionality
@@ -101,7 +112,151 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for active command sequence
     checkAndContinueCommandSequence();
     
+    // Update the button function dropdown with system control options
+    updateButtonFunctionOptions();
+    
     console.log('Device modal zainicjalizowany');
+  }
+  
+  /**
+   * Initialize system audio for media controls
+   * Inicjalizuje system audio dla przycisków sterowania mediami
+   */
+  function initSystemAudio() {
+    try {
+      // Create audio context if not already created
+      if (!audioContext) {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContext();
+        
+        // Create a gain node for volume control
+        gainNode = audioContext.createGain();
+        gainNode.gain.value = currentVolume;
+        gainNode.connect(audioContext.destination);
+        
+        // Create a test audio element for audio playing
+        if (!window.testAudioElement) {
+          window.testAudioElement = new Audio();
+          window.testAudioElement.volume = currentVolume;
+          window.testAudioElement.src = "data:audio/wav;base64,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";
+        }
+        
+        console.log('System Audio initialized successfully');
+      }
+    } catch (e) {
+      console.error('Failed to initialize System Audio:', e);
+      addToLog('Błąd inicjalizacji System Audio: ' + e.message);
+    }
+  }
+  
+  /**
+   * Updates the button function dropdown with system control options
+   * Aktualizuje listę funkcji przycisków o opcje sterowania systemem
+   */
+  function updateButtonFunctionOptions() {
+    // Get the button function dropdown
+    if (modalButtonFunction) {
+      // Check if system media control options already exist
+      if (!modalButtonFunction.querySelector('option[value="system-play"]')) {
+        // Add system media control options
+        const systemPlayOption = document.createElement('option');
+        systemPlayOption.value = 'system-play';
+        systemPlayOption.textContent = 'Odtwarzanie (systemowe)';
+        
+        const systemVolumeUpOption = document.createElement('option');
+        systemVolumeUpOption.value = 'system-volume-up';
+        systemVolumeUpOption.textContent = 'Głośność + (systemowa)';
+        
+        const systemVolumeDownOption = document.createElement('option');
+        systemVolumeDownOption.value = 'system-volume-down';
+        systemVolumeDownOption.textContent = 'Głośność - (systemowa)';
+        
+        // ✅ NOWE OPCJE - DODANE:
+        const systemPreviousOption = document.createElement('option');
+        systemPreviousOption.value = 'system-previous';
+        systemPreviousOption.textContent = 'Poprzedni utwór (systemowy)';
+        
+        const systemNextOption = document.createElement('option');
+        systemNextOption.value = 'system-next';
+        systemNextOption.textContent = 'Następny utwór (systemowy)';
+        
+        const systemStopOption = document.createElement('option');
+        systemStopOption.value = 'system-stop';
+        systemStopOption.textContent = 'Stop (systemowy)';
+        
+        const systemMuteOption = document.createElement('option');
+        systemMuteOption.value = 'system-mute';
+        systemMuteOption.textContent = 'Wycisz (systemowe)';
+        
+        // Add a separator
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.textContent = '──────────────';
+        
+        // Add options to the dropdown
+        modalButtonFunction.appendChild(separator);
+        modalButtonFunction.appendChild(systemPlayOption);
+        modalButtonFunction.appendChild(systemVolumeUpOption);
+        modalButtonFunction.appendChild(systemVolumeDownOption);
+        modalButtonFunction.appendChild(systemPreviousOption);  // ✅ NOWE
+        modalButtonFunction.appendChild(systemNextOption);     // ✅ NOWE
+        modalButtonFunction.appendChild(systemStopOption);     // ✅ NOWE
+        modalButtonFunction.appendChild(systemMuteOption);     // ✅ NOWE
+        
+        console.log('System control options added to button function dropdown');
+      }
+    }
+    
+    // Add CSS for system media control buttons
+    if (!document.getElementById('system-media-controls-style')) {
+      const style = document.createElement('style');
+      style.id = 'system-media-controls-style';
+      style.textContent = `
+        .device-custom-button[data-function^="system-"] {
+          background: linear-gradient(to bottom, #9b59b6, #8e44ad);
+        }
+        
+        .device-custom-button[data-function^="system-"]:hover {
+          background: linear-gradient(to bottom, #8e44ad, #6c3483);
+        }
+        
+        .device-custom-button[data-function="system-play"]::before {
+          content: "\\f04b"; /* play icon */
+        }
+        
+        .device-custom-button[data-function="system-volume-up"]::before {
+          content: "\\f028"; /* volume up icon */
+        }
+        
+        .device-custom-button[data-function="system-volume-down"]::before {
+          content: "\\f027"; /* volume down icon */
+        }
+        
+        .device-custom-button[data-function="system-previous"]::before {
+          content: "\\f048"; /* step-backward icon */
+        }
+        
+        .device-custom-button[data-function="system-next"]::before {
+          content: "\\f051"; /* step-forward icon */
+        }
+        
+        .device-custom-button[data-function="system-stop"]::before {
+          content: "\\f04d"; /* stop icon */
+        }
+        
+        .device-custom-button[data-function="system-mute"]::before {
+          content: "\\f6a9"; /* volume-mute icon */
+        }
+        
+        .active-control {
+          transform: scale(0.95) !important;
+          box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3) !important;
+          transition: all 0.1s !important;
+        }
+      `;
+      document.head.appendChild(style);
+      console.log('Added CSS styles for system media control buttons');
+    }
   }
 
   // ========================================
@@ -357,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalUnpairBtn) {
       modalUnpairBtn.addEventListener('click', function() {
         if (currentDevice && currentDevice.address) {
-          if (confirm('Czy na pewno chcesz rozparować to urządzenie?')) {
+          if (confirm('Czy na pewno chcesz rozparować to?')) {
             unpairDeviceFromModal(currentDevice.address);
           }
         }
@@ -391,6 +546,13 @@ document.addEventListener('DOMContentLoaded', function() {
       clearDeviceLogs.addEventListener('click', clearDeviceLogsFromModal);
     }
     
+    // Button function change handler
+    if (modalButtonFunction) {
+      modalButtonFunction.addEventListener('change', function() {
+        handleButtonFunctionChange();
+      });
+    }
+    
     // Close modal when clicking outside
     window.addEventListener('click', function(e) {
       if (e.target === deviceDetailsModal) {
@@ -399,6 +561,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     console.log('Event listenery skonfigurowane');
+  }
+  
+  /**
+   * Handle button function changes, show/hide command fields based on function type
+   * Obsługuje zmianę funkcji przycisku, pokazuje/ukrywa pola komend w zależności od typu funkcji
+   */
+  function handleButtonFunctionChange() {
+    const functionValue = modalButtonFunction.value;
+    const isSystemControl = functionValue.startsWith('system-');
+    
+    // Show/hide commands container based on whether it's a system control
+    if (modalCommandsContainer) {
+      if (isSystemControl) {
+        // Hide commands for system controls
+        modalCommandsContainer.style.display = 'none';
+        if (modalAddCommand) modalAddCommand.style.display = 'none';
+        
+        // Add info text
+        const infoText = document.createElement('div');
+        infoText.className = 'system-control-info';
+        infoText.style.cssText = 'padding: 10px; margin: 10px 0; background-color: #1e1e1e; color: #e0e0e0; border-radius: 4px; border-left: 3px solid #3498db;';
+        
+        let infoMessage = '';
+        if (functionValue === 'system-play') {
+          infoMessage = 'Ten przycisk będzie sterował odtwarzaniem dźwięku przez system komputera, a nie przez Bluetooth.';
+        } else if (functionValue === 'system-volume-up') {
+          infoMessage = 'Ten przycisk będzie zwiększał głośność systemową komputera, a nie urządzenia Bluetooth.';
+        } else if (functionValue === 'system-volume-down') {
+          infoMessage = 'Ten przycisk będzie zmniejszał głośność systemową komputera, a nie urządzenia Bluetooth.';
+        } 
+        // ✅ NOWE KOMUNIKATY - DODANE:
+        else if (functionValue === 'system-previous') {
+          infoMessage = 'Ten przycisk będzie przełączał na poprzedni utwór w systemie komputera.';
+        } else if (functionValue === 'system-next') {
+          infoMessage = 'Ten przycisk będzie przełączał na następny utwór w systemie komputera.';
+        } else if (functionValue === 'system-stop') {
+          infoMessage = 'Ten przycisk będzie zatrzymywał odtwarzanie mediów w systemie komputera.';
+        } else if (functionValue === 'system-mute') {
+          infoMessage = 'Ten przycisk będzie wyciszał/przywracał dźwięk systemowy komputera.';
+        }
+        
+        infoText.textContent = infoMessage;
+        
+        // Remove existing info
+        const existingInfo = modalButtonForm.querySelector('.system-control-info');
+        if (existingInfo) existingInfo.remove();
+        
+        // Add info after function selection
+        if (modalButtonFunction.parentNode) {
+          modalButtonFunction.parentNode.after(infoText);
+        }
+      } else {
+        // Show commands for regular functions
+        modalCommandsContainer.style.display = 'block';
+        if (modalAddCommand) modalAddCommand.style.display = 'block';
+        
+        // Remove system control info if exists
+        const existingInfo = modalButtonForm.querySelector('.system-control-info');
+        if (existingInfo) existingInfo.remove();
+      }
+    }
   }
 
   // ========================================
@@ -471,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function addDeviceClickHandler(deviceElement) {
     deviceElement.addEventListener('click', function(e) {
-      console.log('Kliknięto urządzenie');
+      console.log('Kliknięto');
       
       // Remove selected class from all devices
       document.querySelectorAll('.device-item').forEach(item => {
@@ -495,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
         connected: isConnected
       };
       
-      console.log('Wybrano urządzenie:', currentDevice);
+      console.log('Wybrano:', currentDevice);
       
       // Show device modal
       showDeviceModal(currentDevice);
@@ -590,7 +813,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.classList.add('disabled');
       });
       
-      console.log('Przyciski wyłączone - urządzenie niepołączone');
+      console.log('Przyciski wyłączone - niepołączone');
     } else {
       // Remove disabled class from the buttons container
       if (deviceButtons) {
@@ -602,7 +825,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.classList.remove('disabled');
       });
       
-      console.log('Przyciski włączone - urządzenie połączone');
+      console.log('Przyciski włączone - połączone');
     }
   }
   
@@ -659,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   /**
    * Disconnects the current device
-   * Rozłącza aktualne urządzenie
+   * Rozłącza aktualne
    */
   function disconnectDeviceFromModal() {
     if (!currentDevice) {
@@ -681,7 +904,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   /**
    * Unpairs a device from the modal
-   * Rozparowuje urządzenie z poziomu modalu
+   * Rozparowuje z poziomu modalu
    * @param {string} address - Device MAC address
    */
   function unpairDeviceFromModal(address) {
@@ -742,10 +965,396 @@ document.addEventListener('DOMContentLoaded', function() {
       'keyboard': 'Klawiatura',
       'mouse': 'Mysz',
       'gamepad': 'Kontroler',
-      'other': 'Inne urządzenie'
+      'other': 'Inne'
     };
     
-    return typeNames[typeCode] || 'Inne urządzenie';
+    return typeNames[typeCode] || 'Inne';
+  }
+  
+  /**
+   * Add to main log
+   * Dodaje wpis do głównego logu aplikacji
+   * @param {string} message - Message to log
+   */
+  function addToLog(message) {
+    const logContainer = document.querySelector('.log-container');
+    if (logContainer) {
+      const logEntry = document.createElement('div');
+      logEntry.className = 'log-entry';
+      logEntry.textContent = `[DEVICE] ${message}`;
+      logContainer.insertBefore(logEntry, logContainer.firstChild);
+    }
+    console.log(`[DEVICE] ${message}`);
+  }
+
+  // ========================================
+  // SYSTEM MEDIA CONTROLS - Sterowanie mediami systemowymi
+  // ========================================
+  
+  /**
+   * Handle system media controls
+   * Obsługuje systemowe przyciski sterowania mediami
+   * @param {string} action - Action to perform (play, volume-up, volume-down, previous, next, stop, mute)
+   */
+  function handleSystemMediaControl(action) {
+    // Make sure audio context is initialized
+    if (!audioContext) initSystemAudio();
+    
+    // Check if AudioContext was suspended (browsers require user interaction)
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume().catch(e => console.log('Failed to resume audio context:', e));
+    }
+    
+    // If we need to fix audio initialization on Windows, try to play a silent sound
+    if (window.testAudioElement && !window.audioInitialized) {
+      window.testAudioElement.play().then(() => {
+        window.testAudioElement.pause();
+        window.audioInitialized = true;
+        console.log('Audio initialized successfully');
+      }).catch(e => {
+        console.log('Audio initialization error (expected on first click):', e);
+      });
+    }
+    
+    // Use a setTimeout to ensure the audio context has time to initialize
+    setTimeout(() => {
+      switch (action) {
+        case 'play':
+          togglePlayPause();
+          break;
+        case 'volume-up':
+          increaseVolume();
+          break;
+        case 'volume-down':
+          decreaseVolume();
+          break;
+        // ✅ NOWE PRZYPADKI - DODANE:
+        case 'previous':
+          previousTrack();
+          break;
+        case 'next':
+          nextTrack();
+          break;
+        case 'stop':
+          stopMedia();
+          break;
+        case 'mute':
+          muteVolume();
+          break;
+        default:
+          console.warn(`Nieznana akcja systemowa: ${action}`);
+      }
+    }, 100);
+  }
+  
+  /**
+   * Toggle play/pause state
+   * Przełącza stan odtwarzania/pauzy
+   */
+  function togglePlayPause() {
+    try {
+      isPlaying = !isPlaying;
+      
+      // Call our Python backend API to control Windows Media
+      fetch('/api/media/play', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Play/Pause response:', data);
+        
+        if (data.success) {
+          addToLog('System: Media Play/Pause wykonane pomyślnie');
+          addDeviceLog(currentDevice?.address || 'unknown', 'System: Media Play/Pause wykonane pomyślnie');
+        } else {
+          addToLog(`System: Błąd - ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending play/pause command:', error);
+        addToLog('System: Błąd podczas wysyłania komendy Play/Pause');
+      });
+      
+      // Visual button feedback
+      const playButton = modalDeviceButtons.querySelector('[data-function="system-play"]');
+      if (playButton) {
+        playButton.classList.add('active-control');
+        setTimeout(() => {
+          playButton.classList.remove('active-control');
+        }, 200);
+      }
+      
+    } catch (e) {
+      console.error('Error in togglePlayPause:', e);
+      addToLog(`System: Błąd - ${e.message}`);
+    }
+  }
+  
+  /**
+   * Increase system volume
+   * Zwiększa głośność systemową
+   */
+  function increaseVolume() {
+    try {
+      // Call our Python backend API to control Windows Volume
+      fetch('/api/media/volume_up', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Volume Up response:', data);
+        
+        if (data.success) {
+          addToLog('System: Głośność zwiększona');
+          addDeviceLog(currentDevice?.address || 'unknown', 'System: Głośność zwiększona');
+        } else {
+          addToLog(`System: Błąd - ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending volume up command:', error);
+        addToLog('System: Błąd podczas zwiększania głośności');
+      });
+      
+      // Visual button feedback
+      const volumeUpButton = modalDeviceButtons.querySelector('[data-function="system-volume-up"]');
+      if (volumeUpButton) {
+        volumeUpButton.classList.add('active-control');
+        setTimeout(() => {
+          volumeUpButton.classList.remove('active-control');
+        }, 200);
+      }
+      
+    } catch (e) {
+      console.error('Error in increaseVolume:', e);
+      addToLog(`System: Błąd - ${e.message}`);
+    }
+  }
+  
+  /**
+   * Decrease system volume
+   * Zmniejsza głośność systemową
+   */
+  function decreaseVolume() {
+    try {
+      // Call our Python backend API to control Windows Volume
+      fetch('/api/media/volume_down', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Volume Down response:', data);
+        
+        if (data.success) {
+          addToLog('System: Głośność zmniejszona');
+          addDeviceLog(currentDevice?.address || 'unknown', 'System: Głośność zmniejszona');
+        } else {
+          addToLog(`System: Błąd - ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending volume down command:', error);
+        addToLog('System: Błąd podczas zmniejszania głośności');
+      });
+      
+      // Visual button feedback
+      const volumeDownButton = modalDeviceButtons.querySelector('[data-function="system-volume-down"]');
+      if (volumeDownButton) {
+        volumeDownButton.classList.add('active-control');
+        setTimeout(() => {
+          volumeDownButton.classList.remove('active-control');
+        }, 200);
+      }
+      
+    } catch (e) {
+      console.error('Error in decreaseVolume:', e);
+      addToLog(`System: Błąd - ${e.message}`);
+    }
+  }
+  
+  /**
+   * Previous track
+   * Poprzedni utwór
+   */
+  function previousTrack() {
+    try {
+      // Call our Python backend API to control Windows Media
+      fetch('/api/media/previous', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Previous Track response:', data);
+        
+        if (data.success) {
+          addToLog('System: Poprzedni utwór');
+          addDeviceLog(currentDevice?.address || 'unknown', 'System: Poprzedni utwór');
+        } else {
+          addToLog(`System: Błąd - ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending previous track command:', error);
+        addToLog('System: Błąd podczas przełączania na poprzedni utwór');
+      });
+      
+      // Visual button feedback
+      const prevButton = modalDeviceButtons.querySelector('[data-function="system-previous"]');
+      if (prevButton) {
+        prevButton.classList.add('active-control');
+        setTimeout(() => {
+          prevButton.classList.remove('active-control');
+        }, 200);
+      }
+      
+    } catch (e) {
+      console.error('Error in previousTrack:', e);
+      addToLog(`System: Błąd - ${e.message}`);
+    }
+  }
+
+  /**
+   * Next track
+   * Następny utwór
+   */
+  function nextTrack() {
+    try {
+      // Call our Python backend API to control Windows Media
+      fetch('/api/media/next', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Next Track response:', data);
+        
+        if (data.success) {
+          addToLog('System: Następny utwór');
+          addDeviceLog(currentDevice?.address || 'unknown', 'System: Następny utwór');
+        } else {
+          addToLog(`System: Błąd - ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending next track command:', error);
+        addToLog('System: Błąd podczas przełączania na następny utwór');
+      });
+      
+      // Visual button feedback
+      const nextButton = modalDeviceButtons.querySelector('[data-function="system-next"]');
+      if (nextButton) {
+        nextButton.classList.add('active-control');
+        setTimeout(() => {
+          nextButton.classList.remove('active-control');
+        }, 200);
+      }
+      
+    } catch (e) {
+      console.error('Error in nextTrack:', e);
+      addToLog(`System: Błąd - ${e.message}`);
+    }
+  }
+
+  /**
+   * Stop media
+   * Zatrzymaj media
+   */
+  function stopMedia() {
+    try {
+      // Call our Python backend API to control Windows Media
+      fetch('/api/media/stop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Stop Media response:', data);
+        
+        if (data.success) {
+          addToLog('System: Media zatrzymane');
+          addDeviceLog(currentDevice?.address || 'unknown', 'System: Media zatrzymane');
+        } else {
+          addToLog(`System: Błąd - ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending stop command:', error);
+        addToLog('System: Błąd podczas zatrzymywania mediów');
+      });
+      
+      // Visual button feedback
+      const stopButton = modalDeviceButtons.querySelector('[data-function="system-stop"]');
+      if (stopButton) {
+        stopButton.classList.add('active-control');
+        setTimeout(() => {
+          stopButton.classList.remove('active-control');
+        }, 200);
+      }
+      
+    } catch (e) {
+      console.error('Error in stopMedia:', e);
+      addToLog(`System: Błąd - ${e.message}`);
+    }
+  }
+
+  /**
+   * Mute volume
+   * Wycisz dźwięk
+   */
+  function muteVolume() {
+    try {
+      // Call our Python backend API to control Windows Media
+      fetch('/api/media/mute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Mute response:', data);
+        
+        if (data.success) {
+          addToLog('System: Dźwięk wyciszony/przywrócony');
+          addDeviceLog(currentDevice?.address || 'unknown', 'System: Dźwięk wyciszony/przywrócony');
+        } else {
+          addToLog(`System: Błąd - ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending mute command:', error);
+        addToLog('System: Błąd podczas wyciszania/przywracania dźwięku');
+      });
+      
+      // Visual button feedback
+      const muteButton = modalDeviceButtons.querySelector('[data-function="system-mute"]');
+      if (muteButton) {
+        muteButton.classList.add('active-control');
+        setTimeout(() => {
+          muteButton.classList.remove('active-control');
+        }, 200);
+      }
+      
+    } catch (e) {
+      console.error('Error in muteVolume:', e);
+      addToLog(`System: Błąd - ${e.message}`);
+    }
   }
 
   // ========================================
@@ -805,6 +1414,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalSaveButton) {
       modalSaveButton.textContent = 'Zapisz przycisk';
     }
+    
+    // Make sure command container is visible (in case it was hidden)
+    if (modalCommandsContainer) modalCommandsContainer.style.display = 'block';
+    if (modalAddCommand) modalAddCommand.style.display = 'block';
+    
+    // Remove system control info if exists
+    const existingInfo = modalButtonForm.querySelector('.system-control-info');
+    if (existingInfo) existingInfo.remove();
     
     // Show form
     modalButtonForm.style.display = 'block';
@@ -917,37 +1534,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get button function
     const buttonFunction = modalButtonFunction ? 
       modalButtonFunction.value : '';
-    
-    // Collect commands and delays
-    const commandFields = modalCommandsContainer.querySelectorAll('.command-field');
-    const commands = [];
-    
-    let isValid = true;
-    
-    commandFields.forEach(field => {
-      const commandInput = field.querySelector('.command-input');
-      const delayInput = field.querySelector('.delay-input');
       
-      if (!commandInput.value) {
-        alert('Proszę wypełnić wszystkie pola komend');
-        isValid = false;
-        return;
-      }
+    // Check if this is a system control button
+    const isSystemControl = buttonFunction.startsWith('system-');
+    
+    // Collect commands and delays (if needed)
+    let commands = [];
+    
+    if (!isSystemControl) {
+      // Only validate and collect commands for non-system buttons
+      const commandFields = modalCommandsContainer.querySelectorAll('.command-field');
       
-      // Validate HEX format
-      if (!isValidHexFormat(commandInput.value)) {
-        alert('Dane muszą być w poprawnym formacie HEX (np. 0x01020304)');
-        isValid = false;
-        return;
-      }
+      let isValid = true;
       
-      commands.push({
-        data: commandInput.value,
-        delay: parseInt(delayInput.value) || 0
+      commandFields.forEach(field => {
+        const commandInput = field.querySelector('.command-input');
+        const delayInput = field.querySelector('.delay-input');
+        
+        if (!commandInput.value) {
+          alert('Proszę wypełnić wszystkie pola komend');
+          isValid = false;
+          return;
+        }
+        
+        // Validate HEX format
+        if (!isValidHexFormat(commandInput.value)) {
+          alert('Dane muszą być w poprawnym formacie HEX (np. 0x01020304)');
+          isValid = false;
+          return;
+        }
+        
+        commands.push({
+          data: commandInput.value,
+          delay: parseInt(delayInput.value) || 0
+        });
       });
-    });
-    
-    if (!isValid) return;
+      
+      if (!isValid) return;
+    } else {
+      // For system controls, just create a placeholder command
+      commands = [{
+        data: buttonFunction,
+        delay: 0
+      }];
+    }
     
     console.log('Zapisywanie przycisku:', { buttonName, commands, buttonFunction });
     
@@ -1231,14 +1861,24 @@ document.addEventListener('DOMContentLoaded', function() {
           buttonElement.classList.add('disabled');
         }
         
-        // Add click handler (for connected devices only)
+        // Add click handler
         buttonElement.addEventListener('click', function(e) {
           // Skip if clicked on options or context menu
           if (e.target.closest('.button-options') || e.target.closest('.context-menu')) {
             return;
           }
           
-          if (currentDevice && currentDevice.connected) {
+          // For system controls, always allow (even when device not connected)
+          const isSystemControl = button.function?.startsWith('system-');
+          
+          if (isSystemControl) {
+            // Extract the system action from the function (e.g., 'system-play' -> 'play')
+            // ✅ POPRAWKA - zmienione split na replace:
+            const systemAction = button.function.replace('system-', '');
+            console.log(`Wykonywanie systemowej akcji: ${systemAction}`);
+            handleSystemMediaControl(systemAction);
+          } else if (currentDevice && currentDevice.connected) {
+            // For normal buttons, only execute if device is connected
             console.log(`Wykonywanie przycisku: ${button.name}`);
             executeCommandSequence(button.commands, address);
           } else {
@@ -1302,7 +1942,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!sequenceJSON) {
       console.log('Brak aktywnej sekwencji komend');
       return;
-    }
+      }
     
     const sequence = JSON.parse(sequenceJSON);
     
@@ -1422,7 +2062,7 @@ document.addEventListener('DOMContentLoaded', function() {
     deviceLogs[address].push(logEntry);
     
     // Limit to 100 logs per device
-    if (deviceLogs[address].length > 100) {
+    if (deviceLogs[address].length > 500) {
       deviceLogs[address].shift(); // Remove oldest log
     }
     
@@ -1749,31 +2389,67 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalContent = previewModal.querySelector('.modal-content');
     
     // Header
-    let content = `<h2>Podgląd komend przycisku "${buttonName}"</h2>`;
+    let content = `<h2>Podgląd komend przycisku</h2>`;
     
-    // Commands list
-    content += '<div class="commands-list">';
+    // Check if it's a system control button
+    const isSystemControl = buttonData.function?.startsWith('system-');
     
-    if (buttonData.commands && buttonData.commands.length > 0) {
-      buttonData.commands.forEach((cmd, index) => {
-        content += `
-          <div class="command-preview">
-            <div class="command-number">${index + 1}</div>
-            <div class="command-details">
-              <div class="command-data">${cmd.data}</div>
-              <div class="command-delay">Opóźnienie: ${cmd.delay} ms</div>
-            </div>
-          </div>
-        `;
-      });
+    if (isSystemControl) {
+      // System control button info
+      content += `<div class="system-control-info" style="padding: 15px; margin: 15px 0; background-color: #1e1e1e; color: #e0e0e0; border-radius: 4px; border-left: 3px solid #3498db;">`;
+      
+      if (buttonData.function === 'system-play') {
+        content += `<p>Ten przycisk steruje odtwarzaniem dźwięku przez system komputera.</p>
+                    <p>Akcja: Przełączanie odtwarzania/pauzy</p>`;
+      } else if (buttonData.function === 'system-volume-up') {
+        content += `<p>Ten przycisk zwiększa głośność systemową komputera.</p>
+                    <p>Akcja: Zwiększenie głośności o 10%</p>`;
+      } else if (buttonData.function === 'system-volume-down') {
+        content += `<p>Ten przycisk zmniejsza głośność systemową komputera.</p>
+                    <p>Akcja: Zmniejszenie głośności o 10%</p>`;
+      } 
+      // ✅ NOWE SEKCJE - DODANE:
+      else if (buttonData.function === 'system-previous') {
+        content += `<p>Ten przycisk przełącza na poprzedni utwór w systemie komputera.</p>
+                    <p>Akcja: Poprzedni utwór w odtwarzaczu</p>`;
+      } else if (buttonData.function === 'system-next') {
+        content += `<p>Ten przycisk przełącza na następny utwór w systemie komputera.</p>
+                    <p>Akcja: Następny utwór w odtwarzaczu</p>`;
+      } else if (buttonData.function === 'system-stop') {
+        content += `<p>Ten przycisk zatrzymuje odtwarzanie mediów w systemie komputera.</p>
+                    <p>Akcja: Zatrzymanie odtwarzania</p>`;
+      } else if (buttonData.function === 'system-mute') {
+        content += `<p>Ten przycisk wycisza/przywraca dźwięk systemowy komputera.</p>
+                    <p>Akcja: Przełączanie wyciszenia</p>`;
+      }
+      
+      content += `</div>`;
     } else {
-      content += '<p>Brak komend przypisanych do tego przycisku.</p>';
+      // Regular button with commands
+      // Commands list
+      content += '<div class="commands-list">';
+      
+      if (buttonData.commands && buttonData.commands.length > 0) {
+        buttonData.commands.forEach((cmd, index) => {
+          content += `
+            <div class="command-preview">
+              <div class="command-number">${index + 1}</div>
+              <div class="command-details">
+                <div class="command-data">${cmd.data}</div>
+                <div class="command-delay">Opóźnienie: ${cmd.delay} ms</div>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        content += '<p>Brak komend przypisanych do tego przycisku.</p>';
+      }
+      
+      content += '</div>';
     }
     
-    content += '</div>';
-    
     // Function info
-    if (buttonData.function) {
+    if (buttonData.function && !isSystemControl) {
       const functionNames = {
         'power': 'Zasilanie',
         'volume-up': 'Głośność',
@@ -1827,6 +2503,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (modalButtonFunction) {
       modalButtonFunction.value = buttonData.function || '';
+      
+      // Handle button function change to show/hide commands container
+      handleButtonFunctionChange();
     }
     
     // Remove all command fields
@@ -1834,13 +2513,16 @@ document.addEventListener('DOMContentLoaded', function() {
       modalCommandsContainer.removeChild(modalCommandsContainer.firstChild);
     }
     
-    // Add command fields with data
-    if (buttonData.commands && buttonData.commands.length > 0) {
+    // Check if this is a system control button
+    const isSystemControl = buttonData.function?.startsWith('system-');
+    
+    // Add command fields with data if not system control
+    if (!isSystemControl && buttonData.commands && buttonData.commands.length > 0) {
       buttonData.commands.forEach(cmd => {
         addCommandField(modalCommandsContainer, cmd.data, cmd.delay);
       });
-    } else {
-      // Add empty field if no commands
+    } else if (!isSystemControl) {
+      // Add empty field if no commands and not system control
       addCommandField(modalCommandsContainer);
     }
     
@@ -1919,37 +2601,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get button function
     const buttonFunction = modalButtonFunction ? 
       modalButtonFunction.value : '';
-    
-    // Collect commands and delays
-    const commandFields = modalCommandsContainer.querySelectorAll('.command-field');
-    const commands = [];
-    
-    let isValid = true;
-    
-    commandFields.forEach(field => {
-      const commandInput = field.querySelector('.command-input');
-      const delayInput = field.querySelector('.delay-input');
       
-      if (!commandInput.value) {
-        alert('Proszę wypełnić wszystkie pola komend');
-        isValid = false;
-        return;
-      }
+    // Check if this is a system control button
+    const isSystemControl = buttonFunction.startsWith('system-');
+    
+    // Collect commands and delays (if needed)
+    let commands = [];
+    
+    if (!isSystemControl) {
+      // Only validate and collect commands for non-system buttons
+      const commandFields = modalCommandsContainer.querySelectorAll('.command-field');
       
-      // Validate HEX format
-      if (!isValidHexFormat(commandInput.value)) {
-        alert('Dane muszą być w poprawnym formacie HEX (np. 0x01020304)');
-        isValid = false;
-        return;
-      }
+      let isValid = true;
       
-      commands.push({
-        data: commandInput.value,
-        delay: parseInt(delayInput.value) || 0
+      commandFields.forEach(field => {
+        const commandInput = field.querySelector('.command-input');
+        const delayInput = field.querySelector('.delay-input');
+        
+        if (!commandInput.value) {
+          alert('Proszę wypełnić wszystkie pola komend');
+          isValid = false;
+          return;
+        }
+        
+        // Validate HEX format
+        if (!isValidHexFormat(commandInput.value)) {
+          alert('Dane muszą być w poprawnym formacie HEX (np. 0x01020304)');
+          isValid = false;
+          return;
+        }
+        
+        commands.push({
+          data: commandInput.value,
+          delay: parseInt(delayInput.value) || 0
+        });
       });
-    });
-    
-    if (!isValid) return;
+      
+      if (!isValid) return;
+    } else {
+      // For system controls, just create a placeholder command
+      commands = [{
+        data: buttonFunction,
+        delay: 0
+      }];
+    }
     
     // Get stored device buttons
     const deviceButtonsJSON = localStorage.getItem('deviceButtons') || '{}';
@@ -2003,6 +2698,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.showCommandsPreview = showCommandsPreview;
   window.loadDeviceLogs = loadDeviceLogs;
   window.loadDeviceButtons = loadDeviceButtons;
+  window.handleSystemMediaControl = handleSystemMediaControl;
   
   // ========================================
   // ADDITIONAL EVENT LISTENERS - Dodatkowe event listenery
@@ -2048,5 +2744,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, true);  // Use capture phase to ensure handling before other listeners
   
-  console.log('device-modal.js w pełni zainicjalizowany');
+  console.log('device-modal.js w pełni zainicjalizowany z obsługą sterowania mediami systemowymi (7 przycisków)');
 });
