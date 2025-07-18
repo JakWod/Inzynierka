@@ -553,55 +553,196 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Łączy z urządzeniem o podanym adresie MAC
+     * Łączy z urządzeniem o podanym adresie MAC używając AJAX
      * @param {string} address - Adres MAC urządzenia
      */
     function connectToDevice(address) {
         addToLog(`Łączenie z urządzeniem: ${address}`);
         
-        // Utwórz i wyślij formularz
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/connect';
+        // Pokaż toast o próbie połączenia
+        if (typeof showToast === 'function') {
+            showToast(`Łączenie z urządzeniem ${address}...`, 'info', 3000);
+        }
         
-        const addressInput = document.createElement('input');
-        addressInput.type = 'hidden';
-        addressInput.name = 'address';
-        addressInput.value = address;
-        
-        form.appendChild(addressInput);
-        document.body.appendChild(form);
-        form.submit();
+        // Wyślij żądanie AJAX
+        fetch('/connect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `address=${encodeURIComponent(address)}`
+        })
+        .then(response => {
+            // Sprawdź czy odpowiedź jest OK
+            if (response.ok) {
+                return response.text();
+            } else {
+                throw new Error(`Server error: ${response.status}`);
+            }
+        })
+        .then(data => {
+            // Sprawdź czy połączenie się powiodło przez sprawdzenie statusu połączenia
+            setTimeout(() => {
+                checkSidebarConnectionResult(address);
+            }, 2000); // Daj czas na zakończenie połączenia
+        })
+        .catch(error => {
+            console.error('Błąd podczas łączenia:', error);
+            addToLog(`Błąd podczas łączenia z ${address}: ${error.message}`);
+            
+            // Pokaż toast o błędzie
+            if (typeof showToast === 'function') {
+                showToast(`Nie udało się połączyć z urządzeniem ${address}`, 'error', 5000);
+            }
+        });
     }
     
     /**
-     * Rozłącza bieżące urządzenie
+     * Sprawdza wynik połączenia i aktualizuje UI sidebara
+     * @param {string} address - Adres MAC urządzenia
+     */
+    function checkSidebarConnectionResult(address) {
+        fetch('/connection_status')
+            .then(response => response.json())
+            .then(data => {
+                const isConnected = data.connected;
+                const connectedAddress = data.address || '';
+                
+                if (isConnected && connectedAddress === address) {
+                    // Połączenie udane
+                    addToLog(`Pomyślnie połączono z urządzeniem ${address}`);
+                    
+                    // Pokaż toast o sukcesie
+                    if (typeof showToast === 'function') {
+                        showToast(`Pomyślnie połączono z urządzeniem ${address}`, 'success', 5000);
+                    }
+                    
+                    // Aktualizuj localStorage
+                    let pairedDevices = JSON.parse(localStorage.getItem('pairedDevices') || '[]');
+                    pairedDevices.forEach(device => {
+                        if (device.address === address) {
+                            device.connected = true;
+                        } else {
+                            device.connected = false; // Rozłącz inne urządzenia
+                        }
+                    });
+                    localStorage.setItem('pairedDevices', JSON.stringify(pairedDevices));
+                    
+                    // Odśwież widok
+                    displayPairedDevices(pairedDevices);
+                    
+                } else {
+                    // Połączenie nieudane
+                    addToLog(`Nie udało się połączyć z urządzeniem ${address}`);
+                    
+                    // Pokaż toast o błędzie
+                    if (typeof showToast === 'function') {
+                        showToast(`Nie udało się połączyć z urządzeniem ${address}`, 'error', 5000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Błąd podczas sprawdzania statusu połączenia:', error);
+                addToLog(`Błąd podczas sprawdzania statusu połączenia`);
+                
+                // Pokaż toast o błędzie
+                if (typeof showToast === 'function') {
+                    showToast(`Błąd podczas sprawdzania połączenia z ${address}`, 'error', 5000);
+                }
+            });
+    }
+    
+    /**
+     * Rozłącza bieżące urządzenie używając AJAX
      */
     function disconnectFromDevice() {
         addToLog('Rozłączanie urządzenia...');
         
-        // Utwórz i wyślij formularz
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/disconnect';
+        // Pokaż toast o próbie rozłączenia
+        if (typeof showToast === 'function') {
+            showToast('Rozłączanie urządzenia...', 'info', 3000);
+        }
         
-        document.body.appendChild(form);
-        form.submit();
+        // Wyślij żądanie AJAX
+        fetch('/disconnect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: ''
+        })
+        .then(response => {
+            // Sprawdź czy odpowiedź jest OK
+            if (response.ok) {
+                return response.text();
+            } else {
+                throw new Error(`Server error: ${response.status}`);
+            }
+        })
+        .then(data => {
+            // Sprawdź czy rozłączenie się powiodło
+            setTimeout(() => {
+                checkSidebarDisconnectionResult();
+            }, 2000); // Daj czas na zakończenie rozłączenia
+        })
+        .catch(error => {
+            console.error('Błąd podczas rozłączania:', error);
+            addToLog(`Błąd podczas rozłączania: ${error.message}`);
+            
+            // Pokaż toast o błędzie
+            if (typeof showToast === 'function') {
+                showToast('Błąd podczas rozłączania urządzenia', 'error', 5000);
+            }
+        });
     }
     
     /**
-     * Dodaje wpis do logu na stronie
-     * @param {string} message - Wiadomość do dodania
+     * Sprawdza wynik rozłączenia i aktualizuje UI sidebara
      */
-    function addToLog(message) {
-        const logContainer = document.querySelector('.log-container');
-        if (logContainer) {
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry';
-            logEntry.textContent = `[SIDEBAR] ${message}`;
-            logContainer.insertBefore(logEntry, logContainer.firstChild);
-        }
-        console.log(`[SIDEBAR] ${message}`);
+    function checkSidebarDisconnectionResult() {
+        fetch('/connection_status')
+            .then(response => response.json())
+            .then(data => {
+                const isConnected = data.connected;
+                
+                if (!isConnected) {
+                    // Rozłączenie udane
+                    addToLog('Pomyślnie rozłączono urządzenie');
+                    
+                    // Pokaż toast o sukcesie
+                    if (typeof showToast === 'function') {
+                        showToast('Pomyślnie rozłączono urządzenie', 'success', 5000);
+                    }
+                    
+                    // Aktualizuj localStorage
+                    let pairedDevices = JSON.parse(localStorage.getItem('pairedDevices') || '[]');
+                    pairedDevices.forEach(device => {
+                        device.connected = false;
+                    });
+                    localStorage.setItem('pairedDevices', JSON.stringify(pairedDevices));
+                    
+                    // Odśwież widok
+                    displayPairedDevices(pairedDevices);
+                    
+                } else {
+                    // Rozłączenie nieudane
+                    addToLog('Nie udało się rozłączyć urządzenia');
+                    
+                    // Pokaż toast o błędzie
+                    if (typeof showToast === 'function') {
+                        showToast('Nie udało się rozłączyć urządzenia', 'error', 5000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Błąd podczas sprawdzania statusu rozłączenia:', error);
+                addToLog(`Błąd podczas sprawdzania statusu rozłączenia`);
+                
+                // Pokaż toast o błędzie
+                if (typeof showToast === 'function') {
+                    showToast('Błąd podczas sprawdzania statusu rozłączenia', 'error', 5000);
+                }
+            });
     }
     
     /**
@@ -700,6 +841,21 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Błąd podczas sprawdzania statusu połączenia:', error);
             });
+    }
+    
+    /**
+     * Dodaje wpis do logu na stronie
+     * @param {string} message - Wiadomość do dodania
+     */
+    function addToLog(message) {
+        const logContainer = document.querySelector('.log-container');
+        if (logContainer) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[SIDEBAR] ${message}`;
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+        }
+        console.log(`[SIDEBAR] ${message}`);
     }
     
     // Wywołuj funkcję co 5 sekund aby sprawdzać i dodawać urządzenia
