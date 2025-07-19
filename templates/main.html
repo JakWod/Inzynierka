@@ -128,7 +128,7 @@
 
     <!-- Main content z nowym headerem -->
     <div class="main-content">
-      <!-- HEADER Z PRZYCISKAMI LOGIN/REGISTER -->
+      <!-- HEADER Z PRZYCISKAMI LOGIN/REGISTER - ZMODYFIKOWANA STRUKTURA -->
       <header class="modern-header">
         <div class="header-left">
           <div class="header-logo">
@@ -148,7 +148,54 @@
         </div>
 
         <div class="header-right">
-          <!-- NOWE PRZYCISKI LOGIN/REGISTER -->
+          <!-- PRZYCISKI FUNKCJONALNE - PRZESUNIĘTE NA LEWO -->
+          <div class="header-functional-buttons">
+            <div class="header-dropdown">
+              <button class="header-button" id="type-filter-btn">
+                <i class="fas fa-filter"></i>
+                <span>All Types</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="dropdown-content" id="type-filter-dropdown">
+                <div class="dropdown-item" data-type="">All Types</div>
+                <div class="dropdown-item" data-type="headphones">Headphones</div>
+                <div class="dropdown-item" data-type="speaker">Speakers</div>
+                <div class="dropdown-item" data-type="keyboard">Keyboards</div>
+                <div class="dropdown-item" data-type="mouse">Mice</div>
+                <div class="dropdown-item" data-type="gamepad">Controllers</div>
+                <div class="dropdown-item" data-type="other">Other</div>
+              </div>
+            </div>
+
+            <div class="view-toggle">
+              <button class="active" id="grid-view">
+                <i class="fas fa-th"></i>
+              </button>
+              <button id="list-view">
+                <i class="fas fa-bars"></i>
+              </button>
+            </div>
+
+            <button class="header-button primary" id="header-scan-btn">
+              <i class="fas fa-search"></i>
+              <span>Scan</span>
+            </button>
+
+            <button class="header-button" id="header-add-device-btn">
+              <i class="fas fa-plus"></i>
+              <span>Add Device</span>
+            </button>
+
+            <button class="header-button icon-only" id="theme-toggle">
+              <i class="fas fa-moon"></i>
+            </button>
+
+            <button class="header-button icon-only" id="settings-btn">
+              <i class="fas fa-cog"></i>
+            </button>
+          </div>
+
+          <!-- PRZYCISKI AUTH - TERAZ NA PRAWEJ STRONIE -->
           <div class="auth-buttons">
             <button class="header-button auth-btn login-btn" id="login-btn">
               <i class="fas fa-sign-in-alt"></i>
@@ -159,50 +206,6 @@
               <span>Register</span>
             </button>
           </div>
-
-          <div class="header-dropdown">
-            <button class="header-button" id="type-filter-btn">
-              <i class="fas fa-filter"></i>
-              <span>All Types</span>
-              <i class="fas fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-content" id="type-filter-dropdown">
-              <div class="dropdown-item" data-type="">All Types</div>
-              <div class="dropdown-item" data-type="headphones">Headphones</div>
-              <div class="dropdown-item" data-type="speaker">Speakers</div>
-              <div class="dropdown-item" data-type="keyboard">Keyboards</div>
-              <div class="dropdown-item" data-type="mouse">Mice</div>
-              <div class="dropdown-item" data-type="gamepad">Controllers</div>
-              <div class="dropdown-item" data-type="other">Other</div>
-            </div>
-          </div>
-
-          <div class="view-toggle">
-            <button class="active" id="grid-view">
-              <i class="fas fa-th"></i>
-            </button>
-            <button id="list-view">
-              <i class="fas fa-bars"></i>
-            </button>
-          </div>
-
-          <button class="header-button primary" id="header-scan-btn">
-            <i class="fas fa-search"></i>
-            <span>Scan</span>
-          </button>
-
-          <button class="header-button" id="header-add-device-btn">
-            <i class="fas fa-plus"></i>
-            <span>Add Device</span>
-          </button>
-
-          <button class="header-button icon-only" id="theme-toggle">
-            <i class="fas fa-moon"></i>
-          </button>
-
-          <button class="header-button icon-only" id="settings-btn">
-            <i class="fas fa-cog"></i>
-          </button>
         </div>
       </header>
 

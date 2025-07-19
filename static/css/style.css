@@ -1092,3 +1092,216 @@ table th {
     width: 100%;
   }
 }
+
+/* ========================================
+   TOAST NOTIFICATIONS STYLES - ADD TO style.css
+   ======================================== */
+
+/* Toast container - must be at the top level for proper positioning */
+.toast-container {
+  position: fixed !important;
+  top: 80px !important; /* Below header */
+  right: 20px !important;
+  z-index: 10000 !important; /* Highest z-index */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+  pointer-events: none; /* Allows clicking through container */
+}
+
+/* Individual toast */
+.toast {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: auto; /* Toast can be clicked */
+  min-width: 300px;
+  max-width: 400px;
+  word-wrap: break-word;
+  font-family: inherit;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast.hiding {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s ease-in;
+}
+
+.toast-icon {
+  margin-right: 12px;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  color: inherit;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+  margin-left: 12px;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Toast types with improved contrast */
+.toast.success {
+  background-color: rgba(46, 204, 113, 0.95);
+  color: white;
+  border-color: rgba(39, 174, 96, 0.5);
+}
+
+.toast.error {
+  background-color: rgba(231, 76, 60, 0.95);
+  color: white;
+  border-color: rgba(192, 57, 43, 0.5);
+}
+
+.toast.warning {
+  background-color: rgba(241, 196, 15, 0.95);
+  color: #2c3e50;
+  border-color: rgba(243, 156, 18, 0.5);
+}
+
+.toast.info {
+  background-color: rgba(52, 152, 219, 0.95);
+  color: white;
+  border-color: rgba(41, 128, 185, 0.5);
+}
+
+/* Toast icons with better visibility */
+.toast.success .toast-icon {
+  color: #d4edda;
+}
+
+.toast.error .toast-icon {
+  color: #f8d7da;
+}
+
+.toast.warning .toast-icon {
+  color: #2c3e50;
+}
+
+.toast.info .toast-icon {
+  color: #d1ecf1;
+}
+
+/* Ensure toast container is above everything */
+.toast-container {
+  z-index: 999999 !important;
+}
+
+/* Override any conflicting styles */
+.toast * {
+  box-sizing: border-box;
+}
+
+/* Responsive toast styles */
+@media (max-width: 768px) {
+  .toast-container {
+    top: 70px !important;
+    right: 10px !important;
+    left: 10px !important;
+    max-width: none;
+  }
+  
+  .toast {
+    min-width: auto;
+    max-width: none;
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    top: 60px !important;
+    right: 5px !important;
+    left: 5px !important;
+  }
+  
+  .toast {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .toast-icon {
+    font-size: 16px;
+    margin-right: 10px;
+  }
+  
+  .toast-message {
+    font-size: 13px;
+  }
+}
+
+/* Dark/Light theme support for toasts */
+[data-theme="light"] .toast.success {
+  background-color: rgba(40, 167, 69, 0.95);
+}
+
+[data-theme="light"] .toast.error {
+  background-color: rgba(220, 53, 69, 0.95);
+}
+
+[data-theme="light"] .toast.warning {
+  background-color: rgba(255, 193, 7, 0.95);
+  color: #212529;
+}
+
+[data-theme="light"] .toast.info {
+  background-color: rgba(13, 110, 253, 0.95);
+}
+
+/* Ensure toast container doesn't interfere with page layout */
+body:has(.toast-container) {
+  padding-right: 0 !important;
+}
+
+/* Force toast container positioning in all contexts */
+.toast-container {
+  position: fixed !important;
+  top: 80px !important;
+  right: 20px !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+}
+
+.hidden-logs {
+  display: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+}

@@ -105,9 +105,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Header scan button
     if (headerScanBtn) {
       headerScanBtn.addEventListener('click', function() {
+        // Don't do anything if already scanning
+        if (headerScanBtn.disabled || headerScanBtn.querySelector('.fa-spinner')) {
+          return;
+        }
+        
+        // Add spinning animation
+        const originalContent = headerScanBtn.innerHTML;
+        headerScanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Scanning...</span>';
+        headerScanBtn.disabled = true;
+        headerScanBtn.style.opacity = "0.7";
+        headerScanBtn.classList.add('scanning');
+        
+        // Store original content for main.js to restore
+        headerScanBtn.dataset.originalContent = originalContent;
+        
         const scanForm = document.getElementById('scan-form');
         if (scanForm) {
           scanForm.dispatchEvent(new Event('submit'));
+        } else {
+          // Reset immediately if no scan form found
+          setTimeout(() => {
+            headerScanBtn.innerHTML = originalContent;
+            headerScanBtn.disabled = false;
+            headerScanBtn.style.opacity = "1";
+            headerScanBtn.classList.remove('scanning');
+            delete headerScanBtn.dataset.originalContent;
+          }, 1000);
         }
       });
     }
@@ -129,21 +153,42 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Theme toggle
+    // Theme toggle - POPRAWIONA WERSJA
     if (themeToggle) {
       // Check for saved theme preference or default to dark
       const currentTheme = localStorage.getItem('theme') || 'dark';
+      console.log(`Loading saved theme: ${currentTheme}`);
       applyTheme(currentTheme);
       
-      themeToggle.addEventListener('click', function() {
+      themeToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Theme toggle clicked');
+        
         const currentTheme = document.body.getAttribute('data-theme') || 'dark';
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        console.log(`Switching theme from ${currentTheme} to ${newTheme}`);
         
         applyTheme(newTheme);
         localStorage.setItem('theme', newTheme);
         
-        showToast(`Przełączono na motyw ${newTheme === 'dark' ? 'ciemny' : 'jasny'}`, 'info', 2000);
+        // Sprawdź czy ikona została zmieniona
+        const icon = themeToggle.querySelector('i');
+        console.log(`Icon classes after toggle: ${icon ? icon.className : 'no icon found'}`);
+        
+        if (typeof showToast === 'function') {
+          showToast(`Przełączono na motyw ${newTheme === 'dark' ? 'ciemny' : 'jasny'}`, 'info', 2000);
+        }
       });
+      
+      // POPRAWKA: Dodatkowa inicjalizacja theme toggle z debug informacjami
+      // Sprawdź aktualny motyw i zastosuj go ponownie aby upewnić się że ikona jest prawidłowa
+      setTimeout(() => {
+        const currentTheme = localStorage.getItem('theme') || 'dark';
+        console.log(`Re-applying theme during init: ${currentTheme}`);
+        applyTheme(currentTheme);
+        console.log(`Theme re-applied: ${currentTheme}`);
+      }, 100);
     }
     
     // View toggle
@@ -160,6 +205,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Implement list view logic here
       });
     }
+    
+    // Udostępnij funkcję globalnie
+    window.applyTheme = applyTheme;
   }
   
   /**
@@ -233,25 +281,63 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // ========================================
-  // THEME MANAGEMENT
+  // THEME MANAGEMENT - POPRAWIONA WERSJA
   // ========================================
   
   /**
-   * Apply theme to the application
+   * Apply theme to the application - POPRAWIONA WERSJA
    * @param {string} theme - Theme name (dark/light)
    */
   function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    const themeIcon = themeToggle?.querySelector('i');
+  console.log(`Applying theme: ${theme}`);
+  
+  // Set theme attribute on body
+  document.body.setAttribute('data-theme', theme);
+  
+  // Get theme toggle button
+  const themeToggle = document.getElementById('theme-toggle');
+  
+  if (themeToggle) {
+    console.log(`Current button HTML before change: ${themeToggle.innerHTML}`);
     
-    if (themeIcon) {
-      if (theme === 'light') {
-        themeIcon.classList.remove('fa-moon');
-        themeIcon.classList.add('fa-sun');
-      } else {
-        themeIcon.classList.remove('fa-sun');
-        themeIcon.classList.add('fa-moon');
-      }
+    // NOWE PODEJŚCIE: Bezpośrednie ustawienie innerHTML
+    if (theme === 'dark') {
+      // W dark mode pokazuj ikonę słońca (żeby przełączyć na light)
+      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      themeToggle.title = 'Switch to Light Mode';
+      console.log('Dark theme: Set sun icon via innerHTML');
+    } else {
+      // W light mode pokazuj ikonę księżyca (żeby przełączyć na dark)
+      themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+      themeToggle.title = 'Switch to Dark Mode';
+      console.log('Light theme: Set moon icon via innerHTML');
+    }
+    
+    console.log(`Button HTML after change: ${themeToggle.innerHTML}`);
+  } else {
+    console.error('Theme toggle button not found');
+  }
+  
+  // Update any other theme-dependent elements
+  updateThemeDependentElements(theme);
+}
+
+  /**
+   * Update other elements that depend on theme
+   * @param {string} theme - Current theme
+   */
+  function updateThemeDependentElements(theme) {
+    // Update CSS custom properties if needed
+    const root = document.documentElement;
+    
+    if (theme === 'dark') {
+      root.style.setProperty('--theme-bg', '#1e1e1e');
+      root.style.setProperty('--theme-text', '#e0e0e0');
+      root.style.setProperty('--theme-border', '#444');
+    } else {
+      root.style.setProperty('--theme-bg', '#ffffff');
+      root.style.setProperty('--theme-text', '#212529');
+      root.style.setProperty('--theme-border', '#dee2e6');
     }
   }
   
@@ -894,14 +980,13 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {number} duration - Duration in milliseconds
    */
   function showToast(message, type = 'success', duration = 4000) {
-    // Use existing toast function if available
-    if (typeof window.showToast === 'function') {
-      window.showToast(message, type, duration);
-      return;
-    }
+    console.log(`Showing toast: ${message} (${type})`);
     
-    // Fallback toast implementation
-    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+      toastContainer = createToastContainer();
+    }
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -919,13 +1004,21 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="toast-close" aria-label="Zamknij">&times;</button>
     `;
     
-    toastContainer.appendChild(toast);
+    // Add to container at the top (newest first)
+    toastContainer.insertBefore(toast, toastContainer.firstChild);
     
     const closeBtn = toast.querySelector('.toast-close');
     closeBtn.addEventListener('click', () => hideToast(toast));
     
-    setTimeout(() => toast.classList.add('show'), 100);
+    // Show with animation
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+    
+    // Auto-hide after duration
     setTimeout(() => hideToast(toast), duration);
+    
+    console.log(`Toast displayed successfully`);
   }
   
   /**
@@ -938,7 +1031,11 @@ document.addEventListener('DOMContentLoaded', function() {
       container = document.createElement('div');
       container.id = 'toast-container';
       container.className = 'toast-container';
+      
+      // Insert at the end of body to ensure proper stacking
       document.body.appendChild(container);
+      
+      console.log('Created toast container');
     }
     return container;
   }
@@ -951,6 +1048,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!toast || !toast.parentNode) return;
     
     toast.classList.add('hiding');
+    toast.classList.remove('show');
     
     setTimeout(() => {
       if (toast.parentNode) {

@@ -86,11 +86,24 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function startScanning() {
     const minecraftBtn = document.querySelector('.minecraft-play-button');
+    const headerScanBtn = document.getElementById('header-scan-btn');
     
+    // Update minecraft button
     if (minecraftBtn) {
       minecraftBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SKANOWANIE...';
       minecraftBtn.disabled = true;
       minecraftBtn.style.opacity = "0.7";
+    }
+    
+    // Update header scan button if it exists and isn't already spinning
+    if (headerScanBtn && !headerScanBtn.querySelector('.fa-spinner')) {
+      const originalHeaderContent = headerScanBtn.innerHTML;
+      headerScanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Scanning...</span>';
+      headerScanBtn.disabled = true;
+      headerScanBtn.style.opacity = "0.7";
+      
+      // Store original content for later restoration
+      headerScanBtn.dataset.originalContent = originalHeaderContent;
     }
     
     if (!scanResultsVisible) {
@@ -110,10 +123,21 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
         fetchScanResults();
         
+        // Reset minecraft button
         if (minecraftBtn) {
           updateScanButtonText();
           minecraftBtn.disabled = false;
           minecraftBtn.style.opacity = "1";
+        }
+        
+        // Reset header scan button
+        if (headerScanBtn) {
+          const originalContent = headerScanBtn.dataset.originalContent || '<i class="fas fa-search"></i><span>Scan</span>';
+          headerScanBtn.innerHTML = originalContent;
+          headerScanBtn.disabled = false;
+          headerScanBtn.style.opacity = "1";
+          headerScanBtn.classList.remove('scanning');
+          delete headerScanBtn.dataset.originalContent;
         }
       }, 2000);
     })
@@ -122,10 +146,21 @@ document.addEventListener('DOMContentLoaded', function() {
       addToMainLog(`[BŁĄD] Błąd podczas skanowania: ${error}`);
       showToast('Błąd podczas skanowania urządzeń', 'error', 5000);
       
+      // Reset minecraft button
       if (minecraftBtn) {
         updateScanButtonText();
         minecraftBtn.disabled = false;
         minecraftBtn.style.opacity = "1";
+      }
+      
+      // Reset header scan button
+      if (headerScanBtn) {
+        const originalContent = headerScanBtn.dataset.originalContent || '<i class="fas fa-search"></i><span>Scan</span>';
+        headerScanBtn.innerHTML = originalContent;
+        headerScanBtn.disabled = false;
+        headerScanBtn.style.opacity = "1";
+        headerScanBtn.classList.remove('scanning');
+        delete headerScanBtn.dataset.originalContent;
       }
     });
   }

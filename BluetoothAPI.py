@@ -128,207 +128,7 @@ def reset_bluetooth():
         return False
 
 # ========================================
-# FUNKCJE LINUXOWE DLA STEROWANIA MEDIAMI
-# ========================================
-
-def linux_check_dependencies():
-    """Sprawdza czy wymagane narzędzia są dostępne w systemie Linux"""
-    required_tools = ['playerctl', 'amixer']
-    missing_tools = []
-    
-    for tool in required_tools:
-        try:
-            subprocess.run([tool, '--version'], capture_output=True, check=True)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            missing_tools.append(tool)
-    
-    return missing_tools
-
-def linux_media_play_pause():
-    """Linux: Przełącza odtwarzanie/pauzę"""
-    try:
-        result = subprocess.run(['playerctl', 'play-pause'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            add_log("Linux: Media play/pause wykonane pomyślnie", "INFO")
-            return True
-        else:
-            add_log(f"Linux: Błąd playerctl play-pause: {result.stderr}", "ERROR")
-            return False
-    except subprocess.TimeoutExpired:
-        add_log("Linux: Timeout podczas wykonywania playerctl play-pause", "ERROR")
-        return False
-    except FileNotFoundError:
-        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
-        return False
-    except Exception as e:
-        add_log(f"Linux: Błąd podczas play/pause: {str(e)}", "ERROR")
-        return False
-
-def linux_media_previous():
-    """Linux: Poprzedni utwór"""
-    try:
-        result = subprocess.run(['playerctl', 'previous'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            add_log("Linux: Poprzedni utwór wykonany pomyślnie", "INFO")
-            return True
-        else:
-            add_log(f"Linux: Błąd playerctl previous: {result.stderr}", "ERROR")
-            return False
-    except subprocess.TimeoutExpired:
-        add_log("Linux: Timeout podczas wykonywania playerctl previous", "ERROR")
-        return False
-    except FileNotFoundError:
-        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
-        return False
-    except Exception as e:
-        add_log(f"Linux: Błąd podczas previous: {str(e)}", "ERROR")
-        return False
-
-def linux_media_next():
-    """Linux: Następny utwór"""
-    try:
-        result = subprocess.run(['playerctl', 'next'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            add_log("Linux: Następny utwór wykonany pomyślnie", "INFO")
-            return True
-        else:
-            add_log(f"Linux: Błąd playerctl next: {result.stderr}", "ERROR")
-            return False
-    except subprocess.TimeoutExpired:
-        add_log("Linux: Timeout podczas wykonywania playerctl next", "ERROR")
-        return False
-    except FileNotFoundError:
-        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
-        return False
-    except Exception as e:
-        add_log(f"Linux: Błąd podczas next: {str(e)}", "ERROR")
-        return False
-
-def linux_media_stop():
-    """Linux: Zatrzymanie odtwarzania"""
-    try:
-        result = subprocess.run(['playerctl', 'stop'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            add_log("Linux: Stop wykonany pomyślnie", "INFO")
-            return True
-        else:
-            add_log(f"Linux: Błąd playerctl stop: {result.stderr}", "ERROR")
-            return False
-    except subprocess.TimeoutExpired:
-        add_log("Linux: Timeout podczas wykonywania playerctl stop", "ERROR")
-        return False
-    except FileNotFoundError:
-        add_log("Linux: playerctl nie jest zainstalowany", "ERROR")
-        return False
-    except Exception as e:
-        add_log(f"Linux: Błąd podczas stop: {str(e)}", "ERROR")
-        return False
-
-def linux_volume_up():
-    """Linux: Zwiększenie głośności"""
-    try:
-        # Próbuj najpierw amixer
-        result = subprocess.run(['amixer', '-D', 'pulse', 'sset', 'Master', '5%+'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            add_log("Linux: Głośność zwiększona (amixer)", "INFO")
-            return True
-        else:
-            # Jeśli amixer nie działa, spróbuj pactl
-            try:
-                result = subprocess.run(['pactl', 'set-sink-volume', '@DEFAULT_SINK@', '+5%'], 
-                                      capture_output=True, text=True, timeout=5)
-                if result.returncode == 0:
-                    add_log("Linux: Głośność zwiększona (pactl)", "INFO")
-                    return True
-                else:
-                    add_log(f"Linux: Błąd pactl volume up: {result.stderr}", "ERROR")
-                    return False
-            except FileNotFoundError:
-                add_log("Linux: Ani amixer ani pactl nie są dostępne", "ERROR")
-                return False
-    except subprocess.TimeoutExpired:
-        add_log("Linux: Timeout podczas zmiany głośności", "ERROR")
-        return False
-    except FileNotFoundError:
-        add_log("Linux: amixer nie jest zainstalowany", "ERROR")
-        return False
-    except Exception as e:
-        add_log(f"Linux: Błąd podczas zwiększania głośności: {str(e)}", "ERROR")
-        return False
-
-def linux_volume_down():
-    """Linux: Zmniejszenie głośności"""
-    try:
-        # Próbuj najpierw amixer
-        result = subprocess.run(['amixer', '-D', 'pulse', 'sset', 'Master', '5%-'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            add_log("Linux: Głośność zmniejszona (amixer)", "INFO")
-            return True
-        else:
-            # Jeśli amixer nie działa, spróbuj pactl
-            try:
-                result = subprocess.run(['pactl', 'set-sink-volume', '@DEFAULT_SINK@', '-5%'], 
-                                      capture_output=True, text=True, timeout=5)
-                if result.returncode == 0:
-                    add_log("Linux: Głośność zmniejszona (pactl)", "INFO")
-                    return True
-                else:
-                    add_log(f"Linux: Błąd pactl volume down: {result.stderr}", "ERROR")
-                    return False
-            except FileNotFoundError:
-                add_log("Linux: Ani amixer ani pactl nie są dostępne", "ERROR")
-                return False
-    except subprocess.TimeoutExpired:
-        add_log("Linux: Timeout podczas zmiany głośności", "ERROR")
-        return False
-    except FileNotFoundError:
-        add_log("Linux: amixer nie jest zainstalowany", "ERROR")
-        return False
-    except Exception as e:
-        add_log(f"Linux: Błąd podczas zmniejszania głośności: {str(e)}", "ERROR")
-        return False
-
-def linux_volume_mute():
-    """Linux: Wyciszenie/przywrócenie dźwięku"""
-    try:
-        # Próbuj najpierw amixer
-        result = subprocess.run(['amixer', '-D', 'pulse', 'sset', 'Master', 'toggle'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            add_log("Linux: Wyciszenie/przywrócenie wykonane (amixer)", "INFO")
-            return True
-        else:
-            # Jeśli amixer nie działa, spróbuj pactl
-            try:
-                result = subprocess.run(['pactl', 'set-sink-mute', '@DEFAULT_SINK@', 'toggle'], 
-                                      capture_output=True, text=True, timeout=5)
-                if result.returncode == 0:
-                    add_log("Linux: Wyciszenie/przywrócenie wykonane (pactl)", "INFO")
-                    return True
-                else:
-                    add_log(f"Linux: Błąd pactl mute: {result.stderr}", "ERROR")
-                    return False
-            except FileNotFoundError:
-                add_log("Linux: Ani amixer ani pactl nie są dostępne", "ERROR")
-                return False
-    except subprocess.TimeoutExpired:
-        add_log("Linux: Timeout podczas wyciszania", "ERROR")
-        return False
-    except FileNotFoundError:
-        add_log("Linux: amixer nie jest zainstalowany", "ERROR")
-        return False
-    except Exception as e:
-        add_log(f"Linux: Błąd podczas wyciszania: {str(e)}", "ERROR")
-        return False
-
-# ========================================
-# FUNKCJE WINDOWSOWE (ISTNIEJĄCY KOD)
+# FUNKCJE WINDOWSOWE DLA STEROWANIA MEDIAMI
 # ========================================
 
 def windows_send_media_key(vk_code):
@@ -399,7 +199,7 @@ def windows_send_media_key(vk_code):
         return False
 
 # ========================================
-# KLASA BLUETOOTH CLIENT (ISTNIEJĄCY KOD)
+# KLASA BLUETOOTH CLIENT
 # ========================================
 
 class BluetoothConsoleClient(QObject):
@@ -751,7 +551,7 @@ class BluetoothConsoleClient(QObject):
         loop.quit()
 
 # ========================================
-# POZOSTAŁE FUNKCJE (ISTNIEJĄCY KOD)
+# POZOSTAŁE FUNKCJE
 # ========================================
 
 def scan_devices():
@@ -915,37 +715,6 @@ def get_system_paired_devices():
                         'connected': True
                     }
                     system_devices.append(device_info)
-            
-        elif system == "Linux":
-            # Implementacja dla Linuxa
-            add_log("Pobieranie sparowanych urządzeń z systemu Linux", "INFO")
-            command = "bluetoothctl paired-devices"
-            result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
-            
-            if result.returncode == 0 and result.stdout:
-                lines = result.stdout.strip().split('\n')
-                for line in lines:
-                    if line.strip():
-                        # Format: Device XX:XX:XX:XX:XX:XX DeviceName
-                        parts = line.strip().split(' ', 2)
-                        if len(parts) >= 3 and parts[0] == "Device":
-                            mac_address = parts[1]
-                            device_name = parts[2] if len(parts) > 2 else "Nieznane urządzenie"
-                            
-                            device_info = {
-                                'name': device_name,
-                                'address': mac_address,
-                                'status': 'Unknown',
-                                'connected': False
-                            }
-                            
-                            # Sprawdź czy urządzenie jest już podłączone
-                            if bt_client and bt_client.is_connected and bt_client.connected_device_address == mac_address:
-                                device_info['connected'] = True
-                                
-                            system_devices.append(device_info)
-            else:
-                add_log(f"Błąd wykonania bluetoothctl: {result.stderr}", "ERROR")
                 
         elif system == "Darwin":  # macOS
             # Implementacja dla macOS
@@ -1054,7 +823,7 @@ def init_bluetooth():
 
 
 # ========================================
-# TRASY FLASK (ISTNIEJĄCE)
+# TRASY FLASK
 # ========================================
 
 # Trasy Flask
@@ -1310,13 +1079,13 @@ def simulate_connection():
 
 
 # ========================================
-# TRASY API DO STEROWANIA MEDIAMI - ZMODYFIKOWANE Z OBSŁUGĄ LINUX
+# TRASY API DO STEROWANIA MEDIAMI - TYLKO WINDOWS
 # ========================================
 
 @app.route('/api/media/play', methods=['POST'])
 def media_play_pause():
     """
-    Sends a media play/pause command to the system (Windows/Linux)
+    Sends a media play/pause command to the system (Windows only)
     """
     try:
         current_os = get_current_os()
@@ -1329,17 +1098,8 @@ def media_play_pause():
                 return jsonify({"success": True, "message": "Media play/pause command sent (Windows)"})
             else:
                 return jsonify({"success": False, "message": "Failed to send Windows media command"})
-                
-        elif current_os == "Linux":
-            # Linux implementation
-            success = linux_media_play_pause()
-            if success:
-                return jsonify({"success": True, "message": "Media play/pause command sent (Linux)"})
-            else:
-                return jsonify({"success": False, "message": "Failed to send Linux media command"})
-                
         else:
-            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}. Only Windows is supported."})
     
     except Exception as e:
         error_message = f"Błąd podczas wysyłania komendy play/pause: {str(e)}"
@@ -1350,7 +1110,7 @@ def media_play_pause():
 @app.route('/api/media/volume_up', methods=['POST'])
 def media_volume_up():
     """
-    Sends a volume up command to the system (Windows/Linux)
+    Sends a volume up command to the system (Windows only)
     """
     try:
         current_os = get_current_os()
@@ -1362,16 +1122,8 @@ def media_volume_up():
                 return jsonify({"success": True, "message": "Volume up command sent (Windows)"})
             else:
                 return jsonify({"success": False, "message": "Failed to send Windows volume up command"})
-                
-        elif current_os == "Linux":
-            success = linux_volume_up()
-            if success:
-                return jsonify({"success": True, "message": "Volume up command sent (Linux)"})
-            else:
-                return jsonify({"success": False, "message": "Failed to send Linux volume up command"})
-                
         else:
-            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}. Only Windows is supported."})
     
     except Exception as e:
         error_message = f"Błąd podczas wysyłania komendy volume up: {str(e)}"
@@ -1382,7 +1134,7 @@ def media_volume_up():
 @app.route('/api/media/volume_down', methods=['POST'])
 def media_volume_down():
     """
-    Sends a volume down command to the system (Windows/Linux)
+    Sends a volume down command to the system (Windows only)
     """
     try:
         current_os = get_current_os()
@@ -1394,16 +1146,8 @@ def media_volume_down():
                 return jsonify({"success": True, "message": "Volume down command sent (Windows)"})
             else:
                 return jsonify({"success": False, "message": "Failed to send Windows volume down command"})
-                
-        elif current_os == "Linux":
-            success = linux_volume_down()
-            if success:
-                return jsonify({"success": True, "message": "Volume down command sent (Linux)"})
-            else:
-                return jsonify({"success": False, "message": "Failed to send Linux volume down command"})
-                
         else:
-            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}. Only Windows is supported."})
     
     except Exception as e:
         error_message = f"Błąd podczas wysyłania komendy volume down: {str(e)}"
@@ -1414,7 +1158,7 @@ def media_volume_down():
 @app.route('/api/media/previous', methods=['POST'])
 def media_previous():
     """
-    Sends a previous track command to the system (Windows/Linux)
+    Sends a previous track command to the system (Windows only)
     """
     try:
         current_os = get_current_os()
@@ -1426,16 +1170,8 @@ def media_previous():
                 return jsonify({"success": True, "message": "Previous track command sent (Windows)"})
             else:
                 return jsonify({"success": False, "message": "Failed to send Windows previous track command"})
-                
-        elif current_os == "Linux":
-            success = linux_media_previous()
-            if success:
-                return jsonify({"success": True, "message": "Previous track command sent (Linux)"})
-            else:
-                return jsonify({"success": False, "message": "Failed to send Linux previous track command"})
-                
         else:
-            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}. Only Windows is supported."})
     
     except Exception as e:
         error_message = f"Błąd podczas wysyłania komendy previous track: {str(e)}"
@@ -1446,7 +1182,7 @@ def media_previous():
 @app.route('/api/media/next', methods=['POST'])
 def media_next():
     """
-    Sends a next track command to the system (Windows/Linux)
+    Sends a next track command to the system (Windows only)
     """
     try:
         current_os = get_current_os()
@@ -1458,16 +1194,8 @@ def media_next():
                 return jsonify({"success": True, "message": "Next track command sent (Windows)"})
             else:
                 return jsonify({"success": False, "message": "Failed to send Windows next track command"})
-                
-        elif current_os == "Linux":
-            success = linux_media_next()
-            if success:
-                return jsonify({"success": True, "message": "Next track command sent (Linux)"})
-            else:
-                return jsonify({"success": False, "message": "Failed to send Linux next track command"})
-                
         else:
-            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}. Only Windows is supported."})
     
     except Exception as e:
         error_message = f"Błąd podczas wysyłania komendy next track: {str(e)}"
@@ -1478,7 +1206,7 @@ def media_next():
 @app.route('/api/media/stop', methods=['POST'])
 def media_stop():
     """
-    Sends a stop command to the system (Windows/Linux)
+    Sends a stop command to the system (Windows only)
     """
     try:
         current_os = get_current_os()
@@ -1490,16 +1218,8 @@ def media_stop():
                 return jsonify({"success": True, "message": "Stop command sent (Windows)"})
             else:
                 return jsonify({"success": False, "message": "Failed to send Windows stop command"})
-                
-        elif current_os == "Linux":
-            success = linux_media_stop()
-            if success:
-                return jsonify({"success": True, "message": "Stop command sent (Linux)"})
-            else:
-                return jsonify({"success": False, "message": "Failed to send Linux stop command"})
-                
         else:
-            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}. Only Windows is supported."})
     
     except Exception as e:
         error_message = f"Błąd podczas wysyłania komendy stop: {str(e)}"
@@ -1510,7 +1230,7 @@ def media_stop():
 @app.route('/api/media/mute', methods=['POST'])
 def media_mute():
     """
-    Sends a mute/unmute command to the system (Windows/Linux)
+    Sends a mute/unmute command to the system (Windows only)
     """
     try:
         current_os = get_current_os()
@@ -1522,16 +1242,8 @@ def media_mute():
                 return jsonify({"success": True, "message": "Mute command sent (Windows)"})
             else:
                 return jsonify({"success": False, "message": "Failed to send Windows mute command"})
-                
-        elif current_os == "Linux":
-            success = linux_volume_mute()
-            if success:
-                return jsonify({"success": True, "message": "Mute command sent (Linux)"})
-            else:
-                return jsonify({"success": False, "message": "Failed to send Linux mute command"})
-                
         else:
-            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}"})
+            return jsonify({"success": False, "message": f"Unsupported operating system: {current_os}. Only Windows is supported."})
     
     except Exception as e:
         error_message = f"Błąd podczas wysyłania komendy mute: {str(e)}"
@@ -1540,36 +1252,18 @@ def media_mute():
         return jsonify({"success": False, "message": error_message})
 
 # ========================================
-# NOWA TRASA DO SPRAWDZANIA ZALEŻNOŚCI LINUXOWYCH
+# TRASA DO SPRAWDZANIA SYSTEMU
 # ========================================
 
 @app.route('/api/system/check_dependencies')
 def check_system_dependencies():
     """
-    Sprawdza czy wymagane narzędzia są dostępne w systemie
+    Sprawdza system operacyjny i dostępność funkcji
     """
     try:
         current_os = get_current_os()
         
-        if current_os == "Linux":
-            missing_tools = linux_check_dependencies()
-            if missing_tools:
-                return jsonify({
-                    "success": False,
-                    "message": f"Missing required tools: {', '.join(missing_tools)}",
-                    "missing_tools": missing_tools,
-                    "suggestions": {
-                        "playerctl": "sudo apt install playerctl  # or: sudo pacman -S playerctl",
-                        "amixer": "sudo apt install alsa-utils  # or: sudo pacman -S alsa-utils"
-                    }
-                })
-            else:
-                return jsonify({
-                    "success": True,
-                    "message": "All required tools are available",
-                    "missing_tools": []
-                })
-        elif current_os == "Windows":
+        if current_os == "Windows":
             return jsonify({
                 "success": True,
                 "message": "Windows native APIs are available",
@@ -1578,12 +1272,12 @@ def check_system_dependencies():
         else:
             return jsonify({
                 "success": False,
-                "message": f"System {current_os} is not fully supported",
-                "missing_tools": ["system_support"]
+                "message": f"System {current_os} is not supported. Only Windows is supported.",
+                "missing_tools": ["windows_support"]
             })
     
     except Exception as e:
-        error_message = f"Błąd podczas sprawdzania zależności: {str(e)}"
+        error_message = f"Błąd podczas sprawdzania systemu: {str(e)}"
         add_log(error_message, "ERROR")
         return jsonify({"success": False, "message": error_message})
 
@@ -1598,14 +1292,9 @@ if __name__ == "__main__":
     current_os = get_current_os()
     add_log(f"Uruchamianie na systemie: {current_os}", "INFO")
     
-    if current_os == "Linux":
-        # Sprawdź zależności Linuxowe przy starcie
-        missing_tools = linux_check_dependencies()
-        if missing_tools:
-            add_log(f"Ostrzeżenie: Brakujące narzędzia w systemie Linux: {', '.join(missing_tools)}", "WARNING")
-            add_log("Niektóre funkcje sterowania mediami mogą nie działać prawidłowo", "WARNING")
-        else:
-            add_log("Wszystkie wymagane narzędzia Linux są dostępne", "INFO")
+    if current_os != "Windows":
+        add_log(f"Ostrzeżenie: System {current_os} nie jest w pełni obsługiwany", "WARNING")
+        add_log("Funkcje sterowania mediami działają tylko na Windows", "WARNING")
     
     # Inicjalizacja Qt
     qt_app = QCoreApplication(sys.argv)
