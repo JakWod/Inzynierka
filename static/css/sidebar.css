@@ -1,34 +1,32 @@
-/* Podstawowe style menu */
-.menu-item:hover {
-  background-color: #2c2c2c;
+/* Cyberpunk Sidebar Styles */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --cyberpunk-green: rgb(74 222 128);
+  --cyberpunk-green-alpha: rgb(74 222 128 / 0.1);
+  --cyberpunk-green-border: rgb(74 222 128 / var(--tw-border-opacity, 1));
+  --cyberpunk-blue: rgb(96 165 250 / var(--tw-text-opacity, 1));
+  --cyberpunk-yellow: rgb(250 204 21 / var(--tw-text-opacity, 1));
+  --cyberpunk-purple: rgb(192 132 252 / var(--tw-text-opacity, 1));
+  --tw-border-opacity: 1;
+  --tw-text-opacity: 1;
 }
 
-.menu-item.active {
-  background-color: #1e1e1e;
-}
-
-/* Style dla formularza edycji urządzenia */
-.mac-address-display input[disabled] {
-  background-color: #222;
-  color: #999;
-  cursor: not-allowed;
-  border: 1px solid #444;
-}
-
-/* Sidebar w stylu Minecraft Launcher - POPRAWIONY */
+/* Sidebar w stylu Cyberpunk */
 .sidebar {
-  width: 250px;
+  width: 320px;
   height: 100vh;
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  overflow-y: auto;
+  background: #000;
+  border-right: 2px solid var(--cyberpunk-green-border);
+  position: relative;
+  transition: width 0.3s ease;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  position: relative;
-  scroll-padding-top: 112px; /* 56px header + 56px filtry */
+  font-family: "JetBrains Mono", monospace;
+  overflow-y: auto;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -36,107 +34,274 @@
   display: none; 
 }
 
-/* POPRAWIONY header sidebara - STICKY */
+.sidebar.collapsed {
+  width: 64px;
+}
+
+/* Glow effect dla sidebara */
+.sidebar-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, var(--cyberpunk-green-alpha), rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05));
+  pointer-events: none;
+}
+
+/* Header sidebara - STICKY */
 .sidebar-header {
   position: sticky;
   top: 0;
-  background-color: #1e1e1e;
-  padding: 10px 15px;
-  z-index: 20; /* Zwiększony z-index dla najwyższego priorytetu */
-  height: 56px;
-  min-height: 56px;
+  background-color: #000;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+  z-index: 20;
+  height: 80px;
+  min-height: 80px;
   box-sizing: border-box;
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-.user-profile {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
 }
 
-.user-profile i.fab.fa-bluetooth-b {
-  font-size: 28px; 
-  color: #3498db;
-}
-
-.user-info {
-  flex-grow: 1;
-}
-
-.username {
-  display: block;
-  font-weight: bold;
-  color: white;
-}
-
-.user-subtitle {
-  display: block;
-  font-size: 12px;
-  color: #a0a0a0;
-}
-
-/* Modyfikacja struktury sidebar-menu */
-.sidebar-menu {
-  flex-grow: 1;
+.sidebar-title {
   display: flex;
-  flex-direction: column;
-  overflow: visible;
-  padding-top: 0;
-  margin-top: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.neon-icon {
+  color: var(--cyberpunk-green);
+  animation: pulse 2s ease-in-out infinite;
   position: relative;
 }
 
-/* POPRAWIONY menu-item */
-.menu-item {
+.neon-icon::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background: rgba(74, 222, 128, 0.3);
+  border-radius: 50%;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.sidebar-title-text {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--cyberpunk-green);
+  font-size: 14px;
+}
+
+.sidebar.collapsed .sidebar-title-text {
+  display: none;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: var(--cyberpunk-green);
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  border-color: var(--cyberpunk-green);
+  background: var(--cyberpunk-green-alpha);
+}
+
+.sidebar.collapsed .sidebar-toggle svg {
+  transform: rotate(180deg);
+}
+
+/* Zawartość sidebara */
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  z-index: 10;
+}
+
+.sidebar.collapsed .sidebar-content {
+  display: none;
+}
+
+/* Sekcja filtrów - STICKY */
+.filters-section {
+  position: sticky;
+  background-color: #000;
+  z-index: 19;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.filter-group {
+  position: relative;
+}
+
+.terminal-input {
+  background: #000;
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  border-radius: 0;
+  padding: 0.5rem 0.75rem;
   display: flex;
   align-items: center;
-  padding: 8px 15px;
-  text-decoration: none;
-  color: #e0e0e0;
-  border-left: 3px solid transparent;
-  transition: all 0.3s;
+  gap: 0.5rem;
+  position: relative;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+}
+
+.terminal-input::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: var(--cyberpunk-green-alpha);
+  border-radius: 0;
+  filter: blur(8px);
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.terminal-input::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--cyberpunk-green-alpha);
+  border-radius: 0;
+  filter: blur(4px);
+  z-index: -1;
+  opacity: 0.3;
+}
+
+.terminal-prompt {
+  color: var(--cyberpunk-green);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.terminal-input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--cyberpunk-green);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.terminal-input input::placeholder {
+  color: rgba(156, 163, 175, 0.7);
+}
+
+.terminal-select {
+  background: #000;
+  border: 1px solid rgba(96, 165, 250, 0.5);
+  border-radius: 0;
+  padding: 0.5rem 0.75rem;
+  position: relative;
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
+}
+
+.terminal-select::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: rgba(96, 165, 250, 0.1);
+  border-radius: 0;
+  filter: blur(8px);
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.terminal-select::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(96, 165, 250, 0.1);
+  border-radius: 0;
+  filter: blur(4px);
+  z-index: -1;
+  opacity: 0.3;
+}
+
+.terminal-select select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--cyberpunk-blue);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.terminal-select select option {
+  background: #000;
+  color: var(--cyberpunk-blue);
+}
+
+.clear-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: rgba(156, 163, 175, 0.7);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
   cursor: pointer;
-  font-size: 14px;
-  min-height: 40px;
-  box-sizing: border-box;
-  margin-top: 8px;
-  margin-bottom: 0px;
+  transition: color 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 0;
 }
 
-.menu-item:hover {
-  background-color: #2c2c2c;
+.clear-filters:hover {
+  color: rgb(219, 82, 77);
+  /* background: rgba(239, 68, 68, 0.1); */
 }
 
-.menu-item.active {
-  background-color: #2c2c2c;
-  border-left-color: #3aa335;
+/* Podłączone urządzenie */
+.connected-device {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(74, 222, 128, 0.3);
 }
 
-.menu-icon {
-  width: 24px;
-  margin-right: 10px;
-  color: #a0a0a0; 
+.section-title {
+  display: flex;
+  align-items: center;
+  /* gap: 0.5rem; */
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--cyberpunk-blue);
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* POPRAWIONY kontener filtrów - STICKY */
-.menu-item-dropdown {
-  position: sticky;
-  top: 56px; /* Dokładnie pod headerem */
-  background-color: #1e1e1e;
-  z-index: 19; /* Niższy niż header, ale wyższy niż zawartość */
-  display: block;
-  margin-top: 0;
-  border-bottom: 1px solid #333;
-  /* Dodatkowe właściwości dla lepszego sticky behavior */
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  /* Wysoka minimalna wysokość dla stabilności */
-  min-height: 40px;
-  /* Dodatkowy cień dla wizualnego oddzielenia */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.section-title:hover {
+  color: rgba(74, 222, 128, 0.8);
+}
+
+.section-title.favorite-section {
+  color: var(--cyberpunk-yellow);
+}
+
+.section-title.favorite-section:hover {
+  color: rgba(250, 204, 21, 0.8);
+}
+
+.section-title.favorite-section svg {
+  fill: #000;
+  stroke: var(--cyberpunk-yellow);
+  stroke-width: 1.5;
+  animation: pulse-star 2s ease-in-out infinite;
 }
 
 .dropdown-toggle {
@@ -149,686 +314,324 @@
   transform: rotate(180deg);
 }
 
-/* POPRAWIONE filtry dropdown - również sticky */
-.dropdown-filters {
-  position: sticky;
-  top: 96px; /* Pod headerem + menu-item-dropdown */
-  background-color: #252525;
-  padding: 5px 0;
-  border-bottom: 1px solid #333;
-  max-height: 180px; 
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #333 #252525;
-  width: 100%;
-  z-index: 18; /* Niższy niż menu-item-dropdown */
-  margin-top: 0;
-  /* Dodatkowe właściwości dla lepszego sticky */
-  will-change: transform;
-  backface-visibility: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+@keyframes pulse-star {
+  0%, 100% {
+    stroke-opacity: 1;
+    filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.6));
+  }
+  50% {
+    stroke-opacity: 0.7;
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
+  }
 }
 
-.dropdown-filters::-webkit-scrollbar {
+.status-indicator {
   width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6b7280;
 }
 
-.dropdown-filters::-webkit-scrollbar-track {
-  background: #252525;
+.status-indicator.active {
+  background: var(--cyberpunk-green);
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-.dropdown-filters::-webkit-scrollbar-thumb {
-  background-color: #333;
-  border-radius: 4px;
-  border: 2px solid #252525;
+/* Listy urządzeń */
+.device-lists {
+  flex: 1;
 }
 
-.filter-option {
-  padding: 5px 10px; 
-  color: #a0a0a0;
-  font-size: 12px; 
-  margin-bottom: 4px; 
+.device-section {
+  padding: 1rem;
 }
 
-.filter-option + .filter-option {
-  margin-top: 0;
+.device-section:not(:last-child) {
+  border-bottom: 1px solid rgba(74, 222, 128, 0.3);
 }
 
-.filter-option input[type="text"],
-.filter-option select {
-  width: 100%;
-  padding: 4px 6px; 
-  margin-top: 2px; 
-  background-color: #333;
-  border: 1px solid #444;
-  color: #e0e0e0;
-  border-radius: 4px;
-  height: 28px; 
-  font-size: 12px; 
-}
-
-/* Styl dla przycisku czyszczenia filtrów */
-.clear-filters {
-  display: flex;
-  justify-content: center;
-  padding: 8px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  margin-top: 5px;
-}
-
-.clear-filters-btn {
-  background-color: #333;
-  color: #a0a0a0;
-  border: none;
-  border-radius: 3px;
-  padding: 5px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 90%;
-  transition: all 0.2s ease;
-  text-transform: none;
-}
-
-.clear-filters-btn:hover {
-  color: #e0e0e0;
-  background-color: #444;
-}
-
-.clear-filters-btn i {
-  margin-right: 6px;
-  font-size: 10px;
-}
-
-.filter-option input[type="text"]::placeholder {
-  color: #888;
-  font-size: 11px; 
-}
-
-/* Główny obszar treści sidebara - sekcje z urządzeniami */
-.sidebar-content {
-  flex-grow: 1;
+.device-list {
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  min-height: 0;
-  /* POPRAWKA: Dodajemy padding-top aby kompensować sticky elements */
-  padding-top: 0;
-  margin-top: 0;
+  gap: 0.5rem;
 }
 
-.sidebar-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 15px;
-  font-size: 11px;
-  color: #a0a0a0;
-  background-color: #252525;
-  margin-top: 5px;
-  cursor: pointer;
-}
-
-.sidebar-section-header:hover {
-  background-color: #2a2a2a;
-}
-
-.sidebar-section-header.toggle-section {
-  cursor: pointer;
-}
-
-/* Sekcja dla listy urządzeń */
-.sidebar-device-list {
-  overflow-y: visible; 
-  min-height: 0;
-  margin-top: 5px;
-}
-
-/* Styl dla połączonego urządzenia */
-#connected-device-container {
-  background-color: #1a2931;
-  border-bottom: 1px solid #2c3e50;
-  padding: 0;
-  overflow: visible; 
-  min-height: 0;
-}
-
-#connected-device-container .device-item:hover {
-    background-color: #243642 !important;
-}
-
-/* Upewniamy się, że wszystkie sekcje mają odpowiednie style */
-#favorite-devices-section,
-#connected-device-section,
-#paired-devices-section {
-  min-height: auto;
-}
-
-#connected-device-section{
-  max-height: 100px
-}
-
-#favorite-devices-container,
-#paired-devices-list,
-#connected-device-container {
-  overflow-y: visible;
-  min-height: auto;
-}
-
-#connected-device-container .device-item {
-  border-left: none; 
-}
-
-#connected-device-container .device-item.connected {
-  background-color: #1a2931;
-  margin-bottom: -1px; 
-  margin-top: 5px;
-}
-
-.device-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid #333;
+/* Karty urządzeń */
+.device-card {
+  background: #000;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 0;
+  padding: 0.75rem;
+  position: relative;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 2px;
-  position: relative;
-  border-left: 3px solid transparent;
-  box-sizing: border-box;
+  font-family: "JetBrains Mono", monospace;
 }
 
-.device-item:hover {
-  background-color: #2c2c2c;
-}
-
-.device-item.connected {
-  background-color: #1a2931;
-  border-left: 3px solid #2ecc71; 
-}
-
-.device-item.connected:hover {
-  background-color: #1e3540;
-}
-
-.device-item.selected {
-  background-color: #2c2c2c;
-  border-left: 3px solid #3aa335;
-}
-
-/* POPRAWKA: Make selection effect more visible for connected devices */
-.device-item.connected.selected {
-  background-color: #1e3540;
-  border-left: 3px solid #27ae60;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-
-/* POPRAWKA: Add highlight effect to selected device's name */
-.device-item.selected .device-name {
-  color: #3498db;
-}
-
-.device-item.connected.selected .device-name {
-  color: #2ecc71;
-}
-
-.device-icon {
-  width: 32px; 
-  height: 32px; 
-  min-width: 32px; 
-  margin-right: 10px; 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(52, 152, 219, 0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.device-icon:hover {
-  background-color: rgba(52, 152, 219, 0.2);
-  transform: scale(1.1);
-}
-
-.device-icon.connected:hover {
-  background-color: rgba(46, 204, 113, 0.3);
-  transform: scale(1.1);
-}
-
-.device-icon::after {
+.device-card::before {
   content: "";
   position: absolute;
-  top: -3px;
-  right: -3px;
-  bottom: -3px;
-  left: -3px;
-  border-radius: 50%;
-  background-color: transparent;
-  z-index: -1;
-  transition: background-color 0.2s ease;
-}
-
-.device-icon:hover::after {
-  background-color: rgba(52, 152, 219, 0.1);
-}
-
-.device-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.device-icon.connected {
-  background-color: rgba(46, 204, 113, 0.2);
-}
-
-.device-icon.connected svg path {
-  fill: #2ecc71;
-}
-
-/* Dymek informacyjny dla ikony Bluetooth */
-.device-icon .tooltip {
-  visibility: hidden;
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  text-align: center;
-  padding: 5px 10px;
-  border-radius: 4px;
-  z-index: 100;
+  inset: -1px;
+  background: linear-gradient(to right, var(--cyberpunk-green-alpha), rgba(96, 165, 250, 0.1));
+  border-radius: 0;
+  filter: blur(4px);
   opacity: 0;
-  transition: opacity 0.3s;
-  white-space: nowrap;
-  font-size: 11px;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 100%;
-  margin-bottom: 5px;
+  transition: opacity 0.2s ease;
+  z-index: -1;
 }
 
-.device-icon:hover .tooltip {
-  visibility: visible;
+.device-card:hover::before {
   opacity: 1;
 }
 
-/* Dodatkowe podświetlenie ikony Bluetooth */
-.device-icon::before {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: transparent;
-  z-index: -1;
-  transition: background-color 0.2s ease;
+.device-card.connected {
+  border-color: var(--cyberpunk-green);
 }
 
-.device-icon:hover::before {
-  background-color: rgba(52, 152, 219, 0.2);
+.device-card.connected::before {
+  opacity: 1;
 }
 
-.device-text {
-  flex-grow: 1;
-  margin-right: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.device-info {
+  display: flex;
+  flex-direction: column;
+  /* gap: 0.25rem; */
+  margin-bottom: 0.5rem;
 }
 
 .device-name {
-  font-weight: bold;
-  color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--cyberpunk-green);
 }
 
 .device-address {
-  font-size: 10px;
-  color: #a0a0a0;
+  font-size: 0.75rem;
+  color: rgba(156, 163, 175, 0.7);
+  font-family: "JetBrains Mono", monospace;
+}
+
+.device-type {
+  font-size: 0.75rem;
+  color: var(--cyberpunk-blue);
+  text-transform: uppercase;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.device-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+}
+
+.device-favorite {
+  cursor: pointer;
+  color: rgba(156, 163, 175, 0.5);
+  transition: color 0.2s ease;
+  font-size: 1rem;
+}
+
+.device-favorite:hover {
+  color: var(--cyberpunk-yellow);
+}
+
+.device-favorite.active {
+  color: var(--cyberpunk-yellow);
 }
 
 .device-actions {
   display: flex;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  margin-left: auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
 }
 
-.device-item:hover .device-actions {
-  opacity: 1;
-}
-
-.device-action {
-  background: none;
-  border: none;
-  color: #aaa;
+.device-edit {
+  color: var(--cyberpunk-purple);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
   cursor: pointer;
-  padding: 0;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 2px;
   transition: all 0.2s ease;
+  font-family: "JetBrains Mono", monospace;
+  text-decoration: none;
+  border: none;
+  background: none;
+  padding: 0;
 }
 
-.device-action:hover {
-  background-color: #3a3a3a;
+.device-edit:hover {
+  color: rgba(192, 132, 252, 0.8);
+  text-shadow: 0 0 4px rgba(192, 132, 252, 0.5);
+}
+
+.connect-btn {
+  background: #000;
+  border: 1px solid var(--cyberpunk-blue);
+  color: var(--cyberpunk-blue);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+.connect-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: rgba(96, 165, 250, 0.2);
+  border-radius: 0;
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.connect-btn:hover::before {
+  opacity: 0.5;
+}
+
+.connect-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(96, 165, 250, 0.8);
+}
+
+.disconnect-btn {
+  background: linear-gradient(to right, #ef4444, #f97316);
+  border: none;
   color: #fff;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
 }
 
-.device-action.edit:hover {
-  color: #3498db;
+.disconnect-btn:hover {
+  transform: translateY(-1px);
 }
 
-.device-action.delete:hover {
-  color: #e74c3c;
-}
-
-.device-action.favorite:hover,
-.device-action.favorite.active {
-  color: #f1c40f;
-}
-
-.connection-status {
-  display: none;
-}
-
-/* Poprawa widoczności przycisków akcji dla podłączonego urządzenia */
-.device-item.connected .device-actions {
-  opacity: 0.8;
-}
-
-/* Pokaż przyciski akcji zawsze dla podłączonego urządzenia */
-.device-item.connected:hover .device-actions {
-  opacity: 1;
-}
-
-/* POPRAWIONY footer - zawsze na dole sidebara ze sticky */
-.sidebar-footer {
-  position: sticky;
-  bottom: 0;
-  background-color: #1e1e1e;
-  padding: 15px;
-  border-top: 1px solid #333;
-  z-index: 15; /* Wyższy z-index dla stopki */
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: auto;
-  /* Dodatkowe właściwości dla lepszego sticky */
-  will-change: transform;
-  backface-visibility: hidden;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.sidebar-button {
+/* Loading i Empty States */
+.loading-state,
+.empty-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 8px 10px;
-  background-color: #3b3b3b;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-bottom: 10px;
-}
-
-.sidebar-button:hover {
-  background-color: #4a4a4a;
-}
-
-.sidebar-button i {
-  margin-right: 20px;
-}
-
-.version-info {
+  padding: 2rem;
   text-align: center;
-  font-size: 12px;
-  color: #666;
+  color: rgba(156, 163, 175, 0.7);
+  font-family: "JetBrains Mono", monospace;
 }
 
-/* Loader dla ładowania urządzeń */
-.loading-device-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 15px;
-  color: #a0a0a0;
-}
-
-.loading-spinner-small {
-  width: 16px;
-  height: 16px;
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(74, 222, 128, 0.3);
+  border-top: 2px solid var(--cyberpunk-green);
   border-radius: 50%;
-  border: 2px solid rgba(52, 152, 219, 0.3);
-  border-top: 2px solid #3498db;
   animation: spin 1s linear infinite;
-  margin-right: 10px;
+  margin-bottom: 1rem;
 }
 
-/* Komunikat o braku urządzeń */
-.no-devices-message {
-  padding: 10px 15px;
-  text-align: center;
-  color: #7f8c8d;
-  font-style: italic;
-  font-size: 12px;
+.empty-icon {
+  margin-bottom: 1rem;
+  color: rgba(156, 163, 175, 0.5);
 }
 
-/* Modal do edycji urządzenia */
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
+.empty-state p {
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(156, 163, 175, 0.7);
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
-.modal-content {
-  position: relative;
-  background-color: #2c2c2c;
-  color: #e0e0e0;
-  margin: 15% auto;
-  padding: 20px;
-  width: 400px;
-  border-radius: 5px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-}
-
-.close-modal {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 24px;
-  cursor: pointer;
-  color: #aaa;
-}
-
-.close-modal:hover {
-  color: #fff;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 8px;
-  background-color: #333;
-  border: 1px solid #444;
-  color: #e0e0e0;
-  border-radius: 4px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-/* Debug sekcja */
-.debug-section {
-  background-color: #f5f5f5;
-  border-left: 4px solid #9b59b6;
-}
-
-.debug-section h2 {
-  color: #9b59b6;
-}
-
-.debug-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.debug-row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.debug-row h3 {
-  margin-bottom: 5px;
-  color: #34495e;
-  font-size: 16px;
-}
-
-.debug-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.debug-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-  background-color: #1e1e1e;
-  padding: 15px;
-  border-radius: 4px;
-  border: 1px solid #333;
-}
-
-.debug-field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.debug-field label {
-  font-weight: bold;
-  font-size: 14px;
-  color: #333;
-}
-
-.debug-field input, 
-.debug-field select {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-}
-
-/* Przyciski debug */
-.btn-simulate {
-  background-color: #9b59b6;
-}
-
-.btn-simulate:hover {
-  background-color: #8e44ad;
-}
-
-/* DODATKOWE ZABEZPIECZENIA DLA STICKY BEHAVIOR */
-@supports (position: sticky) {
-  /* Wymuszenie nowego stacking context dla sticky elements */
-  .sidebar-header,
-  .menu-item-dropdown,
-  .dropdown-filters,
-  .sidebar-footer {
-    isolation: isolate;
-  }
-  
-  /* Zapewnienie że sticky elements mają prawidłowy containing block */
-  .sidebar {
-    contain: layout style;
-  }
-}
-
-/* Responsywność sidebara */
-@media (max-width: 900px) {
-  .sidebar {
-    width: 100%;
-    height: auto;
-    max-height: 50vh; 
-    /* Dostosowanie scroll-padding dla mobilnych */
-    scroll-padding-top: 84px; /* Mniejsze wartości na mobile */
-  }
-  
-  /* POPRAWKA: Dostosowanie sticky dla małych ekranów */
-  .sidebar-header {
-    height: auto;
-    min-height: 48px; /* Mniejsza wysokość na mobile */
-    padding: 8px 15px;
-  }
-  
-  .menu-item-dropdown {
-    top: 48px; /* Dostosowanie do mniejszego headera */
-  }
-  
-  .dropdown-filters {
-    top: 88px; /* Dostosowanie do mniejszej wysokości */
-  }
-  
-  /* Także w responsywnym widoku, pozwalamy listom urządzeń rosnąć */
-  .sidebar-device-list {
-    flex-grow: 1;
-    max-height: none;
-  }
-  
-  .modal-content {
-    width: 80%;
-  }
-  
-  .debug-form {
-    grid-template-columns: 1fr;
-  }
-  
-  .debug-actions {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .debug-actions form, 
-  .debug-actions button {
-    width: 100%;
-  }
+.empty-state small {
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(156, 163, 175, 0.5);
+  text-transform: uppercase;
+  font-size: 0.75rem;
 }
 
 /* Animacje */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Scrollbar Styling */
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #000;
+  border-radius: 0;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--cyberpunk-green), rgba(74, 222, 128, 0.6));
+  border-radius: 0;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  box-shadow: 0 0 4px rgba(74, 222, 128, 0.5);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgba(74, 222, 128, 0.8), rgba(74, 222, 128, 0.9));
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 280px;
+  }
+
+  .sidebar.collapsed {
+    width: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 2px solid var(--cyberpunk-green-border);
+  }
+
+  .sidebar.collapsed {
+    height: 60px;
+    width: 100%;
+  }
 }

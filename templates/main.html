@@ -12,6 +12,10 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/debug-modal.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/header.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Cyberpunk Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Ukryte pole do przechowywania informacji o urządzeniach -->
@@ -43,88 +47,116 @@
   <div id="toast-container" class="toast-container"></div>
   
   <div class="app-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
+    <!-- Cyberpunk Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-glow"></div>
+      
+      <!-- Sidebar Header -->
       <div class="sidebar-header">
-        <div class="user-profile">
-          <i class="fab fa-bluetooth-b"></i>
-          <div class="user-info">
-            <span class="username">BluetoothManager</span>
-            <span class="user-subtitle">Wersja 1.0</span>
+        <div class="sidebar-title">
+          <div class="neon-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
           </div>
+          <span class="sidebar-title-text">DEVICES</span>
         </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+        </button>
       </div>
 
-      <div class="sidebar-menu">
-        <!-- Przycisk Filtry rozwijający filtry -->
-        <div class="menu-item-dropdown">
-          <div class="menu-item active toggle-section" data-target="filters-container">
-            <span>Filtry</span>
-            <i class="fas fa-chevron-down dropdown-toggle open"></i>
-          </div>
-          <div id="filters-container" class="dropdown-filters" style="display: block;">
-            <div class="filter-option filter-search">
-              <input type="text" id="sidebar-filter-name" placeholder="Szukaj po nazwie lub MAC">
+      <!-- Filters -->
+      <div class="sidebar-content" id="sidebarContent">
+        <div class="filters-section">
+          <div class="filter-group">
+            <div class="terminal-input">
+              <span class="terminal-prompt">FILTER:</span>
+              <input type="text" id="sidebar-filter-name" placeholder="device_name">
             </div>
-            <div class="filter-option filter-type">
+          </div>
+          
+          <div class="filter-group">
+            <div class="terminal-select">
               <select id="sidebar-filter-type">
-                <option value="">Wszystkie typy</option>
-                <option value="headphones">Słuchawki</option>
-                <option value="speaker">Głośnik</option>
-                <option value="keyboard">Klawiatura</option>
-                <option value="mouse">Mysz</option>
-                <option value="gamepad">Kontroler</option>
-                <option value="other">Inne</option>
+                <option value="">ALL_TYPES</option>
+                <option value="headphones">HEADPHONES</option>
+                <option value="speaker">SPEAKERS</option>
+                <option value="mouse">MICE</option>
+                <option value="keyboard">KEYBOARDS</option>
+                <option value="gamepad">CONTROLLERS</option>
+                <option value="other">OTHER</option>
               </select>
             </div>
-            <div class="clear-filters">
-              <button id="clear-filters-btn" class="clear-filters-btn">
-                Wyczyść filtry
-              </button>
+          </div>
+
+          <button class="clear-filters" id="clear-filters-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1,4 1,10 7,10"></polyline>
+              <path d="M3.51,15a9,9,0,0,0,2.13,3.09,9,9,0,0,0,13.72,0,9,9,0,0,0,0-12.72,9,9,0,0,0-13.72,0A8.96,8.96,0,0,0,3.51,9"></path>
+            </svg>
+            <span>CLEAR_FILTERS</span>
+          </button>
+        </div>
+
+        <!-- Connected Device -->
+        <div class="connected-device" id="connected-device-section" style="display: none;">
+          <h3 class="section-title toggle-section" data-target="connected-device-container">
+            <div class="status-indicator active"></div>
+            <span>ACTIVE_CONNECTION</span>
+            <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+          </h3>
+          <div id="connected-device-container"></div>
+        </div>
+
+        <!-- Device Lists -->
+        <div class="device-lists">
+          <!-- Favorite Devices -->
+          <div class="device-section" id="favorite-devices-section" style="display: none;">
+            <h3 class="section-title favorite-section toggle-section" data-target="paired-devices-list">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+              </svg>
+              <span>FAVORITE_DEVICES</span>
+              <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </h3>
+            <div class="device-list" id="paired-devices-list"></div>
+          </div>
+
+          <!-- Discovered Devices -->
+          <div class="device-section">
+            <h3 class="section-title toggle-section" data-target="discovered-devices-list">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <span>DISCOVERED_DEVICES</span>
+              <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </h3>
+            <div class="device-list" id="discovered-devices-list">
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                </div>
+                <p>NO_DEVICES_DETECTED</p>
+                <small>RUN_SCAN_PROTOCOL</small>
+              </div>
             </div>
           </div>
         </div>
-        
-        <!-- Sekcja połączonego urządzenia -->
-        <div id="connected-device-section" style="display: none;">
-          <div class="sidebar-section-header toggle-section" data-target="connected-device-container">
-            <span>AKTUALNIE POŁĄCZONE</span>
-            <i class="fa-solid fa-chevron-down dropdown-toggle open"></i>
-          </div>
-          <div id="connected-device-container"></div>
-        </div>
-        
-        <!-- Sekcja ulubionych urządzeń -->
-        <div id="favorite-devices-section" style="display: none;">
-          <div class="sidebar-section-header toggle-section" data-target="favorite-devices-container">
-            <span>ULUBIONE</span>
-            <i class="fa-solid fa-chevron-down dropdown-toggle"></i>
-          </div>
-          <div id="favorite-devices-container" class="sidebar-device-list"></div>
-        </div>
-        
-        <!-- Sekcja sparowanych urządzeń -->
-        <div class="sidebar-section-header toggle-section" data-target="paired-devices-list">
-          <span>URZĄDZENIA SPAROWANE</span>
-          <i class="fa-solid fa-chevron-down dropdown-toggle"></i>
-        </div>
-        
-        <div id="paired-devices-list" class="sidebar-device-list">
-          <div class="loading-device-item">
-            <div class="loading-spinner-small"></div>
-            <span>Ładowanie urządzeń...</span>
-          </div>
-        </div>
-        
-        <div class="sidebar-footer">
-          <button id="refresh-paired-devices" class="sidebar-button">
-            <i class="fas fa-sync-alt"></i>
-            <span class="button-text">  Odśwież listę</span>
-          </button>
-          <div class="version-info">v.3.16.7-2.2.2</div>
-        </div>
       </div>
-    </div>
+    </aside>
 
     <!-- Main content z nowym headerem -->
     <div class="main-content">

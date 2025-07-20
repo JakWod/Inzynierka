@@ -5,6 +5,17 @@
   box-sizing: border-box;
 }
 
+:root {
+  --cyberpunk-green: rgb(74 222 128);
+  --cyberpunk-green-alpha: rgb(74 222 128 / 0.1);
+  --cyberpunk-green-border: rgb(74 222 128 / var(--tw-border-opacity, 1));
+  --cyberpunk-blue: rgb(96 165 250 / var(--tw-text-opacity, 1));
+  --cyberpunk-yellow: rgb(250 204 21 / var(--tw-text-opacity, 1));
+  --cyberpunk-purple: rgb(192 132 252 / var(--tw-text-opacity, 1));
+  --tw-border-opacity: 1;
+  --tw-text-opacity: 1;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
@@ -12,6 +23,11 @@ body {
   background-color: #f8f9fa;
   overflow: hidden;
   height: 100vh;
+}
+
+/* Cyberpunk Compatibility */
+.sidebar {
+  font-family: "JetBrains Mono", monospace !important;
 }
 
 .app-container {
@@ -47,8 +63,8 @@ body {
   border-bottom: 1px solid #333;
   position: sticky;
   top: 0;
-  z-index: 100; /* Wysoki z-index, żeby był nad innymi elementami */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Delikatny cień pod headerem */
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-container {
@@ -71,9 +87,8 @@ body {
 .minecraft-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Pełna wysokość viewport */
+  min-height: 100vh;
   position: relative;
-  
 }
 
 .minecraft-content {
@@ -113,7 +128,7 @@ body {
 
 .minecraft-main-section {
   position: absolute;
-  top: calc(50vh - 28px); /* Uwzględnienie wysokości sticky header (56px / 2) */
+  top: calc(50vh - 28px);
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
@@ -126,7 +141,7 @@ body {
 
 .minecraft-results-container {
   width: 100%;
-  padding-top: calc(50vh + 172px); /* Dostosowane do sticky header */
+  padding-top: calc(50vh + 172px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -500,26 +515,22 @@ table th {
   text-shadow: 1px 1px 0 #222;
 }
 
-/* ======================================
-   KOMUNIKAT INFORMACYJNY W WYNIKACH SKANOWANIA
-   ====================================== */
-
-/* Style dla komunikatu informacyjnego w oknie skanowania */
+/* Komunikat informacyjny w wynikach skanowania */
 .scan-info-message {
-  background-color: rgba(52, 152, 219, 0.15); /* Delikatne niebieskie tło */
-  border: 1px solid rgba(52, 152, 219, 0.4); /* Wyraźniejsza niebieska ramka */
-  border-left: 4px solid #3498db; /* Lewa ramka akcentująca */
+  background-color: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  border-left: 4px solid #3498db;
   border-radius: 6px;
   padding: 16px 20px;
   margin-bottom: 20px;
-  text-align: left; /* Zmieniono na left dla lepszej czytelności */
+  text-align: left;
   position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Delikatny cień */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   animation: slideInFromTop 0.4s ease-out;
 }
 
 .scan-info-message::before {
-  content: "\f05a"; /* Font Awesome info circle icon */
+  content: "\f05a";
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
   color: #3498db;
@@ -532,20 +543,18 @@ table th {
 
 .scan-info-message p {
   margin: 0;
-  color: #ffffff; /* Białe tło dla lepszej czytelności */
+  color: #ffffff;
   font-size: 14px;
   line-height: 1.6;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Delikatny cień tekstu */
-  margin-left: 28px; /* Miejsce na ikonę */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  margin-left: 28px;
 }
 
-/* Wariant z ikoną bluetooth */
 .scan-info-message.bluetooth-variant::before {
-  content: "\f293"; /* Font Awesome bluetooth icon */
+  content: "\f293";
   color: #3498db;
 }
 
-/* Warianty dla różnych stanów wiadomości */
 .scan-info-message.warning {
   background-color: rgba(241, 196, 15, 0.15);
   border-color: rgba(241, 196, 15, 0.4);
@@ -553,7 +562,7 @@ table th {
 }
 
 .scan-info-message.warning::before {
-  content: "\f071"; /* Font Awesome warning icon */
+  content: "\f071";
   color: #f1c40f;
 }
 
@@ -564,7 +573,7 @@ table th {
 }
 
 .scan-info-message.error::before {
-  content: "\f06a"; /* Font Awesome error icon */
+  content: "\f06a";
   color: #e74c3c;
 }
 
@@ -575,11 +584,10 @@ table th {
 }
 
 .scan-info-message.success::before {
-  content: "\f00c"; /* Font Awesome check icon */
+  content: "\f00c";
   color: #2ecc71;
 }
 
-/* Dodatkowe warianty */
 .scan-info-message.connecting {
   background-color: rgba(155, 89, 182, 0.15);
   border-color: rgba(155, 89, 182, 0.4);
@@ -587,12 +595,11 @@ table th {
 }
 
 .scan-info-message.connecting::before {
-  content: "\f1ce"; /* Font Awesome connecting/sync icon */
+  content: "\f1ce";
   color: #9b59b6;
-  animation: spinMessage 2s linear infinite; /* Obracająca się ikona dla connecting */
+  animation: spinMessage 2s linear infinite;
 }
 
-/* Efekt hover dla lepszej interakcji */
 .scan-info-message:hover {
   background-color: rgba(52, 152, 219, 0.2);
   border-color: rgba(52, 152, 219, 0.6);
@@ -601,7 +608,6 @@ table th {
   transition: all 0.2s ease;
 }
 
-/* Animacje dla scan-info-message */
 @keyframes slideInFromTop {
   from {
     opacity: 0;
@@ -613,7 +619,6 @@ table th {
   }
 }
 
-/* Animacja obracania się dla stanu connecting */
 @keyframes spinMessage {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -625,8 +630,9 @@ table th {
   margin-bottom: 0;
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .scan-results-filter input {
@@ -635,7 +641,7 @@ table th {
   background-color: #333;
   border: 1px solid #444;
   color: #e0e0e0;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 14px;
 }
 
@@ -644,7 +650,7 @@ table th {
 }
 
 .scan-results-filter input:focus {
-  border-color: #3498db;
+  border-color: var(--cyberpunk-green);
   outline: none;
 }
 
@@ -666,7 +672,7 @@ table th {
 }
 
 .scan-results-container::-webkit-scrollbar-thumb {
-  background-color: #3498db;
+  background-color: var(--cyberpunk-green);
   border-radius: 4px;
   border: 2px solid #2c2c2c;
 }
@@ -675,21 +681,17 @@ table th {
   background-color: #2980b9;
 }
 
-/* Urządzenie w wynikach skanowania - USUNIĘTY EFEKT HOVER */
+/* Urządzenie w wynikach skanowania */
 .scan-device-item {
   display: flex;
   align-items: center;
   padding: 15px;
   margin-bottom: 10px;
   background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  /* USUNIĘTO: transition: all 0.2s ease; */
 }
-
-/* USUNIĘTO CAŁKOWICIE: .scan-device-item:hover */
-/* Ta reguła została całkowicie usunięta, aby nie było efektu hover */
 
 .scan-device-item:last-child {
   margin-bottom: 0;
@@ -748,7 +750,7 @@ table th {
   background-color: #0A9B26;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   padding: 8px 16px;
   cursor: pointer;
   font-size: 12px;
@@ -774,7 +776,7 @@ table th {
   background-color: #3498db;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   padding: 8px 16px;
   cursor: pointer;
   font-size: 12px;
@@ -802,7 +804,7 @@ table th {
   justify-content: center;
   padding-top: 15px;
   border-top: 0px solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 10px; /* Dodany margines dla miejsca na link ręcznego dodawania */
+  margin-bottom: 10px;
 }
 
 /* Link do ręcznego dodawania urządzenia */
@@ -842,7 +844,7 @@ table th {
   font-size: 14px;
   font-weight: bold;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: 0;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -945,7 +947,7 @@ table th {
   }
   
   .minecraft-results-container {
-    padding-top: 20px; /* Zmniejszony padding na mobilnych */
+    padding-top: 20px;
   }
   
   .scan-results-section {
@@ -1093,24 +1095,19 @@ table th {
   }
 }
 
-/* ========================================
-   TOAST NOTIFICATIONS STYLES - ADD TO style.css
-   ======================================== */
-
-/* Toast container - must be at the top level for proper positioning */
+/* Toast Notifications */
 .toast-container {
   position: fixed !important;
-  top: 80px !important; /* Below header */
+  top: 80px !important;
   right: 20px !important;
-  z-index: 10000 !important; /* Highest z-index */
+  z-index: 10000 !important;
   display: flex;
   flex-direction: column;
   gap: 10px;
   max-width: 400px;
-  pointer-events: none; /* Allows clicking through container */
+  pointer-events: none;
 }
 
-/* Individual toast */
 .toast {
   display: flex;
   align-items: center;
@@ -1122,7 +1119,7 @@ table th {
   opacity: 0;
   transform: translateX(100%);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  pointer-events: auto; /* Toast can be clicked */
+  pointer-events: auto;
   min-width: 300px;
   max-width: 400px;
   word-wrap: break-word;
@@ -1175,7 +1172,6 @@ table th {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Toast types with improved contrast */
 .toast.success {
   background-color: rgba(46, 204, 113, 0.95);
   color: white;
@@ -1200,7 +1196,6 @@ table th {
   border-color: rgba(41, 128, 185, 0.5);
 }
 
-/* Toast icons with better visibility */
 .toast.success .toast-icon {
   color: #d4edda;
 }
@@ -1217,17 +1212,14 @@ table th {
   color: #d1ecf1;
 }
 
-/* Ensure toast container is above everything */
 .toast-container {
   z-index: 999999 !important;
 }
 
-/* Override any conflicting styles */
 .toast * {
   box-sizing: border-box;
 }
 
-/* Responsive toast styles */
 @media (max-width: 768px) {
   .toast-container {
     top: 70px !important;
@@ -1265,7 +1257,6 @@ table th {
   }
 }
 
-/* Dark/Light theme support for toasts */
 [data-theme="light"] .toast.success {
   background-color: rgba(40, 167, 69, 0.95);
 }
@@ -1283,12 +1274,10 @@ table th {
   background-color: rgba(13, 110, 253, 0.95);
 }
 
-/* Ensure toast container doesn't interfere with page layout */
 body:has(.toast-container) {
   padding-right: 0 !important;
 }
 
-/* Force toast container positioning in all contexts */
 .toast-container {
   position: fixed !important;
   top: 80px !important;
