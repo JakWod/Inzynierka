@@ -14,7 +14,7 @@
 
 /* Sidebar w stylu Cyberpunk */
 .sidebar {
-  width: 320px;
+  width: 292px;
   height: 100vh;
   background: #000;
   border-right: 2px solid var(--cyberpunk-green-border);
@@ -52,10 +52,10 @@
   top: 0;
   background-color: #000;
   padding: 1rem;
-  border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+  border-bottom: 1.5px solid rgba(74, 222, 128, 0.5);
   z-index: 20;
-  height: 80px;
-  min-height: 80px;
+  height: 55px;
+  min-height: 55px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -86,7 +86,7 @@
 
 .sidebar-title-text {
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   color: var(--cyberpunk-green);
   font-size: 14px;
 }
@@ -131,11 +131,11 @@
   position: sticky;
   background-color: #000;
   z-index: 19;
-  padding: 1rem;
   border-bottom: 1px solid rgba(74, 222, 128, 0.3);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 1rem 1rem 8px 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -190,7 +190,7 @@
   border: none;
   color: var(--cyberpunk-green);
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   outline: none;
 }
 
@@ -235,7 +235,7 @@
   border: none;
   color: var(--cyberpunk-blue);
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   outline: none;
 }
 
@@ -250,9 +250,9 @@
   gap: 0.5rem;
   background: none;
   border: none;
-  color: rgba(156, 163, 175, 0.7);
+  color: rgb(234 237 241 / 70%);
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: color 0.2s ease;
   padding: 0.5rem;
@@ -280,13 +280,32 @@
   color: var(--cyberpunk-blue);
   font-family: "JetBrains Mono", monospace;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .section-title:hover {
-  color: rgba(74, 222, 128, 0.8);
+  color: rgba(96, 165, 250, 0.8);
+}
+
+.section-title-active {
+  display: flex;
+  align-items: center;
+  /* gap: 0.5rem; */
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: rgb(74 222 128);
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.section-title-active:hover {
+  color: rgb(74, 222, 128, 0.8);
 }
 
 .section-title.favorite-section {
@@ -361,7 +380,7 @@
   background: #000;
   border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: 0;
-  padding: 0.75rem;
+  padding: 0.75rem 0.75rem 0.1rem 0.75rem;
   position: relative;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -401,18 +420,18 @@
 
 .device-name {
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--cyberpunk-green);
 }
 
 .device-address {
-  font-size: 0.75rem;
-  color: rgba(156, 163, 175, 0.7);
+  font-size: 0.7rem;
+  color: rgb(234 237 241 / 70%);
   font-family: "JetBrains Mono", monospace;
 }
 
 .device-type {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--cyberpunk-blue);
   text-transform: uppercase;
   font-family: "JetBrains Mono", monospace;
@@ -429,7 +448,7 @@
   cursor: pointer;
   color: rgba(156, 163, 175, 0.5);
   transition: color 0.2s ease;
-  font-size: 1rem;
+  font-size: 2rem;
 }
 
 .device-favorite:hover {
@@ -448,6 +467,7 @@
 }
 
 .device-edit {
+  position: relative;
   color: var(--cyberpunk-purple);
   font-size: 0.75rem;
   font-weight: 500;
@@ -458,7 +478,8 @@
   text-decoration: none;
   border: none;
   background: none;
-  padding: 0;
+  padding: 5px;
+  bottom: 7px;
 }
 
 .device-edit:hover {
@@ -470,16 +491,17 @@
   background: #000;
   border: 1px solid var(--cyberpunk-blue);
   color: var(--cyberpunk-blue);
-  padding: 0.375rem 0.75rem;
+  padding: 0.35rem 0.65rem;
   border-radius: 0;
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
   text-transform: uppercase;
+  bottom: 10px
 }
 
 .connect-btn::before {
@@ -504,17 +526,20 @@
 }
 
 .disconnect-btn {
-  background: linear-gradient(to right, #ef4444, #f97316);
-  border: none;
-  color: #fff;
-  padding: 0.375rem 0.75rem;
+  margin-top: 10px;
+  background: rgb(248, 113, 113, 0.2);
+  color: rgb(248 113 113);
+  padding: 0.375rem 2.5rem;
   border-radius: 0;
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
+  position: relative;
+  bottom: 10px;
+  border: 1px solid rgb(248 113 113);
 }
 
 .disconnect-btn:hover {
@@ -589,27 +614,98 @@
   }
 }
 
-/* Scrollbar Styling */
-.sidebar::-webkit-scrollbar {
-  width: 8px;
+/* NOWY CYBERPUNK SCROLLBAR STYLING */
+.sidebar-content::-webkit-scrollbar {
+  width: 18px;
+  margin-right: 0;
 }
 
-.sidebar::-webkit-scrollbar-track {
+/* Usuwanie strzałek góra/dół */
+.sidebar-content::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: linear-gradient(to right, 
+    #000 0%, 
+    rgba(74, 222, 128, 0.05) 100%
+  );
+  border-radius: 0;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-left: 2px solid rgba(74, 222, 128, 0.3);
+  box-shadow: 
+    inset 0 0 4px rgba(0, 0, 0, 0.8),
+    inset -2px 0 6px rgba(74, 222, 128, 0.1);
+  margin-right: 0;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, 
+    #4ade80 0%,                     /* Zielony start - intensywny */
+    #4ade80 20%,                    /* Zielony dominuje */
+    #22d3ee 40%,                    /* Cyan przejście */
+    #60a5fa 70%,                    /* Niebieski wzrasta */
+    #60a5fa 100%                    /* Niebieski koniec */
+  );
+  border-radius: 2px;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  border-left: 3px solid rgba(74, 222, 128, 0.7);
+  box-shadow: 
+    0 0 8px rgba(74, 222, 128, 0.6),
+    inset 1px 0 4px rgba(74, 222, 128, 0.3),
+    inset -1px 0 4px rgba(96, 165, 250, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 40px;
+  max-height: 60px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, 
+    #60a5fa 0%,                     /* Niebieski start - intensywny */
+    #60a5fa 20%,                    /* Niebieski dominuje */
+    #22d3ee 40%,                    /* Cyan przejście */
+    #4ade80 70%,                    /* Zielony wzrasta */
+    #4ade80 100%                    /* Zielony koniec */
+  );
+  border-color: rgba(96, 165, 250, 0.6);
+  border-left-color: rgba(96, 165, 250, 0.8);
+  box-shadow: 
+    0 0 12px rgba(96, 165, 250, 0.8),
+    inset 1px 0 4px rgba(96, 165, 250, 0.4),
+    inset -1px 0 4px rgba(74, 222, 128, 0.2);
+  transform: scaleX(1.05);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, 
+    #3b82f6 0%,                     /* Intensywny niebieski */
+    #60a5fa 30%,                    
+    #22d3ee 60%,                    
+    #4ade80 100%                    /* Zakończenie zielone */
+  );
+  border-left-color: rgba(96, 165, 250, 1);
+  box-shadow: 
+    0 0 16px rgba(96, 165, 250, 1),
+    inset 1px 0 6px rgba(96, 165, 250, 0.6),
+    inset -1px 0 6px rgba(74, 222, 128, 0.3);
+  transform: scaleX(1.1);
+}
+
+.sidebar-content::-webkit-scrollbar-corner {
   background: #000;
-  border-radius: 0;
+  border: 1px solid rgba(74, 222, 128, 0.2);
 }
 
-.sidebar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, var(--cyberpunk-green), rgba(74, 222, 128, 0.6));
-  border-radius: 0;
-  border: 1px solid rgba(74, 222, 128, 0.3);
-  box-shadow: 0 0 4px rgba(74, 222, 128, 0.5);
+/* Firefox scrollbar */
+.sidebar-content {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(74, 222, 128, 0.8) #000;
 }
 
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, rgba(74, 222, 128, 0.8), rgba(74, 222, 128, 0.9));
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
-}
+/* Cyberpunk glow effect dla scrollbara - USUNIĘTE PSEUDOELEMENTY */
 
 /* Responsywność */
 @media (max-width: 768px) {
@@ -619,6 +715,15 @@
 
   .sidebar.collapsed {
     width: 60px;
+  }
+
+  .sidebar-content::-webkit-scrollbar {
+    width: 16px;
+  }
+  
+  .sidebar-content::-webkit-scrollbar-thumb {
+    min-height: 35px;
+    max-height: 50px;
   }
 }
 
@@ -633,5 +738,14 @@
   .sidebar.collapsed {
     height: 60px;
     width: 100%;
+  }
+
+  .sidebar-content::-webkit-scrollbar {
+    width: 14px;
+  }
+  
+  .sidebar-content::-webkit-scrollbar-thumb {
+    min-height: 30px;
+    max-height: 45px;
   }
 }

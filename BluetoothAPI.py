@@ -696,7 +696,7 @@ def get_system_paired_devices():
                     if bt_client and bt_client.is_connected and bt_client.connected_device_address:
                         # Dodaj chociaż podłączone urządzenie
                         device_info = {
-                            'name': 'Połączone urządzenie Bluetooth',
+                            'name': 'Urządzenie Bluetooth',
                             'address': bt_client.connected_device_address,
                             'status': 'Connected',
                             'connected': True
@@ -709,7 +709,7 @@ def get_system_paired_devices():
                 if bt_client and bt_client.is_connected and bt_client.connected_device_address:
                     # Dodaj chociaż podłączone urządzenie
                     device_info = {
-                        'name': 'Połączone urządzenie Bluetooth',
+                        'name': 'Urządzenie Bluetooth',
                         'address': bt_client.connected_device_address,
                         'status': 'Connected',
                         'connected': True
@@ -752,7 +752,7 @@ def get_system_paired_devices():
         if not system_devices and bt_client and bt_client.is_connected and bt_client.connected_device_address:
             # Dodaj chociaż podłączone urządzenie
             device_info = {
-                'name': 'Połączone urządzenie Bluetooth',
+                'name': 'Urządzenie Bluetooth',
                 'address': bt_client.connected_device_address,
                 'status': 'Connected',
                 'connected': True
@@ -769,7 +769,7 @@ def get_system_paired_devices():
         if bt_client and bt_client.is_connected and bt_client.connected_device_address:
             # Dodaj chociaż podłączone urządzenie
             device_info = {
-                'name': 'Połączone urządzenie Bluetooth',
+                'name': 'Urządzenie Bluetooth',
                 'address': bt_client.connected_device_address,
                 'status': 'Connected',
                 'connected': True
