@@ -126,9 +126,10 @@
   display: none;
 }
 
-/* Sekcja filtrów - STICKY */
+/* Sekcja filtrów - STICKY - ZMODYFIKOWANA */
 .filters-section {
   position: sticky;
+  top: 0px; /* Wysokość sidebar-header */
   background-color: #000;
   z-index: 19;
   border-bottom: 1px solid rgba(74, 222, 128, 0.3);
@@ -264,10 +265,27 @@
   /* background: rgba(239, 68, 68, 0.1); */
 }
 
-/* Podłączone urządzenie */
+/* Podłączone urządzenie - STICKY - NOWA SEKCJA */
 .connected-device {
+  position: sticky;
+  top: 162px; /* Sidebar header (55px) + filters section (~85px) */
+  background-color: #000;
+  z-index: 18;
   padding: 1rem;
   border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Zapewnienie, że zawartość ma odpowiednie tło */
+.connected-device::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--cyberpunk-green-alpha), rgba(96, 165, 250, 0.1));
+  z-index: -1;
 }
 
 .section-title {
@@ -356,9 +374,11 @@
   animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Listy urządzeń */
+/* Listy urządzeń - ZMODYFIKOWANE */
 .device-lists {
   flex: 1;
+  /* Dodajemy padding-top aby pierwsza sekcja nie była ukryta pod sticky elementami */
+  padding-top: 10px;
 }
 
 .device-section {
@@ -705,9 +725,7 @@
   scrollbar-color: rgba(74, 222, 128, 0.8) #000;
 }
 
-/* Cyberpunk glow effect dla scrollbara - USUNIĘTE PSEUDOELEMENTY */
-
-/* Responsywność */
+/* Responsywność - ZMODYFIKOWANA */
 @media (max-width: 768px) {
   .sidebar {
     width: 280px;
@@ -724,6 +742,15 @@
   .sidebar-content::-webkit-scrollbar-thumb {
     min-height: 35px;
     max-height: 50px;
+  }
+
+  /* Dostosowanie sticky sections na tablet */
+  .filters-section {
+    top: 50px; /* Mniejszy sidebar header na mobile */
+  }
+  
+  .connected-device {
+    top: 125px; /* Dostosowanie do mniejszego headera */
   }
 }
 
@@ -747,5 +774,16 @@
   .sidebar-content::-webkit-scrollbar-thumb {
     min-height: 30px;
     max-height: 45px;
+  }
+
+  /* Na bardzo małych ekranach można wyłączyć sticky */
+  .filters-section {
+    position: relative; /* Na bardzo małych ekranach można wyłączyć sticky */
+    top: auto;
+  }
+  
+  .connected-device {
+    position: relative; /* Na bardzo małych ekranach można wyłączyć sticky */
+    top: auto;
   }
 }

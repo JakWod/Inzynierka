@@ -720,9 +720,9 @@ document.addEventListener('DOMContentLoaded', function() {
         addToLog(`Device stats: ${JSON.stringify(stats)}`, 'INFO');
         return stats;
     }
-    
+    //pauza
     // Sprawdzaj status połączenia co 5 sekund - WYŁĄCZONE TYMCZASOWO
-    // setInterval(checkConnectionStatus, 5000);
+    setInterval(checkConnectionStatus, 5000);
     
     // Nasłuchuj na zdarzenia połączenia z urządzeniem
     window.addEventListener('deviceConnected', function(e) {
