@@ -3,9 +3,11 @@
 // - Gradient scrollbar working properly
 // - Devices now save to localStorage properly (favorites + discovered)
 // - New devices go to "discovered" by default, not "favorites"  
-// - Connected devices appear in "active connection" only
+// - Connected devices appear in "active connection" AND remain in their original lists
 // - Auto-refresh temporarily disabled
-// - Connected devices have simplified UI (no favorite star, no edit button, no device type)
+// - Connected devices in lists have hidden connect and pulsing indicator, but normal styling
+// - Star animation changed from aura to opacity pulsing
+// - Edit and favorite buttons remain fully functional for connected devices
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -218,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         pairedDevice.connected = true;
                     } else if (discoveredDevice) {
                         connectedDevice = { ...discoveredDevice, connected: true };
+                        discoveredDevice.connected = true;
                     } else {
                         connectedDevice = {
                             name: 'Connected Device',
@@ -258,13 +261,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Wyświetla ulubione urządzenia
+     * Wyświetla ulubione urządzenia - ZMODYFIKOWANA WERSJA
+     * Teraz pokazuje wszystkie urządzenia, nawet połączone
      */
     function displayPairedDevices() {
         if (!pairedDevicesList || !favoriteDevicesSection) return;
         
-        // Filtruj urządzenia (usuń połączone z głównej listy)
-        const favoriteDevices = pairedDevices.filter(device => !device.connected);
+        // Wyświetl wszystkie ulubione urządzenia (bez filtrowania połączonych)
+        const favoriteDevices = pairedDevices;
         
         // Wyświetl ulubione urządzenia
         if (favoriteDevices.length === 0) {
@@ -273,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Pokaż sekcję i urządzenia
             favoriteDevicesSection.style.display = 'block';
-            pairedDevicesList.innerHTML = favoriteDevices.map(device => createDeviceCard(device)).join('');
+            pairedDevicesList.innerHTML = favoriteDevices.map(device => createDeviceCard(device, false, true)).join('');
         }
         
         // Zastosuj filtry
@@ -281,15 +285,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Wyświetla znalezione urządzenia - POPRAWIONA WERSJA
+     * Wyświetla znalezione urządzenia - ZMODYFIKOWANA WERSJA
+     * Teraz pokazuje wszystkie urządzenia, nawet połączone
      */
     function displayDiscoveredDevices() {
         if (!discoveredDevicesList) return;
         
-        // Filtruj połączone urządzenia z listy discovered (podobnie jak w pairedDevices)
-        const nonConnectedDiscoveredDevices = discoveredDevices.filter(device => !device.connected);
+        // Wyświetl wszystkie discovered devices (bez filtrowania połączonych)
+        const allDiscoveredDevices = discoveredDevices;
         
-        if (nonConnectedDiscoveredDevices.length === 0) {
+        if (allDiscoveredDevices.length === 0) {
             discoveredDevicesList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -303,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         } else {
-            discoveredDevicesList.innerHTML = nonConnectedDiscoveredDevices.map(device => createDeviceCard(device)).join('');
+            discoveredDevicesList.innerHTML = allDiscoveredDevices.map(device => createDeviceCard(device, false, true)).join('');
         }
         
         // Zastosuj filtry
@@ -320,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (isConnected && connectedDevice) {
             connectedDeviceSection.style.display = 'block';
-            connectedDeviceContainer.innerHTML = createDeviceCard(connectedDevice, true);
+            connectedDeviceContainer.innerHTML = createDeviceCard(connectedDevice, true, false);
             addToLog(`Connected device section shown for: ${connectedDevice.name} (${connectedDevice.address})`, 'INFO');
         } else {
             connectedDeviceSection.style.display = 'none';
@@ -330,15 +335,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA
-     * Dla połączonych urządzeń (isConnected = true) nie pokazuje:
-     * - gwiazdki do dodawania do ulubionych
-     * - przycisku edit
-     * - typu urządzenia
-     * Przycisk disconnect rozciąga się na całą szerokość
+     * @param {Object} device - Obiekt urządzenia
+     * @param {boolean} isConnectedSection - Czy to sekcja active connection
+     * @param {boolean} showInLists - Czy to urządzenie w głównych listach
      */
-    function createDeviceCard(device, isConnected = false) {
-        if (isConnected) {
-            // Uproszczona wersja dla połączonego urządzenia
+    function createDeviceCard(device, isConnectedSection = false, showInLists = false) {
+        if (isConnectedSection) {
+            // Uproszczona wersja dla sekcji połączonego urządzenia (active connection)
             return `
                 <div class="device-card connected" data-device='${JSON.stringify(device)}'>
                     <div class="device-info connected-device-info">
@@ -351,8 +354,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
+        } else if (showInLists) {
+            // Wersja dla urządzeń w głównych listach - bez zmiany ramki/tła, ale z migającą lampką i ukrytym connect
+            const isConnected = device.connected === true;
+            const connectBtnClass = isConnected ? 'connect-btn hidden' : 'connect-btn';
+            const connectAction = isConnected ? '' : `onclick="connectToDevice('${device.address}')"`;
+            
+            // Migająca lampka dla połączonych urządzeń
+            const connectionIndicator = isConnected ? '<div class="connection-indicator"></div>' : '';
+            
+            return `
+                <div class="device-card" data-device='${JSON.stringify(device)}'>
+                    <div class="device-info">
+                        <div class="device-name">
+                            ${(device.name).toUpperCase()}
+                            ${connectionIndicator}
+                        </div>
+                        <div class="device-address">${device.address}</div>
+                        <div class="device-type">${(device.type || 'other').toUpperCase()}</div>
+                    </div>
+                    
+                    <div class="device-card-footer">
+                        <div class="device-favorite ${device.favorite ? 'active' : ''}" onclick="toggleFavorite('${device.address}')" title="${device.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="${device.favorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                            </svg>
+                        </div>
+                        <div class="device-actions">
+                            <button class="device-edit" onclick="editDevice('${device.address}')" title="Edytuj urządzenie">EDIT</button>
+                            <button class="${connectBtnClass}" ${connectAction}>CONNECT</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         } else {
-            // Standardowa wersja dla niepołączonych urządzeń
+            // Standardowa wersja dla innych przypadków
             return `
                 <div class="device-card" data-device='${JSON.stringify(device)}'>
                     <div class="device-info">
@@ -501,28 +537,12 @@ document.addEventListener('DOMContentLoaded', function() {
      * Przełącza status ulubionego dla urządzenia - POPRAWIONA WERSJA
      */
     function toggleFavorite(address) {
-        // Sprawdź czy urządzenie jest obecnie połączone
-        const isCurrentlyConnected = (connectedDevice && connectedDevice.address === address);
-        
-        if (isCurrentlyConnected) {
-            addToLog('Cannot change favorite status of connected device', 'WARNING');
-            showToast('Nie można zmienić statusu ulubionego dla połączonego urządzenia', 'warning');
-            return;
-        }
-        
         // Sprawdź czy urządzenie jest już w ulubionych
         let deviceIndex = pairedDevices.findIndex(device => device.address === address);
         
         if (deviceIndex !== -1) {
             // Urządzenie jest w ulubionych - usuń je i przenieś z powrotem do discovered
             const device = pairedDevices[deviceIndex];
-            
-            // Nie przenoś jeśli jest połączone
-            if (device.connected) {
-                addToLog('Cannot remove connected device from favorites', 'WARNING');
-                showToast('Nie można usunąć połączonego urządzenia z ulubionych', 'warning');
-                return;
-            }
             
             // Usuń z favorites
             pairedDevices.splice(deviceIndex, 1);
@@ -554,13 +574,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const discoveredIndex = discoveredDevices.findIndex(device => device.address === address);
             if (discoveredIndex !== -1) {
                 const device = discoveredDevices[discoveredIndex];
-                
-                // Nie przenoś jeśli jest połączone
-                if (device.connected) {
-                    addToLog('Cannot add connected device to favorites - it should be in active connection', 'WARNING');
-                    showToast('Połączone urządzenie powinno być w sekcji aktywnego połączenia', 'warning');
-                    return;
-                }
                 
                 // Usuń z discovered
                 discoveredDevices.splice(discoveredIndex, 1);
@@ -720,9 +733,9 @@ document.addEventListener('DOMContentLoaded', function() {
         addToLog(`Device stats: ${JSON.stringify(stats)}`, 'INFO');
         return stats;
     }
-    //pauza
+    
     // Sprawdzaj status połączenia co 5 sekund - WYŁĄCZONE TYMCZASOWO
-    setInterval(checkConnectionStatus, 5000);
+    // setInterval(checkConnectionStatus, 5000);
     
     // Nasłuchuj na zdarzenia połączenia z urządzeniem
     window.addEventListener('deviceConnected', function(e) {

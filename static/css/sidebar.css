@@ -334,11 +334,21 @@
   color: rgba(250, 204, 21, 0.8);
 }
 
+/* ZMODYFIKOWANA ANIMACJA GWIAZDKI - opacity pulsowanie zamiast aury */
 .section-title.favorite-section svg {
   fill: #000;
   stroke: var(--cyberpunk-yellow);
   stroke-width: 1.5;
-  animation: pulse-star 2s ease-in-out infinite;
+  animation: pulse-star-opacity 2s ease-in-out infinite;
+}
+
+@keyframes pulse-star-opacity {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .dropdown-toggle {
@@ -351,17 +361,6 @@
   transform: rotate(180deg);
 }
 
-@keyframes pulse-star {
-  0%, 100% {
-    stroke-opacity: 1;
-    filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.6));
-  }
-  50% {
-    stroke-opacity: 0.7;
-    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
-  }
-}
-
 .status-indicator {
   width: 8px;
   height: 8px;
@@ -371,7 +370,7 @@
 
 .status-indicator.active {
   background: var(--cyberpunk-green);
-  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 /* Listy urządzeń - ZMODYFIKOWANE */
@@ -442,6 +441,19 @@
   font-weight: 700;
   font-size: 0.8rem;
   color: var(--cyberpunk-green);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* LAMPKA MIGAJĄCA DLA POŁĄCZONYCH URZĄDZEŃ */
+.device-name .connection-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyberpunk-green);
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  flex-shrink: 0;
 }
 
 .device-address {
@@ -521,7 +533,7 @@
   position: relative;
   overflow: hidden;
   text-transform: uppercase;
-  bottom: 10px
+  bottom: 10px;
 }
 
 .connect-btn::before {
@@ -545,6 +557,13 @@
   border-color: rgba(96, 165, 250, 0.8);
 }
 
+/* Style dla ukrytego przycisku connect - zachowuje miejsce w layout */
+.connect-btn.hidden {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 .disconnect-btn {
   margin-top: 10px;
   background: rgb(248, 113, 113, 0.2);
@@ -559,7 +578,7 @@
   text-transform: uppercase;
   position: relative;
   bottom: 10px;
-  border: 1px solid rgb(248 113 113);
+  border: 1px solid rgb(248, 113, 113, 0.5);
 }
 
 .disconnect-btn:hover {
