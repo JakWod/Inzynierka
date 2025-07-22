@@ -1,4 +1,4 @@
-/* Cyberpunk Sidebar Styles */
+/* Cyberpunk Sidebar Styles - UPDATED VERSION */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
@@ -23,15 +23,8 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   font-family: "JetBrains Mono", monospace;
-  overflow-y: auto;
-}
-
-.sidebar::-webkit-scrollbar {
-  width: 0;
-  display: none; 
+  overflow: hidden; /* Zmieniamy na hidden */
 }
 
 .sidebar.collapsed {
@@ -60,6 +53,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .sidebar-title {
@@ -114,34 +108,70 @@
   transform: rotate(180deg);
 }
 
-/* Zawartość sidebara */
+/* Zawartość sidebara - ZMIENIONO OVERFLOW */
 .sidebar-content {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 10;
+  overflow: hidden; /* Zmieniono z overflow-y: auto na hidden */
+  min-height: 0; /* Dodano dla flex */
 }
 
 .sidebar.collapsed .sidebar-content {
   display: none;
 }
 
-/* Sekcja filtrów - STICKY - ZMODYFIKOWANA */
+/* Sekcja filtrów - NOWA WERSJA COLLAPSIBLE + STICKY */
 .filters-section {
   position: sticky;
-  top: 0px; /* Wysokość sidebar-header */
+  top: 0;
   background-color: #000;
   z-index: 19;
   border-bottom: 1px solid rgba(74, 222, 128, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1rem 8px 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  /* Domyślnie rozwinięte - padding bez dolnego */
+  padding: 1rem 1rem 0rem 1rem;
+  transition: padding 0.3s ease;
+}
+
+/* Gdy filtry są zwinięte - padding z dolnym */
+/* .filters-section.filters-collapsed { */
+  /* padding: 1rem 1rem 1rem 1rem; */
+/* } */
+
+
+/* NOWE: Nagłówek sekcji filtrów z toggle - FIOLETOWY KOLOR */
+.filters-section .section-title {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--cyberpunk-purple);
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filters-section .section-title:hover {
+  color: rgba(192, 132, 252, 0.8);
+}
+
+/* ZMIENIONO: Zawartość filtrów jako collapsible */
+.filters-section #filters-content {
+  padding-bottom: 8px; /* Pozostały padding tylko na dole */
 }
 
 .filter-group {
   position: relative;
+  margin-bottom: 0.75rem; /* Dodano margines między grupami */
 }
 
 .terminal-input {
@@ -256,27 +286,38 @@
   font-size: 0.8rem;
   cursor: pointer;
   transition: color 0.2s ease;
-  padding: 0.5rem;
+  /* padding: 0.5rem; */
   border-radius: 0;
+  margin-bottom: 0.75rem; /* Dodano margines na dole */
 }
 
 .clear-filters:hover {
   color: rgb(219, 82, 77);
-  /* background: rgba(239, 68, 68, 0.1); */
 }
 
-/* Podłączone urządzenie - STICKY - NOWA SEKCJA */
+/* Podłączone urządzenie - STICKY */
 .connected-device {
   position: sticky;
-  top: 162px; /* Sidebar header (55px) + filters section (~85px) */
+  top: 51px; /* Wysokość filters-section (~142px) - MOŻE WYMAGAĆ KOREKTY */
   background-color: #000;
   z-index: 18;
-  padding: 1rem;
+  padding: 0rem;
   border-bottom: 1px solid rgba(74, 222, 128, 0.3);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  /* Domyślnie ukryte, pokaże się gdy będzie połączenie */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
 }
 
-/* Zapewnienie, że zawartość ma odpowiednie tło */
+.connected-device.active {
+  max-height: 200px; /* Dostosuj do rzeczywistej wysokości */
+  opacity: 1;
+  padding: 1rem;
+}
+
 .connected-device::before {
   content: "";
   position: absolute;
@@ -291,7 +332,6 @@
 .section-title {
   display: flex;
   align-items: center;
-  /* gap: 0.5rem; */
   font-size: 0.875rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
@@ -310,7 +350,6 @@
 .section-title-active {
   display: flex;
   align-items: center;
-  /* gap: 0.5rem; */
   font-size: 0.875rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
@@ -334,7 +373,7 @@
   color: rgba(250, 204, 21, 0.8);
 }
 
-/* ZMODYFIKOWANA ANIMACJA GWIAZDKI - opacity pulsowanie zamiast aury */
+/* ANIMACJA GWIAZDKI - opacity pulsowanie */
 .section-title.favorite-section svg {
   fill: #000;
   stroke: var(--cyberpunk-yellow);
@@ -373,15 +412,107 @@
   animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Listy urządzeń - ZMODYFIKOWANE */
+/* Listy urządzeń - ZMIENIONO NA SCROLLABLE */
 .device-lists {
   flex: 1;
-  /* Dodajemy padding-top aby pierwsza sekcja nie była ukryta pod sticky elementami */
-  padding-top: 10px;
+  min-height: 0; /* Ważne dla flex */
+  overflow-y: auto; /* PRZENIESIONO TUTAJ SCROLLBAR */
+  scrollbar-width: auto;
+  scrollbar-color: rgba(74, 222, 128, 0.8) #000;
+  padding-top: 0;
+  /* Dodano dla stabilnego scrollbar */
+  scrollbar-gutter: stable;
 }
 
+/* PRZEPISANO CAŁĄ SEKCJĘ SCROLLBAR */
+.device-lists::-webkit-scrollbar {
+  width: 18px;
+  margin-right: 0;
+}
+
+.device-lists::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+.device-lists::-webkit-scrollbar-track {
+  background: linear-gradient(to right, 
+    #000 0%, 
+    rgba(74, 222, 128, 0.05) 100%
+  );
+  border-radius: 0;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-left: 2px solid rgba(74, 222, 128, 0.3);
+  box-shadow: 
+    inset 0 0 4px rgba(0, 0, 0, 0.8),
+    inset -2px 0 6px rgba(74, 222, 128, 0.1);
+  margin-right: 0;
+}
+
+.device-lists::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, 
+    #4ade80 0%,
+    #4ade80 20%,
+    #22d3ee 40%,
+    #60a5fa 70%,
+    #60a5fa 100%
+  );
+  border-radius: 2px;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  border-left: 3px solid rgba(74, 222, 128, 0.7);
+  box-shadow: 
+    0 0 8px rgba(74, 222, 128, 0.6),
+    inset 1px 0 4px rgba(74, 222, 128, 0.3),
+    inset -1px 0 4px rgba(96, 165, 250, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 40px;
+  max-height: 60px;
+}
+
+.device-lists::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, 
+    #60a5fa 0%,
+    #60a5fa 20%,
+    #22d3ee 40%,
+    #4ade80 70%,
+    #4ade80 100%
+  );
+  border-color: rgba(96, 165, 250, 0.6);
+  border-left-color: rgba(96, 165, 250, 0.8);
+  box-shadow: 
+    0 0 12px rgba(96, 165, 250, 0.8),
+    inset 1px 0 4px rgba(96, 165, 250, 0.4),
+    inset -1px 0 4px rgba(74, 222, 128, 0.2);
+  transform: scaleX(1.05);
+}
+
+.device-lists::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, 
+    #3b82f6 0%,
+    #60a5fa 30%,
+    #22d3ee 60%,
+    #4ade80 100%
+  );
+  border-left-color: rgba(96, 165, 250, 1);
+  box-shadow: 
+    0 0 16px rgba(96, 165, 250, 1),
+    inset 1px 0 6px rgba(96, 165, 250, 0.6),
+    inset -1px 0 6px rgba(74, 222, 128, 0.3);
+  transform: scaleX(1.1);
+}
+
+.device-lists::-webkit-scrollbar-corner {
+  background: #000;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+/* STABILNY LAYOUT - DODANO REGUŁY DLA STABLINEGO GAP-U */
 .device-section {
   padding: 1rem;
+  box-sizing: border-box; /* Dodano */
+  min-width: 0; /* Dodano */
 }
 
 .device-section:not(:last-child) {
@@ -391,10 +522,28 @@
 .device-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  min-width: 0; /* Dodano dla stabilności */
+  width: 100%; /* Dodano */
+  box-sizing: border-box; /* Dodano */
+  /* USUNIĘTO GAP - użyjemy margin na kartach */
 }
 
-/* Karty urządzeń */
+/* NOWE KLASY DLA ZWIJANIA SEKCJI */
+.collapsible-section {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+  max-height: 1000px; /* Domyślnie rozwinięte */
+  opacity: 1;
+}
+
+.collapsible-section.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Karty urządzeń - STABILNY MARGIN ZAMIAST GAP */
 .device-card {
   background: #000;
   border: 1px solid rgba(74, 222, 128, 0.3);
@@ -404,6 +553,25 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: "JetBrains Mono", monospace;
+  box-sizing: border-box; /* Dodano */
+  width: 100%; /* Dodano */
+  min-width: 0; /* Dodano */
+  /* MARGIN ZAMIAST GAP - zawsze stabilny */
+  margin-bottom: 0.5rem;
+}
+
+.device-card:last-child {
+  margin-bottom: 0; /* Ostatnia karta bez marginesu */
+}
+
+/* KLASA DLA UKRYWANIA PRZEZ FILTRY - BEZ PSUCJA LAYOUT */
+.device-card.hidden-by-filter {
+  display: none;
+}
+
+/* UPEWNIENIE SIĘ ŻE MARGIN DZIAŁA STABILNIE */
+.device-card:last-child:not(.hidden-by-filter) {
+  margin-bottom: 0;
 }
 
 .device-card::before {
@@ -433,8 +601,9 @@
 .device-info {
   display: flex;
   flex-direction: column;
-  /* gap: 0.25rem; */
   margin-bottom: 0.5rem;
+  min-width: 0; /* Dodano */
+  width: 100%; /* Dodano */
 }
 
 .device-name {
@@ -444,6 +613,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0; /* Dodano */
 }
 
 /* LAMPKA MIGAJĄCA DLA POŁĄCZONYCH URZĄDZEŃ */
@@ -474,6 +644,8 @@
   justify-content: space-between;
   align-items: flex-end;
   margin-top: 0.5rem;
+  min-width: 0; /* Dodano */
+  width: 100%; /* Dodano */
 }
 
 .device-favorite {
@@ -481,6 +653,7 @@
   color: rgba(156, 163, 175, 0.5);
   transition: color 0.2s ease;
   font-size: 2rem;
+  flex-shrink: 0; /* Dodano */
 }
 
 .device-favorite:hover {
@@ -496,6 +669,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 0.25rem;
+  flex-shrink: 0; /* Dodano */
 }
 
 .device-edit {
@@ -512,11 +686,27 @@
   background: none;
   padding: 5px;
   bottom: 7px;
+  flex-shrink: 0; /* Dodano */
 }
 
 .device-edit:hover {
   color: rgba(192, 132, 252, 0.8);
   text-shadow: 0 0 4px rgba(192, 132, 252, 0.5);
+}
+
+/* NOWE: Style dla wyłączonego edit button */
+.device-edit.disabled {
+  color: rgba(156, 163, 175, 0.9) !important;
+  cursor: not-allowed !important;
+  text-shadow: none !important;
+  opacity: 0.8;
+  pointer-events: none; /* Blokuje wszelkie interakcje */
+}
+
+.device-edit.disabled:hover {
+  color: rgba(156, 163, 175, 0.4) !important;
+  text-shadow: none !important;
+  transform: none !important;
 }
 
 .connect-btn {
@@ -534,6 +724,8 @@
   overflow: hidden;
   text-transform: uppercase;
   bottom: 10px;
+  flex-shrink: 0; /* Dodano */
+  white-space: nowrap; /* Dodano */
 }
 
 .connect-btn::before {
@@ -557,7 +749,7 @@
   border-color: rgba(96, 165, 250, 0.8);
 }
 
-/* Style dla ukrytego przycisku connect - zachowuje miejsce w layout */
+/* Style dla ukrytego przycisku connect */
 .connect-btn.hidden {
   visibility: hidden !important;
   opacity: 0 !important;
@@ -568,7 +760,7 @@
   margin-top: 10px;
   background: rgb(248, 113, 113, 0.2);
   color: rgb(248 113 113);
-  padding: 0.375rem 2.5rem;
+  padding: 0.375rem 3rem;
   border-radius: 0;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.7rem;
@@ -579,6 +771,8 @@
   position: relative;
   bottom: 10px;
   border: 1px solid rgb(248, 113, 113, 0.5);
+  flex-shrink: 0; /* Dodano */
+  white-space: nowrap; /* Dodano */
 }
 
 .disconnect-btn:hover {
@@ -653,98 +847,10 @@
   }
 }
 
-/* NOWY CYBERPUNK SCROLLBAR STYLING */
-.sidebar-content::-webkit-scrollbar {
-  width: 18px;
-  margin-right: 0;
-}
+/* USUNIECIE STARYCH REGUŁ SCROLLBAR DLA SIDEBAR-CONTENT */
+/* Te reguły zostały przeniesione do .device-lists */
 
-/* Usuwanie strzałek góra/dół */
-.sidebar-content::-webkit-scrollbar-button {
-  display: none;
-  height: 0;
-  width: 0;
-}
-
-.sidebar-content::-webkit-scrollbar-track {
-  background: linear-gradient(to right, 
-    #000 0%, 
-    rgba(74, 222, 128, 0.05) 100%
-  );
-  border-radius: 0;
-  border: 1px solid rgba(74, 222, 128, 0.2);
-  border-left: 2px solid rgba(74, 222, 128, 0.3);
-  box-shadow: 
-    inset 0 0 4px rgba(0, 0, 0, 0.8),
-    inset -2px 0 6px rgba(74, 222, 128, 0.1);
-  margin-right: 0;
-}
-
-.sidebar-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, 
-    #4ade80 0%,                     /* Zielony start - intensywny */
-    #4ade80 20%,                    /* Zielony dominuje */
-    #22d3ee 40%,                    /* Cyan przejście */
-    #60a5fa 70%,                    /* Niebieski wzrasta */
-    #60a5fa 100%                    /* Niebieski koniec */
-  );
-  border-radius: 2px;
-  border: 1px solid rgba(74, 222, 128, 0.4);
-  border-left: 3px solid rgba(74, 222, 128, 0.7);
-  box-shadow: 
-    0 0 8px rgba(74, 222, 128, 0.6),
-    inset 1px 0 4px rgba(74, 222, 128, 0.3),
-    inset -1px 0 4px rgba(96, 165, 250, 0.2);
-  transition: all 0.3s ease;
-  position: relative;
-  min-height: 40px;
-  max-height: 60px;
-}
-
-.sidebar-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, 
-    #60a5fa 0%,                     /* Niebieski start - intensywny */
-    #60a5fa 20%,                    /* Niebieski dominuje */
-    #22d3ee 40%,                    /* Cyan przejście */
-    #4ade80 70%,                    /* Zielony wzrasta */
-    #4ade80 100%                    /* Zielony koniec */
-  );
-  border-color: rgba(96, 165, 250, 0.6);
-  border-left-color: rgba(96, 165, 250, 0.8);
-  box-shadow: 
-    0 0 12px rgba(96, 165, 250, 0.8),
-    inset 1px 0 4px rgba(96, 165, 250, 0.4),
-    inset -1px 0 4px rgba(74, 222, 128, 0.2);
-  transform: scaleX(1.05);
-}
-
-.sidebar-content::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(180deg, 
-    #3b82f6 0%,                     /* Intensywny niebieski */
-    #60a5fa 30%,                    
-    #22d3ee 60%,                    
-    #4ade80 100%                    /* Zakończenie zielone */
-  );
-  border-left-color: rgba(96, 165, 250, 1);
-  box-shadow: 
-    0 0 16px rgba(96, 165, 250, 1),
-    inset 1px 0 6px rgba(96, 165, 250, 0.6),
-    inset -1px 0 6px rgba(74, 222, 128, 0.3);
-  transform: scaleX(1.1);
-}
-
-.sidebar-content::-webkit-scrollbar-corner {
-  background: #000;
-  border: 1px solid rgba(74, 222, 128, 0.2);
-}
-
-/* Firefox scrollbar */
-.sidebar-content {
-  scrollbar-width: auto;
-  scrollbar-color: rgba(74, 222, 128, 0.8) #000;
-}
-
-/* Responsywność - ZMODYFIKOWANA */
+/* Responsywność */
 @media (max-width: 768px) {
   .sidebar {
     width: 280px;
@@ -754,20 +860,15 @@
     width: 60px;
   }
 
-  .sidebar-content::-webkit-scrollbar {
+  .device-lists::-webkit-scrollbar {
     width: 16px;
   }
   
-  .sidebar-content::-webkit-scrollbar-thumb {
+  .device-lists::-webkit-scrollbar-thumb {
     min-height: 35px;
     max-height: 50px;
   }
 
-  /* Dostosowanie sticky sections na tablet */
-  .filters-section {
-    top: 50px; /* Mniejszy sidebar header na mobile */
-  }
-  
   .connected-device {
     top: 125px; /* Dostosowanie do mniejszego headera */
   }
@@ -786,23 +887,38 @@
     width: 100%;
   }
 
-  .sidebar-content::-webkit-scrollbar {
+  .device-lists::-webkit-scrollbar {
     width: 14px;
   }
   
-  .sidebar-content::-webkit-scrollbar-thumb {
+  .device-lists::-webkit-scrollbar-thumb {
     min-height: 30px;
     max-height: 45px;
   }
 
-  /* Na bardzo małych ekranach można wyłączyć sticky */
   .filters-section {
-    position: relative; /* Na bardzo małych ekranach można wyłączyć sticky */
+    position: relative;
     top: auto;
   }
   
   .connected-device {
-    position: relative; /* Na bardzo małych ekranach można wyłączyć sticky */
+    position: relative;
     top: auto;
   }
+}
+
+.device-section.section-collapsed,
+#connected-device-section.section-collapsed,
+#favorite-devices-section.section-collapsed,
+#discovered-devices-section.section-collapsed {
+  padding: 1rem 1rem 0rem 1rem;
+}
+
+/* Dodatkowe reguły dla konkretnych sekcji */
+/* #connected-device-section, */
+#favorite-devices-section,
+#discovered-devices-section {
+  padding: 1rem;
+  transition: padding 0.3s ease;
+  box-sizing: border-box;
 }

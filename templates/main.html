@@ -68,41 +68,54 @@
         </button>
       </div>
 
-      <!-- Filters -->
+      <!-- Sidebar Content -->
       <div class="sidebar-content" id="sidebarContent">
+        <!-- Filters Section - Now Collapsible -->
         <div class="filters-section">
-          <div class="filter-group">
-            <div class="terminal-input">
-              <span class="terminal-prompt">FILTER:</span>
-              <input type="text" id="sidebar-filter-name" placeholder="device_name">
-            </div>
-          </div>
-          
-          <div class="filter-group">
-            <div class="terminal-select">
-              <select id="sidebar-filter-type">
-                <option value="">ALL_TYPES</option>
-                <option value="headphones">HEADPHONES</option>
-                <option value="speaker">SPEAKERS</option>
-                <option value="mouse">MICE</option>
-                <option value="keyboard">KEYBOARDS</option>
-                <option value="gamepad">CONTROLLERS</option>
-                <option value="other">OTHER</option>
-              </select>
-            </div>
-          </div>
-
-          <button class="clear-filters" id="clear-filters-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="1,4 1,10 7,10"></polyline>
-              <path d="M3.51,15a9,9,0,0,0,2.13,3.09,9,9,0,0,0,13.72,0,9,9,0,0,0,0-12.72,9,9,0,0,0-13.72,0A8.96,8.96,0,0,0,3.51,9"></path>
+          <h3 class="section-title toggle-section" data-target="filters-content">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/>
             </svg>
-            <span>CLEAR_FILTERS</span>
-          </button>
+            <span> FILTERS</span>
+            <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+          </h3>
+          
+          <div id="filters-content" class="collapsible-section">
+            <div class="filter-group">
+              <div class="terminal-input">
+                <span class="terminal-prompt">FILTER:</span>
+                <input type="text" id="sidebar-filter-name" placeholder="device_name">
+              </div>
+            </div>
+            
+            <div class="filter-group">
+              <div class="terminal-select">
+                <select id="sidebar-filter-type">
+                  <option value="">ALL_TYPES</option>
+                  <option value="headphones">HEADPHONES</option>
+                  <option value="speaker">SPEAKERS</option>
+                  <option value="mouse">MICE</option>
+                  <option value="keyboard">KEYBOARDS</option>
+                  <option value="gamepad">CONTROLLERS</option>
+                  <option value="other">OTHER</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="clear-filters" id="clear-filters-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1,4 1,10 7,10"></polyline>
+                <path d="M3.51,15a9,9,0,0,0,2.13,3.09,9,9,0,0,0,13.72,0,9,9,0,0,0,0-12.72,9,9,0,0,0-13.72,0A8.96,8.96,0,0,0,3.51,9"></path>
+              </svg>
+              <span>CLEAR_FILTERS</span>
+            </button>
+          </div>
         </div>
 
         <!-- Connected Device -->
-        <div class="connected-device" id="connected-device-section" style="display: none;">
+        <div class="connected-device" id="connected-device-section">
           <h3 class="section-title-active toggle-section" data-target="connected-device-container">
             <div class="status-indicator active"></div>
             <span> ACTIVE_CONNECTION</span>
@@ -110,7 +123,7 @@
               <polyline points="6,9 12,15 18,9"></polyline>
             </svg>
           </h3>
-          <div id="connected-device-container"></div>
+          <div id="connected-device-container" class="collapsible-section"></div>
         </div>
 
         <!-- Device Lists -->
@@ -126,7 +139,7 @@
                 <polyline points="6,9 12,15 18,9"></polyline>
               </svg>
             </h3>
-            <div class="device-list" id="paired-devices-list"></div>
+            <div class="device-list collapsible-section" id="paired-devices-list"></div>
           </div>
 
           <!-- Discovered Devices -->
@@ -141,7 +154,7 @@
                 <polyline points="6,9 12,15 18,9"></polyline>
               </svg>
             </h3>
-            <div class="device-list" id="discovered-devices-list">
+            <div class="device-list collapsible-section" id="discovered-devices-list">
               <div class="empty-state">
                 <div class="empty-icon">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

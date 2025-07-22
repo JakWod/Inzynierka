@@ -1,18 +1,23 @@
-// Cyberpunk Sidebar functionality - POPRAWIONA WERSJA
-// Fixes: 
-// - Gradient scrollbar working properly
-// - Devices now save to localStorage properly (favorites + discovered)
+// Cyberpunk Sidebar functionality - UPDATED VERSION
+// New Features: 
+// - Collapsible filters section
+// - Disabled edit button for connected devices on lists
+// Previous Features:
+// - Scrollbar moved to device-lists instead of sidebar-content
+// - Gradient scrollbar working properly  
+// - Devices save to localStorage properly (favorites + discovered)
 // - New devices go to "discovered" by default, not "favorites"  
 // - Connected devices appear in "active connection" AND remain in their original lists
-// - Auto-refresh temporarily disabled
 // - Connected devices in lists have hidden connect and pulsing indicator, but normal styling
 // - Star animation changed from aura to opacity pulsing
-// - Edit and favorite buttons remain fully functional for connected devices
+// - Edit and favorite buttons remain fully functional for connected devices (NOW EDIT IS DISABLED)
+// - Fixed gap disappearing when scrollbar disappears
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebarContent = document.getElementById('sidebarContent');
+    const deviceLists = document.querySelector('.device-lists'); // DODANO - element ze scrollbarem
     const pairedDevicesList = document.getElementById('paired-devices-list');
     const discoveredDevicesList = document.getElementById('discovered-devices-list');
     const connectedDeviceSection = document.getElementById('connected-device-section');
@@ -32,11 +37,65 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize
     loadPairedDevices();
     
+    // Funkcja do sprawdzania czy scrollbar jest widoczny - ZMIENIONO NA DEVICE-LISTS
+    function checkScrollbar() {
+        if (deviceLists) {
+            const hasScrollbar = deviceLists.scrollHeight > deviceLists.clientHeight;
+            if (hasScrollbar) {
+                deviceLists.classList.add('has-scrollbar');
+                sidebar.classList.add('has-scrollbar'); // Dodano dla stabilności
+            } else {
+                deviceLists.classList.remove('has-scrollbar');
+                sidebar.classList.remove('has-scrollbar'); // Dodano dla stabilności
+            }
+            
+            // Debug log
+            console.log(`Scrollbar check: scrollHeight=${deviceLists.scrollHeight}, clientHeight=${deviceLists.clientHeight}, hasScrollbar=${hasScrollbar}`);
+        }
+    }
+    
+    // Sprawdź scrollbar przy inicjalizacji i zmianach
+    checkScrollbar();
+    
+    // Obserwuj zmiany w zawartości device-lists - ZMIENIONO Z SIDEBAR-CONTENT
+    if (deviceLists) {
+        const resizeObserver = new ResizeObserver(() => {
+            checkScrollbar();
+        });
+        resizeObserver.observe(deviceLists);
+        
+        // Również sprawdzaj przy zmianie zawartości
+        const mutationObserver = new MutationObserver(() => {
+            setTimeout(checkScrollbar, 100); // Małe opóźnienie dla animacji
+        });
+        mutationObserver.observe(deviceLists, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
+        
+        // Dodatkowo obserwuj zmiany w sidebar-content dla sticky elementów
+        if (sidebarContent) {
+            const sidebarMutationObserver = new MutationObserver(() => {
+                setTimeout(checkScrollbar, 100);
+            });
+            sidebarMutationObserver.observe(sidebarContent, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+    }
+    
     // Sidebar toggle functionality
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             addToLog('Sidebar toggled', 'INFO');
+            // Sprawdź scrollbar po zmianie stanu sidebara
+            setTimeout(checkScrollbar, 300); // Czas na animację
         });
     }
     
@@ -62,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Obsługa zwijania/rozwijania sekcji
+    // Obsługa zwijania/rozwijania sekcji - PRZEPISANO NA KLASY CSS
     if (toggleSections) {
         toggleSections.forEach(section => {
             section.addEventListener('click', function() {
@@ -71,13 +130,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 const toggleIcon = this.querySelector('.dropdown-toggle');
                 
                 if (targetElement) {
-                    if (targetElement.style.display === 'none') {
-                        targetElement.style.display = 'block';
-                        if (toggleIcon) toggleIcon.classList.add('open');
-                    } else {
-                        targetElement.style.display = 'none';
-                        if (toggleIcon) toggleIcon.classList.remove('open');
+                    // Mapowanie targetId na sekcję rodzica
+                    let parentSectionId = null;
+                    switch(targetId) {
+                        case 'connected-device-container':
+                        case 'connected-device-content':
+                            parentSectionId = 'connected-device-section';
+                            break;
+                        case 'paired-devices-list':
+                        case 'favorite-devices-content':
+                            parentSectionId = 'favorite-devices-section';
+                            break;
+                        case 'discovered-devices-list':
+                        case 'discovered-devices-content':
+                            parentSectionId = 'discovered-devices-section';
+                            break;
                     }
+                    
+                    const parentSection = parentSectionId ? document.getElementById(parentSectionId) : null;
+                    
+                    // Używamy klas CSS zamiast style.display
+                    if (targetElement.classList.contains('collapsed')) {
+                        targetElement.classList.remove('collapsed');
+                        if (toggleIcon) toggleIcon.classList.add('open');
+                        
+                        // Usuń klasę section-collapsed z sekcji rodzica
+                        if (parentSection) {
+                            parentSection.classList.remove('section-collapsed');
+                        }
+                        
+                        addToLog(`Section expanded: ${targetId}`, 'INFO');
+                    } else {
+                        targetElement.classList.add('collapsed');
+                        if (toggleIcon) toggleIcon.classList.remove('open');
+                        
+                        // Dodaj klasę section-collapsed do sekcji rodzica
+                        if (parentSection) {
+                            parentSection.classList.add('section-collapsed');
+                        }
+                        
+                        addToLog(`Section collapsed: ${targetId}`, 'INFO');
+                    }
+                    
+                    // Sprawdź scrollbar po zwijaniu/rozwijaniu sekcji
+                    setTimeout(checkScrollbar, 300);
                 }
             });
         });
@@ -261,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Wyświetla ulubione urządzenia - ZMODYFIKOWANA WERSJA
+     * Wyświetla ulubione urządzenia - UŻYCIE KLAS CSS
      * Teraz pokazuje wszystkie urządzenia, nawet połączone
      */
     function displayPairedDevices() {
@@ -272,16 +368,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Wyświetl ulubione urządzenia
         if (favoriteDevices.length === 0) {
-            // Ukryj sekcję jeśli brak ulubionych
+            // Ukryj całą sekcję jeśli brak ulubionych
             favoriteDevicesSection.style.display = 'none';
         } else {
             // Pokaż sekcję i urządzenia
             favoriteDevicesSection.style.display = 'block';
             pairedDevicesList.innerHTML = favoriteDevices.map(device => createDeviceCard(device, false, true)).join('');
+            // Upewnij się, że lista nie jest zwinięta
+            pairedDevicesList.classList.remove('collapsed');
         }
         
         // Zastosuj filtry
         applyDeviceFilters();
+        
+        // Sprawdź scrollbar po zmianie zawartości
+        setTimeout(checkScrollbar, 100);
     }
     
     /**
@@ -313,10 +414,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Zastosuj filtry
         applyDeviceFilters();
+        
+        // Sprawdź scrollbar po zmianie zawartości
+        setTimeout(checkScrollbar, 100);
     }
     
     /**
-     * Aktualizuje wyświetlanie połączonego urządzenia - POPRAWIONA WERSJA
+     * Aktualizuje wyświetlanie połączonego urządzenia - UŻYCIE KLAS CSS
      */
     function updateConnectionDisplay() {
         if (!connectedDeviceSection || !connectedDeviceContainer) return;
@@ -324,12 +428,18 @@ document.addEventListener('DOMContentLoaded', function() {
         addToLog(`Updating connection display: isConnected=${isConnected}, connectedDevice=${connectedDevice ? connectedDevice.name : 'null'}`, 'DEBUG');
         
         if (isConnected && connectedDevice) {
-            connectedDeviceSection.style.display = 'block';
+            // Używamy klasy 'active' dla connected-device
+            connectedDeviceSection.classList.add('active');
             connectedDeviceContainer.innerHTML = createDeviceCard(connectedDevice, true, false);
             addToLog(`Connected device section shown for: ${connectedDevice.name} (${connectedDevice.address})`, 'INFO');
+            // Sprawdź scrollbar po dodaniu połączonego urządzenia
+            setTimeout(checkScrollbar, 100);
         } else {
-            connectedDeviceSection.style.display = 'none';
+            // Usuwamy klasę 'active' dla connected-device
+            connectedDeviceSection.classList.remove('active');
             addToLog('Connected device section hidden', 'INFO');
+            // Sprawdź scrollbar po ukryciu połączonego urządzenia
+            setTimeout(checkScrollbar, 100);
         }
     }
     
@@ -355,10 +465,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         } else if (showInLists) {
-            // Wersja dla urządzeń w głównych listach - bez zmiany ramki/tła, ale z migającą lampką i ukrytym connect
+            // Wersja dla urządzeń w głównych listach - NOWA LOGIKA DLA EDIT BUTTON
             const isConnected = device.connected === true;
             const connectBtnClass = isConnected ? 'connect-btn hidden' : 'connect-btn';
             const connectAction = isConnected ? '' : `onclick="connectToDevice('${device.address}')"`;
+            
+            // NOWE: Edit button - wyłączony jeśli urządzenie jest połączone
+            const editBtnClass = isConnected ? 'device-edit disabled' : 'device-edit';
+            const editAction = isConnected ? '' : `onclick="editDevice('${device.address}')"`;
+            const editTitle = isConnected ? 'Nie można edytować połączonego urządzenia' : 'Edytuj urządzenie';
             
             // Migająca lampka dla połączonych urządzeń
             const connectionIndicator = isConnected ? '<div class="connection-indicator"></div>' : '';
@@ -381,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </svg>
                         </div>
                         <div class="device-actions">
-                            <button class="device-edit" onclick="editDevice('${device.address}')" title="Edytuj urządzenie">EDIT</button>
+                            <button class="${editBtnClass}" ${editAction} title="${editTitle}">EDIT</button>
                             <button class="${connectBtnClass}" ${connectAction}>CONNECT</button>
                         </div>
                     </div>
@@ -414,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Filtruje urządzenia
+     * Filtruje urządzenia - UŻYCIE KLAS ZAMIAST STYLE.DISPLAY
      */
     function applyDeviceFilters() {
         const nameFilter = sidebarFilterName ? sidebarFilterName.value.toLowerCase() : '';
@@ -445,12 +560,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     shouldShow = false;
                 }
                 
-                // Zastosuj widoczność
-                card.style.display = shouldShow ? 'block' : 'none';
+                // Zastosuj widoczność UŻYWAJĄC KLAS
+                if (shouldShow) {
+                    card.classList.remove('hidden-by-filter');
+                } else {
+                    card.classList.add('hidden-by-filter');
+                }
             } catch (error) {
                 console.warn('Error filtering device:', error);
             }
         });
+        
+        // Sprawdź scrollbar po zastosowaniu filtrów
+        setTimeout(checkScrollbar, 50);
     }
     
     /**
@@ -674,15 +796,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Edytuje urządzenie
+     * Edytuje urządzenie - POPRAWIONA WERSJA z sprawdzeniem połączenia
      */
     function editDevice(address) {
         const device = [...pairedDevices, ...discoveredDevices].find(d => d.address === address);
         if (device) {
+            // NOWE: Sprawdź czy urządzenie jest połączone
+            if (device.connected) {
+                addToLog(`Edit blocked: Device ${device.name} is currently connected`, 'WARNING');
+                showToast('Nie można edytować połączonego urządzenia', 'warning');
+                return;
+            }
+            
             addToLog(`Opening edit dialog for device: ${device.name}`, 'INFO');
             // Tutaj można dodać modal do edycji urządzenia
             // Na razie tylko log
             console.log('Edit device:', device);
+            showToast(`Edycja urządzenia: ${device.name}`, 'info');
         }
     }
     
@@ -734,8 +864,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return stats;
     }
     
-    // Sprawdzaj status połączenia co 5 sekund - WYŁĄCZONE TYMCZASOWO
-    // setInterval(checkConnectionStatus, 5000);
+    // Sprawdzaj status połączenia co 5 sekund 
+    setInterval(checkConnectionStatus, 5000);
     
     // Nasłuchuj na zdarzenia połączenia z urządzeniem
     window.addEventListener('deviceConnected', function(e) {
@@ -753,4 +883,5 @@ document.addEventListener('DOMContentLoaded', function() {
     window.editDevice = editDevice;
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
+    window.checkScrollbar = checkScrollbar;
 });
