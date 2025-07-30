@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize
     loadPairedDevices();
+    setupEditModal();
     
     // Funkcja do sprawdzania czy scrollbar jest widoczny - ZMIENIONO NA DEVICE-LISTS
     function checkScrollbar() {
@@ -912,6 +913,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
     window.checkScrollbar = checkScrollbar;
-    window.displayPairedDevices = displayPairedDevices;
-    window.displayDiscoveredDevices = displayDiscoveredDevices;
+    window.openEditModal = openEditModal;
+    window.closeEditModal = closeEditModal;
 });
