@@ -1,8 +1,11 @@
 // Cyberpunk Sidebar functionality - UPDATED VERSION
 // New Features: 
+// - Loading state for connect button with spinner and 15-second timeout
+// - Full edit functionality with device removal (no device status section)
+// - Modal integration for editing devices
+// Previous Features:
 // - Collapsible filters section
 // - Disabled edit button for connected devices on lists
-// Previous Features:
 // - Scrollbar moved to device-lists instead of sidebar-content
 // - Gradient scrollbar working properly  
 // - Devices save to localStorage properly (favorites + discovered)
@@ -12,6 +15,7 @@
 // - Star animation changed from aura to opacity pulsing
 // - Edit and favorite buttons remain fully functional for connected devices (NOW EDIT IS DISABLED)
 // - Fixed gap disappearing when scrollbar disappears
+
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -28,11 +32,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     const toggleSections = document.querySelectorAll('.toggle-section');
     
+    // Edit modal elements
+    const editModal = document.getElementById('device-edit-modal');
+    const editForm = document.getElementById('edit-device-form');
+    const editDeviceName = document.getElementById('edit-device-name');
+    const editDeviceType = document.getElementById('edit-device-type');
+    const editDeviceAddressHidden = document.getElementById('edit-device-address-hidden');
+    const editDeviceAddressDisplay = document.getElementById('edit-device-address-display');
+    
     // Global variables
     let pairedDevices = [];
     let discoveredDevices = [];
     let connectedDevice = null;
     let isConnected = false;
+    let currentEditingDevice = null;
     
     // Initialize
     loadPairedDevices();
@@ -177,6 +190,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+    }
+    
+    /**
+     * USUNIĘTE FUNKCJE - teraz w inline script:
+     * - setupEditModal() 
+     * - openEditModal()
+     * - closeEditModal() 
+     * - saveEditedDevice()
+     * - deleteCurrentDevice()
+     * - addDeleteButtonToEditForm()
+     */
+    
+    /**
+     * NOWA FUNKCJA: Set Button Loading State - używa globalnej funkcji
+     */
+    function setButtonLoadingState(button, isLoading, originalText = 'CONNECT') {
+        if (typeof window.setButtonLoadingState === 'function') {
+            window.setButtonLoadingState(button, isLoading, originalText);
+        } else {
+            // Fallback implementation
+            if (!button) return;
+            
+            if (isLoading) {
+                button.classList.add('loading');
+                button.innerHTML = `
+                    <span class="loading-spinner"></span>
+                    <span>CONNECTING...</span>
+                `;
+                button.disabled = true;
+            } else {
+                button.classList.remove('loading');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
     }
     
     /**
@@ -444,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA
+     * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA Z LOADING STATE
      * @param {Object} device - Obiekt urządzenia
      * @param {boolean} isConnectedSection - Czy to sekcja active connection
      * @param {boolean} showInLists - Czy to urządzenie w głównych listach
@@ -465,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         } else if (showInLists) {
-            // Wersja dla urządzeń w głównych listach - NOWA LOGIKA DLA EDIT BUTTON
+            // Wersja dla urządzeń w głównych listach - NOWA LOGIKA DLA EDIT BUTTON I LOADING STATE
             const isConnected = device.connected === true;
             const connectBtnClass = isConnected ? 'connect-btn hidden' : 'connect-btn';
             const connectAction = isConnected ? '' : `onclick="connectToDevice('${device.address}')"`;
@@ -479,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const connectionIndicator = isConnected ? '<div class="connection-indicator"></div>' : '';
             
             return `
-                <div class="device-card" data-device='${JSON.stringify(device)}'>
+                <div class="device-card" data-device='${JSON.stringify(device)}' data-address="${device.address}">
                     <div class="device-info">
                         <div class="device-name">
                             ${(device.name).toUpperCase()}
@@ -497,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="device-actions">
                             <button class="${editBtnClass}" ${editAction} title="${editTitle}">EDIT</button>
-                            <button class="${connectBtnClass}" ${connectAction}>CONNECT</button>
+                            <button class="${connectBtnClass}" ${connectAction} data-original-text="CONNECT">CONNECT</button>
                         </div>
                     </div>
                 </div>
@@ -505,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Standardowa wersja dla innych przypadków
             return `
-                <div class="device-card" data-device='${JSON.stringify(device)}'>
+                <div class="device-card" data-device='${JSON.stringify(device)}' data-address="${device.address}">
                     <div class="device-info">
                         <div class="device-name">${(device.name).toUpperCase()}</div>
                         <div class="device-address">${device.address}</div>
@@ -520,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="device-actions">
                             <button class="device-edit" onclick="editDevice('${device.address}')" title="Edytuj urządzenie">EDIT</button>
-                            <button class="connect-btn" onclick="connectToDevice('${device.address}')">CONNECT</button>
+                            <button class="connect-btn" onclick="connectToDevice('${device.address}')" data-original-text="CONNECT">CONNECT</button>
                         </div>
                     </div>
                 </div>
@@ -576,35 +624,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Łączy z urządzeniem
+     * Łączy z urządzeniem - używa globalnej funkcji
      */
-    window.connectToDevice = async function(address) {
-        try {
-            addToLog(`Attempting to connect to ${address}...`, 'CONNECT');
-            
-            const formData = new FormData();
-            formData.append('address', address);
-            
-            const response = await fetch('/connect', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                setTimeout(async () => {
-                    await checkConnectionStatus();
-                    displayPairedDevices();
-                    displayDiscoveredDevices();
-                }, 2000);
-                
-                addToLog(`Connection request sent for ${address}`, 'INFO');
-                showToast(`Connecting to device ${address}...`, 'info');
-            } else {
-                throw new Error('Connection failed');
-            }
-        } catch (error) {
-            addToLog(`Failed to connect to ${address}: ${error.message}`, 'ERROR');
-            showToast(`Failed to connect to device`, 'error');
+    window.connectToDevice = window.connectToDevice || async function(address) {
+        // This will be handled by the inline script in HTML
+        console.log('Using fallback connectToDevice function');
+        if (typeof window.connectToDevice === 'function') {
+            return window.connectToDevice(address);
         }
     };
     
@@ -796,7 +822,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Edytuje urządzenie - POPRAWIONA WERSJA z sprawdzeniem połączenia
+     * Edytuje urządzenie - ZMODYFIKOWANA WERSJA
      */
     function editDevice(address) {
         const device = [...pairedDevices, ...discoveredDevices].find(d => d.address === address);
@@ -809,10 +835,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             addToLog(`Opening edit dialog for device: ${device.name}`, 'INFO');
-            // Tutaj można dodać modal do edycji urządzenia
-            // Na razie tylko log
-            console.log('Edit device:', device);
-            showToast(`Edycja urządzenia: ${device.name}`, 'info');
+            // Use global function
+            if (typeof window.openEditModal === 'function') {
+                window.openEditModal(device);
+            } else {
+                console.error('openEditModal function not available');
+            }
         }
     }
     
@@ -884,4 +912,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
     window.checkScrollbar = checkScrollbar;
+    window.displayPairedDevices = displayPairedDevices;
+    window.displayDiscoveredDevices = displayDiscoveredDevices;
 });

@@ -16,6 +16,497 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Device Edit Modal Styles -->
+  <style>
+    /* Device Edit Modal Styles - CYBERPUNK THEMED */
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    /* Modal Overlay */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Device Edit Modal Content */
+    .device-edit-modal-content {
+      background: #000;
+      margin: 5% auto;
+      padding: 0;
+      border: 2px solid var(--cyberpunk-green);
+      border-radius: 0;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 
+        0 0 20px rgba(74, 222, 128, 0.3),
+        inset 0 0 20px rgba(74, 222, 128, 0.05);
+      position: relative;
+      font-family: "JetBrains Mono", monospace;
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Cyberpunk Glow Effect */
+    .device-edit-modal-content::before {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      background: linear-gradient(45deg, 
+        rgba(74, 222, 128, 0.1) 0%,
+        rgba(96, 165, 250, 0.1) 50%,
+        rgba(192, 132, 252, 0.1) 100%
+      );
+      border-radius: 0;
+      filter: blur(6px);
+      z-index: -1;
+      opacity: 0.6;
+    }
+
+    /* Close Button */
+    .close-modal {
+      color: var(--cyberpunk-green);
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+      color: rgba(74, 222, 128, 0.8);
+      text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+      transform: scale(1.1);
+    }
+
+    /* Modal Header */
+    .device-edit-header {
+      background: linear-gradient(45deg, 
+        rgba(74, 222, 128, 0.1) 0%,
+        rgba(96, 165, 250, 0.05) 100%
+      );
+      padding: 20px 25px;
+      border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+      position: relative;
+    }
+
+    .device-edit-header h2 {
+      color: var(--cyberpunk-green);
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .device-edit-header h2 i {
+      color: var(--cyberpunk-blue);
+    }
+
+    .device-edit-header p {
+      color: rgba(156, 163, 175, 0.8);
+      margin: 5px 0 0 0;
+      font-size: 0.9rem;
+    }
+
+    /* Form Styling */
+    .device-edit-form {
+      padding: 25px;
+      max-height: 70vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--cyberpunk-green) #000;
+    }
+
+    .device-edit-form::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .device-edit-form::-webkit-scrollbar-track {
+      background: #000;
+      border-radius: 0;
+    }
+
+    .device-edit-form::-webkit-scrollbar-thumb {
+      background: var(--cyberpunk-green);
+      border-radius: 0;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    .device-edit-form::-webkit-scrollbar-thumb:hover {
+      background: rgba(74, 222, 128, 0.8);
+    }
+
+    /* Form Sections */
+    .form-section {
+      margin-bottom: 30px;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 0;
+      padding: 20px;
+      background: rgba(74, 222, 128, 0.02);
+      position: relative;
+    }
+
+    .form-section::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        var(--cyberpunk-green) 0%,
+        var(--cyberpunk-blue) 50%,
+        var(--cyberpunk-purple) 100%
+      );
+    }
+
+    .form-section h3 {
+      color: var(--cyberpunk-blue);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+    }
+
+    /* Form Groups */
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--cyberpunk-green);
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .form-group label i {
+      color: var(--cyberpunk-blue);
+      font-size: 0.8rem;
+    }
+
+    /* Input Styling */
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      background: #000;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      border-radius: 0;
+      color: var(--cyberpunk-green);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--cyberpunk-green);
+      box-shadow: 
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(74, 222, 128, 0.3);
+      background: rgba(74, 222, 128, 0.02);
+    }
+
+    .form-group input[disabled],
+    .form-group input[readonly] {
+      background: rgba(156, 163, 175, 0.1);
+      color: rgba(156, 163, 175, 0.7);
+      border-color: rgba(156, 163, 175, 0.3);
+      cursor: not-allowed;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(156, 163, 175, 0.5);
+    }
+
+    .form-group select option {
+      background: #000;
+      color: var(--cyberpunk-green);
+      padding: 8px;
+    }
+
+    /* Input Hints */
+    .input-hint {
+      color: rgba(156, 163, 175, 0.6);
+      font-size: 0.75rem;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+
+
+    /* Form Actions */
+    .form-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(74, 222, 128, 0.3);
+      flex-wrap: wrap;
+    }
+
+    .form-actions .btn {
+      flex: 1;
+      min-width: 150px;
+      padding: 12px 20px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 2px solid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-actions .btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+
+    .form-actions .btn:hover::before {
+      opacity: 0.1;
+    }
+
+    /* Primary Button */
+    .form-actions .btn-primary {
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--cyberpunk-green);
+      border-color: var(--cyberpunk-green);
+    }
+
+    .form-actions .btn-primary::before {
+      background: var(--cyberpunk-green);
+    }
+
+    .form-actions .btn-primary:hover {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: rgba(74, 222, 128, 0.8);
+      box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Outline Button */
+    .form-actions .btn-outline {
+      background: transparent;
+      color: var(--cyberpunk-blue);
+      border-color: var(--cyberpunk-blue);
+    }
+
+    .form-actions .btn-outline::before {
+      background: var(--cyberpunk-blue);
+    }
+
+    .form-actions .btn-outline:hover {
+      background: rgba(96, 165, 250, 0.1);
+      border-color: rgba(96, 165, 250, 0.8);
+      box-shadow: 0 0 15px rgba(96, 165, 250, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Danger Button */
+    .form-actions .btn-danger {
+      background: rgba(248, 113, 113, 0.1);
+      color: rgb(248, 113, 113);
+      border-color: rgb(248, 113, 113);
+    }
+
+    .form-actions .btn-danger::before {
+      background: rgb(248, 113, 113);
+    }
+
+    .form-actions .btn-danger:hover {
+      background: rgba(248, 113, 113, 0.2);
+      border-color: rgba(248, 113, 113, 0.8);
+      box-shadow: 0 0 15px rgba(248, 113, 113, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Modal Warning */
+    .modal-warning {
+      background: rgba(241, 196, 15, 0.1);
+      border: 1px solid rgba(241, 196, 15, 0.3);
+      border-left: 4px solid rgb(241, 196, 15);
+      padding: 15px 20px;
+      margin: 20px 0 0 0;
+      color: rgba(241, 196, 15, 0.9);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      border-radius: 0;
+    }
+
+    .modal-warning i {
+      color: rgb(241, 196, 15);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .modal-warning strong {
+      color: rgb(241, 196, 15);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .device-edit-modal-content {
+        width: 95%;
+        margin: 2% auto;
+      }
+      
+      .device-edit-header {
+        padding: 15px 20px;
+      }
+      
+      .device-edit-header h2 {
+        font-size: 1.3rem;
+      }
+      
+      .device-edit-form {
+        padding: 20px;
+        max-height: 80vh;
+      }
+      
+      .form-section {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+      
+      .form-actions .btn {
+        min-width: auto;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .device-edit-modal-content {
+        width: 98%;
+        margin: 1% auto;
+      }
+      
+      .device-edit-header {
+        padding: 12px 15px;
+      }
+      
+      .device-edit-header h2 {
+        font-size: 1.1rem;
+      }
+      
+      .device-edit-form {
+        padding: 15px;
+      }
+      
+      .form-section {
+        padding: 12px;
+      }
+      
+      .form-group input,
+      .form-group select {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+      }
+      
+      .form-actions .btn {
+        padding: 10px 15px;
+        font-size: 0.8rem;
+      }
+      
+      .modal-warning {
+        margin: 15px 0;
+        padding: 12px 15px;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* Animation for form validation */
+    .form-group.error input,
+    .form-group.error select {
+      border-color: rgb(248, 113, 113);
+      box-shadow: 
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(248, 113, 113, 0.3);
+      animation: shakeError 0.3s ease;
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    /* Success animation */
+    .form-group.success input,
+    .form-group.success select {
+      border-color: var(--cyberpunk-green);
+      box-shadow: 
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(74, 222, 128, 0.4);
+    }
+  </style>
 </head>
 <body>
   <!-- Ukryte pole do przechowywania informacji o urządzeniach -->
@@ -76,7 +567,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/>
             </svg>
-            <span> FILTERS</span>
+            <span> FILTERS</span>
             <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6,9 12,15 18,9"></polyline>
             </svg>
@@ -118,7 +609,7 @@
         <div class="connected-device" id="connected-device-section">
           <h3 class="section-title-active toggle-section" data-target="connected-device-container">
             <div class="status-indicator active"></div>
-            <span> ACTIVE_CONNECTION</span>
+            <span> ACTIVE_CONNECTION</span>
             <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6,9 12,15 18,9"></polyline>
             </svg>
@@ -134,7 +625,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
               </svg>
-              <span> PRIORITY_DEVICES</span>
+              <span> PRIORITY_DEVICES</span>
               <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6,9 12,15 18,9"></polyline>
               </svg>
@@ -149,7 +640,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
-              <span> DISCOVERED_DEVICES</span>
+              <span> DISCOVERED_DEVICES</span>
               <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6,9 12,15 18,9"></polyline>
               </svg>
@@ -280,7 +771,7 @@
                   </div>
                 </div>
                 <div class="scan-info-message">
-                  <p>Upewnij się, że urządzenie jest włączone i wykrywalne. Wybierz urzadzenie poniżej, aby nawiązać połączenie.</p>
+                  <p>Upewnij się, że urządzenie jest włączone i wykrywalne. Wybierz urządzenie poniżej, aby nawiązać połączenie.</p>
                 </div>
                 <div id="scan-results-container" class="scan-results-container"></div>
                 <div class="manual-device-link">
@@ -379,34 +870,82 @@
     </div>
   </div>
 
-  <!-- Modal edycji urządzenia -->
+  <!-- Modal edycji urządzenia - ZAKTUALIZOWANA WERSJA -->
   <div id="device-edit-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content device-edit-modal-content">
       <span class="close-modal">&times;</span>
-      <h2>Edytuj urządzenie</h2>
-      <form id="edit-device-form">
+      
+      <div class="modal-header device-edit-header">
+        <h2><i class="fas fa-edit"></i> Edytuj urządzenie</h2>
+        <p>Zmień ustawienia i właściwości urządzenia</p>
+      </div>
+      
+      <form id="edit-device-form" class="device-edit-form">
         <input type="hidden" id="edit-device-address-hidden">
-        <div class="form-group">
-          <label for="edit-device-name">Nazwa urządzenia:</label>
-          <input type="text" id="edit-device-name" required>
+        
+        <div class="form-section">
+          <h3>Podstawowe informacje</h3>
+          
+          <div class="form-group">
+            <label for="edit-device-name">
+              <i class="fas fa-tag"></i>
+              Nazwa urządzenia:
+            </label>
+            <input type="text" id="edit-device-name" required placeholder="np. Moje Słuchawki">
+            <div class="input-hint">Nazwa wyświetlana w aplikacji</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-device-type">
+              <i class="fas fa-list"></i>
+              Typ urządzenia:
+            </label>
+            <select id="edit-device-type" required>
+              <option value="headphones">🎧 Słuchawki</option>
+              <option value="speaker">🔊 Głośnik</option>
+              <option value="keyboard">⌨️ Klawiatura</option>
+              <option value="mouse">🖱️ Mysz</option>
+              <option value="gamepad">🎮 Kontroler</option>
+              <option value="phone">📱 Telefon</option>
+              <option value="tablet">📱 Tablet</option>
+              <option value="laptop">💻 Laptop</option>
+              <option value="desktop">🖥️ Komputer</option>
+              <option value="other">📱 Inne</option>
+            </select>
+            <div class="input-hint">Wybierz typ dla lepszej organizacji</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-device-address-display">
+              <i class="fas fa-wifi"></i>
+              Adres MAC:
+            </label>
+            <input type="text" id="edit-device-address-display" disabled readonly>
+            <div class="input-hint">Adres MAC nie może być zmieniony</div>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="edit-device-type">Typ urządzenia:</label>
-          <select id="edit-device-type">
-            <option value="headphones">Słuchawki</option>
-            <option value="speaker">Głośnik</option>
-            <option value="keyboard">Klawiatura</option>
-            <option value="mouse">Mysz</option>
-            <option value="gamepad">Kontroler</option>
-            <option value="other">Inne</option>
-          </select>
-        </div>
-        <div class="form-group mac-address-display">
-          <label for="edit-device-address-display">Adres MAC:</label>
-          <input type="text" id="edit-device-address-display" disabled>
-        </div>
+        
+
+        
         <div class="form-actions">
-          <button type="submit" class="btn">Zapisz</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Zapisz zmiany
+          </button>
+          <button type="button" class="btn btn-outline" onclick="closeEditModal()">
+            <i class="fas fa-times"></i>
+            Anuluj
+          </button>
+          <button type="button" class="btn btn-danger delete-device-btn" onclick="deleteCurrentDevice()">
+            <i class="fas fa-trash"></i>
+            Usuń urządzenie
+          </button>
+        </div>
+        
+        <div class="modal-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>Uwaga:</strong> Nie można edytować urządzenia, które jest aktualnie połączone. 
+          Najpierw rozłącz urządzenie, aby móc wprowadzić zmiany.
         </div>
       </form>
     </div>
@@ -673,6 +1212,332 @@
   <!-- JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script> 
   <script src="{{ url_for('static', filename='js/bluetooth.js') }}"></script>
+  
+  <!-- Inline JavaScript for device management -->
+  <script>
+    // Device management variables
+    let currentEditingDevice = null;
+    let pairedDevices = [];
+    let discoveredDevices = [];
+    let connectedDevice = null;
+    let isConnected = false;
+    
+    /**
+     * Set Button Loading State with proper timeout handling
+     */
+    function setButtonLoadingState(button, isLoading, originalText = 'CONNECT') {
+        if (!button) return;
+        
+        if (isLoading) {
+            button.classList.add('loading');
+            button.innerHTML = `
+                <span class="loading-spinner"></span>
+                <span>CONNECTING...</span>
+            `;
+            button.disabled = true;
+        } else {
+            button.classList.remove('loading');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+    
+    /**
+     * Connect to device with proper timeout
+     */
+    window.connectToDevice = async function(address) {
+        const deviceCard = document.querySelector(`[data-address="${address}"]`);
+        const connectButton = deviceCard ? deviceCard.querySelector('.connect-btn') : null;
+        
+        let timeoutId = null;
+        
+        try {
+            if (connectButton) {
+                setButtonLoadingState(connectButton, true);
+            }
+            
+            console.log(`Attempting to connect to ${address}...`);
+            
+            // Set timeout for 15 seconds
+            timeoutId = setTimeout(() => {
+                console.log(`Connection timeout for ${address}`);
+                if (connectButton) {
+                    setButtonLoadingState(connectButton, false);
+                }
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Connection timeout - try again', 'warning');
+                }
+            }, 15000);
+            
+            const formData = new FormData();
+            formData.append('address', address);
+            
+            const response = await fetch('/connect', {
+                method: 'POST',
+                body: formData
+            });
+            
+            // Clear timeout since we got a response
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            
+            if (response.ok) {
+                console.log(`Connection request sent for ${address}`);
+                if (typeof window.showToast === 'function') {
+                    window.showToast(`Connecting to device ${address}...`, 'info');
+                }
+                
+                // Check connection status after 2 seconds
+                setTimeout(async () => {
+                    if (connectButton) {
+                        setButtonLoadingState(connectButton, false);
+                    }
+                    // Refresh device lists if functions exist
+                    if (typeof window.checkConnectionStatus === 'function') {
+                        await window.checkConnectionStatus();
+                    }
+                    if (typeof window.displayPairedDevices === 'function') {
+                        window.displayPairedDevices();
+                    }
+                    if (typeof window.displayDiscoveredDevices === 'function') {
+                        window.displayDiscoveredDevices();
+                    }
+                }, 2000);
+                
+            } else {
+                throw new Error('Connection failed');
+            }
+        } catch (error) {
+            // Clear timeout on error
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            
+            console.error(`Failed to connect to ${address}: ${error.message}`);
+            
+            if (connectButton) {
+                setButtonLoadingState(connectButton, false);
+            }
+            
+            if (typeof window.showToast === 'function') {
+                window.showToast('Failed to connect to device', 'error');
+            }
+        }
+    };
+    
+    /**
+     * Open Edit Modal
+     */
+    function openEditModal(device) {
+        const editModal = document.getElementById('device-edit-modal');
+        const editDeviceName = document.getElementById('edit-device-name');
+        const editDeviceType = document.getElementById('edit-device-type');
+        const editDeviceAddressHidden = document.getElementById('edit-device-address-hidden');
+        const editDeviceAddressDisplay = document.getElementById('edit-device-address-display');
+        
+        if (!editModal || !device) return;
+        
+        currentEditingDevice = device;
+        
+        // Populate form fields
+        if (editDeviceName) editDeviceName.value = device.name || '';
+        if (editDeviceType) editDeviceType.value = device.type || 'other';
+        if (editDeviceAddressHidden) editDeviceAddressHidden.value = device.address || '';
+        if (editDeviceAddressDisplay) editDeviceAddressDisplay.value = device.address || '';
+        
+        // Show modal
+        editModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        console.log(`Edit modal opened for device: ${device.name}`);
+    }
+    
+    /**
+     * Close Edit Modal
+     */
+    function closeEditModal() {
+        const editModal = document.getElementById('device-edit-modal');
+        const editForm = document.getElementById('edit-device-form');
+        
+        if (!editModal) return;
+        
+        editModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        currentEditingDevice = null;
+        
+        // Clear form
+        if (editForm) editForm.reset();
+        
+        console.log('Edit modal closed');
+    }
+    
+    /**
+     * Save Edited Device
+     */
+    function saveEditedDevice() {
+        if (!currentEditingDevice) return;
+        
+        const editDeviceName = document.getElementById('edit-device-name');
+        const editDeviceType = document.getElementById('edit-device-type');
+        
+        const newName = editDeviceName ? editDeviceName.value.trim() : '';
+        const newType = editDeviceType ? editDeviceType.value : 'other';
+        
+        if (!newName) {
+            if (typeof window.showToast === 'function') {
+                window.showToast('Nazwa urządzenia nie może być pusta', 'error');
+            }
+            return;
+        }
+        
+        const address = currentEditingDevice.address;
+        
+        // Update device in localStorage
+        try {
+            // Update in pairedDevices (favorites)
+            const favoriteDevices = JSON.parse(localStorage.getItem('favoriteDevices') || '[]');
+            const pairedIndex = favoriteDevices.findIndex(d => d.address === address);
+            if (pairedIndex !== -1) {
+                favoriteDevices[pairedIndex] = {
+                    ...favoriteDevices[pairedIndex],
+                    name: newName,
+                    type: newType
+                };
+                localStorage.setItem('favoriteDevices', JSON.stringify(favoriteDevices));
+            }
+            
+            // Update in discoveredDevices
+            const discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
+            const discoveredIndex = discoveredDevices.findIndex(d => d.address === address);
+            if (discoveredIndex !== -1) {
+                discoveredDevices[discoveredIndex] = {
+                    ...discoveredDevices[discoveredIndex],
+                    name: newName,
+                    type: newType
+                };
+                localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
+            }
+            
+            console.log(`Device updated: ${newName} (${address})`);
+            
+            closeEditModal();
+            
+            if (typeof window.showToast === 'function') {
+                window.showToast(`Urządzenie "${newName}" zostało zaktualizowane`, 'success');
+            }
+            
+            // Refresh device lists
+            if (typeof window.loadPairedDevices === 'function') {
+                window.loadPairedDevices();
+            }
+            
+        } catch (error) {
+            console.error('Error saving device:', error);
+            if (typeof window.showToast === 'function') {
+                window.showToast('Błąd podczas zapisywania urządzenia', 'error');
+            }
+        }
+    }
+    
+    /**
+     * Delete Current Device
+     */
+    function deleteCurrentDevice() {
+        if (!currentEditingDevice) return;
+        
+        const deviceName = currentEditingDevice.name;
+        const address = currentEditingDevice.address;
+        
+        // Confirm deletion
+        if (!confirm(`Czy na pewno chcesz usunąć urządzenie "${deviceName}"?`)) {
+            return;
+        }
+        
+        // Check if device is connected
+        if (currentEditingDevice.connected) {
+            if (typeof window.showToast === 'function') {
+                window.showToast('Nie można usunąć połączonego urządzenia. Najpierw je rozłącz.', 'error');
+            }
+            return;
+        }
+        
+        try {
+            // Remove from favoriteDevices
+            const favoriteDevices = JSON.parse(localStorage.getItem('favoriteDevices') || '[]');
+            const pairedIndex = favoriteDevices.findIndex(d => d.address === address);
+            if (pairedIndex !== -1) {
+                favoriteDevices.splice(pairedIndex, 1);
+                localStorage.setItem('favoriteDevices', JSON.stringify(favoriteDevices));
+            }
+            
+            // Remove from discoveredDevices
+            const discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
+            const discoveredIndex = discoveredDevices.findIndex(d => d.address === address);
+            if (discoveredIndex !== -1) {
+                discoveredDevices.splice(discoveredIndex, 1);
+                localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
+            }
+            
+            console.log(`Device deleted: ${deviceName} (${address})`);
+            
+            closeEditModal();
+            
+            if (typeof window.showToast === 'function') {
+                window.showToast(`Urządzenie "${deviceName}" zostało usunięte`, 'info');
+            }
+            
+            // Refresh device lists
+            if (typeof window.loadPairedDevices === 'function') {
+                window.loadPairedDevices();
+            }
+            
+        } catch (error) {
+            console.error('Error deleting device:', error);
+            if (typeof window.showToast === 'function') {
+                window.showToast('Błąd podczas usuwania urządzenia', 'error');
+            }
+        }
+    }
+    
+    // Setup edit modal when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const editModal = document.getElementById('device-edit-modal');
+        const editForm = document.getElementById('edit-device-form');
+        
+        if (editModal) {
+            // Close modal listeners
+            const closeButtons = editModal.querySelectorAll('.close-modal');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', closeEditModal);
+            });
+            
+            // Click outside to close
+            editModal.addEventListener('click', function(e) {
+                if (e.target === editModal) {
+                    closeEditModal();
+                }
+            });
+        }
+        
+        // Form submission
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveEditedDevice();
+            });
+        }
+    });
+    
+    // Make functions globally available
+    window.openEditModal = openEditModal;
+    window.closeEditModal = closeEditModal;
+    window.saveEditedDevice = saveEditedDevice;
+    window.deleteCurrentDevice = deleteCurrentDevice;
+    window.setButtonLoadingState = setButtonLoadingState;
+  </script>
+  
   <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
   <script src="{{ url_for('static', filename='js/device-modal.js') }}"></script>
   <script src="{{ url_for('static', filename='js/debug-modal.js') }}"></script>
