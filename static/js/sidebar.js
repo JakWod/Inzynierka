@@ -425,6 +425,9 @@ document.addEventListener('DOMContentLoaded', function() {
             pairedDevicesList.innerHTML = favoriteDevices.map(device => createDeviceCard(device, false, true)).join('');
             // Upewnij się, że lista nie jest zwinięta
             pairedDevicesList.classList.remove('collapsed');
+            
+            // Dodaj event listenery dla przycisków edit
+            addEditButtonListeners(pairedDevicesList);
         }
         
         // Zastosuj filtry
@@ -459,6 +462,9 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else {
             discoveredDevicesList.innerHTML = allDiscoveredDevices.map(device => createDeviceCard(device, false, true)).join('');
+            
+            // Dodaj event listenery dla przycisków edit
+            addEditButtonListeners(discoveredDevicesList);
         }
         
         // Zastosuj filtry
@@ -493,6 +499,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
+     * Dodaj event listenery do przycisków edit
+     * @param {HTMLElement} container - Kontener z kartami urządzeń
+     */
+    function addEditButtonListeners(container) {
+        const editButtons = container.querySelectorAll('.device-edit:not(.disabled)');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const deviceCard = button.closest('.device-card');
+                const address = deviceCard.getAttribute('data-address');
+                if (address) {
+                    editDevice(address);
+                }
+            });
+        });
+    }
+    
+    /**
      * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA Z LOADING STATE
      * @param {Object} device - Obiekt urządzenia
      * @param {boolean} isConnectedSection - Czy to sekcja active connection
@@ -521,7 +545,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // NOWE: Edit button - wyłączony jeśli urządzenie jest połączone
             const editBtnClass = isConnected ? 'device-edit disabled' : 'device-edit';
-            const editAction = isConnected ? '' : `onclick="editDevice('${device.address}')"`;
             const editTitle = isConnected ? 'Nie można edytować połączonego urządzenia' : 'Edytuj urządzenie';
             
             // Migająca lampka dla połączonych urządzeń
@@ -545,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </svg>
                         </div>
                         <div class="device-actions">
-                            <button class="${editBtnClass}" ${editAction} title="${editTitle}">EDIT</button>
+                            <button class="${editBtnClass}" title="${editTitle}">EDIT</button>
                             <button class="${connectBtnClass}" ${connectAction} data-original-text="CONNECT">CONNECT</button>
                         </div>
                     </div>
@@ -568,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </svg>
                         </div>
                         <div class="device-actions">
-                            <button class="device-edit" onclick="editDevice('${device.address}')" title="Edytuj urządzenie">EDIT</button>
+                            <button class="device-edit" title="Edytuj urządzenie">EDIT</button>
                             <button class="connect-btn" onclick="connectToDevice('${device.address}')" data-original-text="CONNECT">CONNECT</button>
                         </div>
                     </div>
@@ -913,6 +936,4 @@ document.addEventListener('DOMContentLoaded', function() {
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
     window.checkScrollbar = checkScrollbar;
-    window.openEditModal = openEditModal;
-    window.closeEditModal = closeEditModal;
 });
