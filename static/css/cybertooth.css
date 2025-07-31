@@ -1,0 +1,1037 @@
+/* ========================================
+   CYBERPUNK MAIN CONTENT STYLES
+   Zastępuje style main content na cyberpunk design
+   SIDEBAR ZOSTAJE BEZ ZMIAN
+   ======================================== */
+
+/* Import JetBrains Mono font for terminal effect */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* Cyberpunk color variables */
+:root {
+  --cyberpunk-red: #ef4444;
+  --cyberpunk-green: rgb(74 222 128);
+  --cyberpunk-green-alpha: rgb(74 222 128 / 0.1);
+  --cyberpunk-green-border: rgb(74 222 128 / var(--tw-border-opacity, 1));
+  --cyberpunk-blue: rgb(96 165 250 / var(--tw-text-opacity, 1));
+  --cyberpunk-yellow: rgb(250 204 21 / var(--tw-text-opacity, 1));
+  --cyberpunk-purple: rgb(192 132 252 / var(--tw-text-opacity, 1));
+  --tw-border-opacity: 1;
+  --tw-text-opacity: 1;
+
+}
+
+/* ========================================
+   BACKGROUND EFFECTS
+   ======================================== */
+
+.background-effects {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.gradient-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(147, 51, 234, 0.1) 0%,
+    rgba(59, 130, 246, 0.1) 50%,
+    rgba(16, 185, 129, 0.1) 100%
+  );
+}
+
+.neon-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 255, 65, 0.1) 1px, transparent 0);
+  background-size: 60px 60px;
+  animation: pulse 4s ease-in-out infinite;
+  opacity: 0.2;
+}
+
+/* ========================================
+   MAIN CONTENT OVERRIDE
+   ======================================== */
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #000;
+  color: var(--cyberpunk-green);
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* ========================================
+   CYBERPUNK HEADER
+   ======================================== */
+
+.header {
+  background: #000;
+  border-bottom: 2px solid var(--cyberpunk-green);
+  padding: 0.75rem 1.5rem;
+  position: relative;
+}
+
+.header-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.1), rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  animation: pulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 10;
+}
+
+/* Logo Section */
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(to right, var(--cyberpunk-green), var(--cyberpunk-blue));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  position: relative;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.logo-icon::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(to right, var(--cyberpunk-green), var(--cyberpunk-blue));
+  border-radius: 8px;
+  filter: blur(8px);
+  opacity: 0.3;
+  animation: pulse 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+.logo-text h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--cyberpunk-green);
+  margin: 0;
+}
+
+.logo-cyber {
+  color: var(--cyberpunk-blue);
+}
+
+.logo-text p {
+  font-size: 0.75rem;
+  color: rgba(156, 163, 175, 0.7);
+  letter-spacing: 0.2em;
+  margin: 0;
+}
+
+/* Search Terminal */
+.search-terminal {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+}
+
+.terminal-wrapper {
+  position: relative;
+}
+
+.terminal-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.2), rgba(59, 130, 246, 0.2));
+  border-radius: 4px;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.terminal-content {
+  background: #000;
+  border: 1px solid var(--cyberpunk-green);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.terminal-content svg {
+  color: var(--cyberpunk-green);
+}
+
+.terminal-prompt {
+  color: var(--cyberpunk-green);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.terminal-content input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--cyberpunk-green);
+  font-family: inherit;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.terminal-content input::placeholder {
+  color: rgba(156, 163, 175, 0.5);
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #000;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  position: relative;
+}
+
+.connection-status.connected {
+  border-color: var(--cyberpunk-green);
+}
+
+.connection-status.connected::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.2), rgba(59, 130, 246, 0.2));
+  border-radius: 9999px;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6b7280;
+}
+
+.status-indicator.active {
+  background: var(--cyberpunk-green);
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.connection-status svg {
+  color: rgba(156, 163, 175, 0.7);
+}
+
+.connection-status.connected svg {
+  color: var(--cyberpunk-green);
+}
+
+#statusText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(156, 163, 175, 0.7);
+}
+
+.connection-status.connected #statusText {
+  color: var(--cyberpunk-green);
+}
+
+.disconnect-btn {
+  background: none;
+  border: none;
+  color: var(--cyberpunk-red);
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.disconnect-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Scan Button */
+.scan-btn {
+  background: none;
+  border: 1px solid var(--cyberpunk-blue);
+  color: var(--cyberpunk-blue);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.scan-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(to right, var(--cyberpunk-blue), var(--cyberpunk-purple));
+  border-radius: 8px;
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.scan-btn:hover::before {
+  opacity: 0.5;
+}
+
+.scan-btn:hover {
+  border-color: var(--cyberpunk-purple);
+  color: var(--cyberpunk-purple);
+}
+
+.scan-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scan-btn.scanning svg {
+  animation: spin 1s linear infinite;
+}
+
+/* Security Indicator */
+.security-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #000;
+  border: 1px solid var(--cyberpunk-yellow);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: var(--cyberpunk-yellow);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Icon Buttons */
+.icon-btn {
+  background: none;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  color: rgba(156, 163, 175, 0.7);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.icon-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(to right, var(--cyberpunk-purple), #ec4899);
+  border-radius: 8px;
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.icon-btn:hover::before {
+  opacity: 0.5;
+}
+
+.icon-btn:hover {
+  border-color: var(--cyberpunk-purple);
+  color: var(--cyberpunk-purple);
+}
+
+/* User Menu */
+.user-menu {
+  position: relative;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: #000;
+  border: 1px solid var(--cyberpunk-green);
+  border-radius: 8px;
+  padding: 0.5rem;
+  min-width: 200px;
+  display: none;
+  z-index: 50;
+}
+
+.user-dropdown.show {
+  display: block;
+}
+
+.user-dropdown::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.2), rgba(59, 130, 246, 0.2));
+  border-radius: 8px;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.dropdown-item {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--cyberpunk-green);
+  padding: 0.75rem;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(0, 255, 65, 0.1);
+}
+
+.dropdown-item.danger {
+  color: var(--cyberpunk-red);
+}
+
+.dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.dropdown-divider {
+  border: none;
+  border-top: 1px solid rgba(0, 255, 65, 0.3);
+  margin: 0.5rem 0;
+}
+
+/* ========================================
+   TERMINAL INTERFACE
+   ======================================== */
+
+.terminal-interface {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 1rem;
+  overflow: hidden;
+}
+
+.terminal-header {
+  background: #000;
+  border: 2px solid var(--cyberpunk-green);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.terminal-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.1), rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  border-radius: 8px 8px 0 0;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.terminal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.terminal-title svg {
+  color: var(--cyberpunk-green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.terminal-title h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cyberpunk-green);
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.terminal-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.terminal-lights {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.light.red {
+  background: var(--cyberpunk-red);
+}
+
+.light.yellow {
+  background: var(--cyberpunk-yellow);
+}
+
+.light.green {
+  background: var(--cyberpunk-green);
+}
+
+.terminal-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab-btn {
+  background: rgba(156, 163, 175, 0.1);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  color: rgba(156, 163, 175, 0.7);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: rgba(0, 255, 65, 0.2);
+  border-color: var(--cyberpunk-green);
+  color: var(--cyberpunk-green);
+}
+
+.tab-btn:hover:not(.active) {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--cyberpunk-blue);
+  color: var(--cyberpunk-blue);
+}
+
+.terminal-content {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--cyberpunk-green);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-content {
+  height: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+  display: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyberpunk-green) #000;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--cyberpunk-green), #10b981);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 255, 65, 0.3);
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #10b981, #059669);
+}
+
+/* ========================================
+   DEVICES GRID
+   ======================================== */
+
+.devices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.empty-terminal-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(156, 163, 175, 0.7);
+  height: 100%;
+}
+
+.empty-terminal-icon {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.empty-terminal-icon svg {
+  color: var(--cyberpunk-green);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.empty-terminal-icon::before {
+  content: "";
+  position: absolute;
+  inset: -1rem;
+  background: radial-gradient(circle, rgba(0, 255, 65, 0.2), transparent);
+  border-radius: 50%;
+  filter: blur(8px);
+  animation: pulse 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+.empty-terminal-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cyberpunk-green);
+  margin-bottom: 1rem;
+}
+
+.empty-terminal-state p {
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+.scan-tips {
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 400px;
+}
+
+.scan-tips h4 {
+  color: var(--cyberpunk-green);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.scan-tips ul {
+  list-style: none;
+  text-align: left;
+}
+
+.scan-tips li {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Device Terminal Cards */
+.device-terminal-card {
+  background: #000;
+  border: 1px solid rgba(0, 255, 65, 0.5);
+  border-radius: 8px;
+  padding: 1.5rem;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.device-terminal-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.2), rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+  border-radius: 8px;
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.device-terminal-card:hover::before {
+  opacity: 1;
+}
+
+.device-terminal-card:hover {
+  border-color: var(--cyberpunk-green);
+  transform: scale(1.05);
+}
+
+/* ========================================
+   LOGS TERMINAL
+   ======================================== */
+
+.logs-terminal {
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.logs-content {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.log-entry {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.log-timestamp {
+  color: rgba(156, 163, 175, 0.5);
+  font-size: 0.75rem;
+}
+
+.log-level {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  min-width: 60px;
+}
+
+.log-level.success {
+  color: var(--cyberpunk-green);
+}
+
+.log-level.error {
+  color: var(--cyberpunk-red);
+}
+
+.log-level.warning {
+  color: var(--cyberpunk-yellow);
+}
+
+.log-level.info {
+  color: var(--cyberpunk-blue);
+}
+
+.log-message {
+  color: var(--cyberpunk-green);
+  flex: 1;
+}
+
+/* ========================================
+   MEDIA CONTROLS
+   ======================================== */
+
+.media-controls {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.media-section {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.media-section h3 {
+  color: var(--cyberpunk-green);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.media-buttons,
+.volume-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.media-btn {
+  background: none;
+  border: 1px solid var(--cyberpunk-blue);
+  color: var(--cyberpunk-blue);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 100px;
+}
+
+.media-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(to right, var(--cyberpunk-blue), var(--cyberpunk-purple));
+  border-radius: 8px;
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.media-btn:hover::before {
+  opacity: 0.5;
+}
+
+.media-btn:hover {
+  border-color: var(--cyberpunk-purple);
+  color: var(--cyberpunk-purple);
+  transform: translateY(-2px);
+}
+
+.media-btn.primary {
+  border-color: var(--cyberpunk-green);
+  color: var(--cyberpunk-green);
+}
+
+.media-btn.primary::before {
+  background: linear-gradient(to right, var(--cyberpunk-green), #10b981);
+}
+
+.media-btn.primary:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+/* ========================================
+   CYBERPUNK MODALS
+   ======================================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #000;
+  border: 2px solid var(--cyberpunk-green);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  position: relative;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.modal::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.2), rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+  border-radius: 16px;
+  filter: blur(8px);
+  animation: pulse 4s ease-in-out infinite;
+  z-index: -1;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-title svg {
+  color: var(--cyberpunk-green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.modal-title h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cyberpunk-green);
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: var(--cyberpunk-red);
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.modal-close::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: rgba(239, 68, 68, 0.2);
+  border-radius: 4px;
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.modal-close:hover::before {
+  opacity: 1;
+}
+
+.modal-close:hover {
+  border-color: var(--cyberpunk-red);
+}
+
+.modal-content {
+  padding: 1.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  color: var(--cyberpunk-green);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .search-terminal {
+    margin: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .devices-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .media-buttons,
+  .volume-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .terminal-interface {
+    margin: 0.5rem;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .terminal-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .terminal-tabs {
+    flex-wrap: wrap;
+  }
+}

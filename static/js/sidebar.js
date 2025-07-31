@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize
     loadPairedDevices();
     setupEditDeviceModal();
+    initializeSectionStates();
     
     // Sidebar toggle functionality
     if (sidebarToggle) {
@@ -45,6 +46,35 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.classList.toggle('collapsed');
             addToLog('Sidebar toggled', 'INFO');
         });
+    }
+    
+    /**
+     * Inicjalizuje stan sekcji przy starcie aplikacji
+     */
+    function initializeSectionStates() {
+        // Sprawdź wszystkie sekcje i ustaw prawidłowe klasy CSS
+        const sections = [
+            { element: favoriteDevicesSection, content: pairedDevicesList },
+            { element: connectedDeviceSection, content: connectedDeviceContainer },
+            { element: document.querySelector('.device-section:last-child'), content: discoveredDevicesList }
+        ];
+        
+        sections.forEach(({ element, content }) => {
+            if (element && content) {
+                // Sprawdź czy zawartość jest ukryta
+                const isHidden = element.style.display === 'none' || 
+                                content.style.display === 'none' ||
+                                content.classList.contains('collapsed');
+                
+                if (isHidden) {
+                    element.classList.add('collapsed');
+                } else {
+                    element.classList.remove('collapsed');
+                }
+            }
+        });
+        
+        addToLog('Section states initialized', 'INFO');
     }
     
     // Filter event listeners
@@ -77,13 +107,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 const targetElement = document.getElementById(targetId);
                 const toggleIcon = this.querySelector('.dropdown-toggle');
                 
+                // Znajdź sekcję nadrzędną do dodania klasy collapsed
+                const parentSection = this.closest('.device-section') || this.closest('.connected-device') || this.closest('.filters-section');
+                
                 if (targetElement) {
-                    if (targetElement.style.display === 'none') {
+                    // Sprawdź obecny stan zwijania
+                    const isCurrentlyCollapsed = targetElement.style.display === 'none' || targetElement.classList.contains('collapsed');
+                    
+                    if (isCurrentlyCollapsed) {
+                        // Rozwijanie sekcji
                         targetElement.style.display = 'block';
+                        targetElement.classList.remove('collapsed');
                         if (toggleIcon) toggleIcon.classList.add('open');
+                        
+                        // Usuń klasę collapsed z sekcji nadrzędnej
+                        if (parentSection) {
+                            parentSection.classList.remove('collapsed');
+                        }
+                        
+                        addToLog(`Section expanded: ${targetId}`, 'INFO');
                     } else {
-                        targetElement.style.display = 'none';
+                        // Zwijanie sekcji - użyj animacji CSS
+                        targetElement.classList.add('collapsed');
                         if (toggleIcon) toggleIcon.classList.remove('open');
+                        
+                        // Dodaj klasę collapsed do sekcji nadrzędnej
+                        if (parentSection) {
+                            parentSection.classList.add('collapsed');
+                        }
+                        
+                        // Po animacji ukryj element
+                        setTimeout(() => {
+                            if (targetElement.classList.contains('collapsed')) {
+                                targetElement.style.display = 'none';
+                            }
+                        }, 300); // Czas trwania animacji CSS
+                        
+                        addToLog(`Section collapsed: ${targetId}`, 'INFO');
                     }
                 }
             });
@@ -124,6 +184,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Zapisz zmiany
                 const success = saveDeviceChanges(address, newName, newType);
                 
+                if (success) {
+                    closeEditDeviceModal();
+                }
+            });
+        }
+        
+        // Obsługa zamykania modala
+        const closeButtons = document.querySelectorAll('#device-edit-modal .close-modal');
+        const cancelButton = document.getElementById('cancel-edit-device');
+        
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                closeEditDeviceModal();
+            });
+        });
+        
+        // Przycisk Anuluj
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function() {
+                closeEditDeviceModal();
+            });
+        }
+        
+        // Zamykanie modala przez kliknięcie w tło
+        if (editModal) {
+            editModal.addEventListener('click', function(e) {
+                if (e.target === editModal) {
+                    closeEditDeviceModal();
+                }
+            });
+        }
+        
+        // Zamykanie modala przez ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && editModal && editModal.style.display === 'block') {
+                closeEditDeviceModal();
+            }
+        });
+        
+        addToLog('Edit device modal initialized', 'INFO');
+    }
+    
     /**
      * Zamyka modal edycji urządzenia z animacją
      */
@@ -204,44 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
     }
-            });
-        }
-        
-        // Obsługa zamykania modala
-        const closeButtons = document.querySelectorAll('#device-edit-modal .close-modal');
-        const cancelButton = document.getElementById('cancel-edit-device');
-        
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                closeEditDeviceModal();
-            });
-        });
-        
-        // Przycisk Anuluj
-        if (cancelButton) {
-            cancelButton.addEventListener('click', function() {
-                closeEditDeviceModal();
-            });
-        }
-        
-        // Zamykanie modala przez kliknięcie w tło
-        if (editModal) {
-            editModal.addEventListener('click', function(e) {
-                if (e.target === editModal) {
-                    closeEditDeviceModal();
-                }
-            });
-        }
-        
-        // Zamykanie modala przez ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && editModal && editModal.style.display === 'block') {
-                closeEditDeviceModal();
-            }
-        });
-        
-        addToLog('Edit device modal initialized', 'INFO');
-    }
+    
     function getDeviceIcon(type) {
         const icons = {
             headphones: '🎧',
@@ -418,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Wyświetla ulubione urządzenia - ZMODYFIKOWANA WERSJA
-     * Teraz pokazuje wszystkie urządzenia, nawet połączone
+     * Teraz pokazuje wszystkie urządzenia, nawet połączone + obsługa collapsed
      */
     function displayPairedDevices() {
         if (!pairedDevicesList || !favoriteDevicesSection) return;
@@ -428,16 +493,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Wyświetl ulubione urządzenia
         if (favoriteDevices.length === 0) {
-            // Ukryj sekcję jeśli brak ulubionych
+            // Ukryj sekcję jeśli brak ulubionych i dodaj collapsed
             favoriteDevicesSection.style.display = 'none';
+            favoriteDevicesSection.classList.add('collapsed');
         } else {
-            // Pokaż sekcję i urządzenia
+            // Pokaż sekcję i urządzenia, usuń collapsed
             favoriteDevicesSection.style.display = 'block';
+            favoriteDevicesSection.classList.remove('collapsed');
             pairedDevicesList.innerHTML = favoriteDevices.map(device => createDeviceCard(device, false, true)).join('');
         }
         
         // Zastosuj filtry
         applyDeviceFilters();
+        
+        // Sprawdź i zaktualizuj stan collapsed
+        setTimeout(() => initializeSectionStates(), 100);
     }
     
     /**
@@ -473,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Aktualizuje wyświetlanie połączonego urządzenia - POPRAWIONA WERSJA
-     * FIXED: Dodano klasę 'active' dla prawidłowego wyświetlania sekcji
+     * FIXED: Dodano klasę 'active' dla prawidłowego wyświetlania sekcji + obsługa collapsed
      */
     function updateConnectionDisplay() {
         if (!connectedDeviceSection || !connectedDeviceContainer) return;
@@ -483,13 +553,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isConnected && connectedDevice) {
             connectedDeviceSection.style.display = 'block';
             connectedDeviceSection.classList.add('active'); // DODANO KLASĘ ACTIVE
+            connectedDeviceSection.classList.remove('collapsed'); // USUŃ COLLAPSED PRZY POŁĄCZENIU
             connectedDeviceContainer.innerHTML = createDeviceCard(connectedDevice, true, false);
             addToLog(`Connected device section shown for: ${connectedDevice.name} (${connectedDevice.address})`, 'INFO');
         } else {
             connectedDeviceSection.style.display = 'none';
             connectedDeviceSection.classList.remove('active'); // USUNIĘTO KLASĘ ACTIVE
+            connectedDeviceSection.classList.add('collapsed'); // DODAJ COLLAPSED PRZY UKRYWANIU
             addToLog('Connected device section hidden', 'INFO');
         }
+        
+        // Sprawdź i zaktualizuj stan collapsed po zmianie
+        setTimeout(() => initializeSectionStates(), 100);
     }
     
     /**
@@ -1115,4 +1190,5 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteDevice = deleteDevice;
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
+    window.initializeSectionStates = initializeSectionStates;
 });

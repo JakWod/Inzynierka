@@ -136,6 +136,12 @@
   padding: 1rem 1rem 8px 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
+  transition: padding 0.3s ease; /* Dodano animację padding */
+}
+
+/* DODATKOWE REGUŁY DLA FILTERS SECTION */
+.filters-section.collapsed {
+  padding-bottom: 0 !important;
 }
 
 .filter-group {
@@ -283,6 +289,12 @@
   max-height: 200px; /* Dostosuj do rzeczywistej wysokości */
   opacity: 1;
   padding: 1rem;
+}
+
+/* COLLAPSED STATE - ZMNIEJSZONY PADDING */
+.connected-device.collapsed {
+  padding-bottom: 0 !important;
+  transition: padding 0.3s ease;
 }
 
 .connected-device::before {
@@ -480,10 +492,16 @@
   padding: 1rem;
   box-sizing: border-box; /* Dodano */
   min-width: 0; /* Dodano */
+  transition: padding 0.3s ease; /* Dodano animację padding */
 }
 
 .device-section:not(:last-child) {
   border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+/* STYLE DLA ZWIJANYCH SEKCJI - ZMNIEJSZONY PADDING */
+.device-section.collapsed {
+  padding-bottom: 0 !important;
 }
 
 .device-list {
@@ -493,6 +511,7 @@
   width: 100%; /* Dodano */
   box-sizing: border-box; /* Dodano */
   /* USUNIĘTO GAP - użyjemy margin na kartach */
+  transition: all 0.3s ease;
 }
 
 /* NOWE KLASY DLA ZWIJANIA SEKCJI */
@@ -510,20 +529,60 @@
   margin: 0 !important;
 }
 
+/* DODATKOWA ANIMACJA DLA DEVICE-LIST */
+.device-list {
+  transition: all 0.3s ease;
+}
+
+/* STYLE DLA SEKCJI ZWIJANYCH PRZEZ UŻYTKOWNIKA */
+.section-collapsed .device-list,
+.section-collapsed .collapsible-section {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* SPECYFICZNE STYLE DLA POSZCZEGÓLNYCH SEKCJI */
+#favorite-devices-section.collapsed {
+  padding-bottom: 0 !important;
+  transition: padding-bottom 0.3s ease;
+}
+
+#connected-device-section.collapsed {
+  padding-bottom: 0 !important;
+  max-height: 60px; /* Tylko wysokość nagłówka */
+}
+
+/* STYLE DLA ZWIJANYCH ZAWARTOŚCI */
+#paired-devices-list.collapsed,
+#discovered-devices-list.collapsed,
+#connected-device-container.collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  transition: all 0.3s ease;
+}
+
 /* Karty urządzeń - STABILNY MARGIN ZAMIAST GAP */
 .device-card {
-background: #000;
-    border: 1px solid rgba(74, 222, 128, 0.3);
-    border-radius: 0;
-    padding: 0.75rem 0.75rem 0.1rem 0.75rem;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: "JetBrains Mono", monospace;
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    margin-bottom: 0.5rem;
+  background: #000;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 0;
+  padding: 0.75rem 0.75rem 0.1rem 0.75rem;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "JetBrains Mono", monospace;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0.5rem;
 }
 
 .device-card:last-child {
@@ -711,7 +770,7 @@ background: #000;
   margin-top: 10px;
   background: rgb(248, 113, 113, 0.2);
   color: rgb(248 113 113);
-  padding: 0.375rem 4.125rem;
+  padding: 0.375rem 2.5rem;
   border-radius: 0;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.7rem;
@@ -797,9 +856,6 @@ background: #000;
     opacity: 0;
   }
 }
-
-/* USUNIECIE STARYCH REGUŁ SCROLLBAR DLA SIDEBAR-CONTENT */
-/* Te reguły zostały przeniesione do .device-lists */
 
 /* Responsywność */
 @media (max-width: 768px) {

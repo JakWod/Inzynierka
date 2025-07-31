@@ -154,85 +154,122 @@
       </div>
     </aside>
 
-    <!-- Main content z nowym headerem -->
+    <!-- Main content z nowym cyberpunk headerem -->
     <div class="main-content">
-      <!-- HEADER Z PRZYCISKAMI LOGIN/REGISTER - ZMODYFIKOWANA STRUKTURA -->
-      <header class="modern-header">
-        <div class="header-left">
-          <div class="header-logo">
-            <i class="fab fa-bluetooth-b"></i>
-            <div class="header-title">
-              <h1>Bluetooth Manager</h1>
-              <span class="version">Wyszukaj i zarządzaj urządzeniami Bluetooth</span>
+      <!-- CYBERPUNK HEADER - ZASTĄPIONY -->
+      <header class="header">
+        <div class="header-glow"></div>
+        
+        <div class="header-content">
+          <!-- Logo -->
+          <div class="logo-section">
+            <div class="logo-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+            </div>
+            <div class="logo-text">
+              <h1><span class="logo-cyber">CYBER</span>TOOTH</h1>
+              <p>NEURAL LINK PROTOCOL v2.1.0</p>
             </div>
           </div>
-        </div>
 
-        <div class="header-center">
-          <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" placeholder="Search devices..." id="header-search">
-          </div>
-        </div>
-
-        <div class="header-right">
-          <!-- PRZYCISKI FUNKCJONALNE - PRZESUNIĘTE NA LEWO -->
-          <div class="header-functional-buttons">
-            <div class="header-dropdown">
-              <button class="header-button" id="type-filter-btn">
-                <i class="fas fa-filter"></i>
-                <span>All Types</span>
-                <i class="fas fa-chevron-down"></i>
-              </button>
-              <div class="dropdown-content" id="type-filter-dropdown">
-                <div class="dropdown-item" data-type="">All Types</div>
-                <div class="dropdown-item" data-type="headphones">Headphones</div>
-                <div class="dropdown-item" data-type="speaker">Speakers</div>
-                <div class="dropdown-item" data-type="keyboard">Keyboards</div>
-                <div class="dropdown-item" data-type="mouse">Mice</div>
-                <div class="dropdown-item" data-type="gamepad">Controllers</div>
-                <div class="dropdown-item" data-type="other">Other</div>
+          <!-- Search Terminal -->
+          <div class="search-terminal">
+            <div class="terminal-wrapper">
+              <div class="terminal-content">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="4,17 10,11 4,5"></polyline>
+                  <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+                <span class="terminal-prompt">root@cybertooth:~$</span>
+                <input type="text" id="header-search" placeholder="search devices...">
               </div>
             </div>
+          </div>
 
-            <div class="view-toggle">
-              <button class="active" id="grid-view">
-                <i class="fas fa-th"></i>
-              </button>
-              <button id="list-view">
-                <i class="fas fa-bars"></i>
+          <!-- Actions -->
+          <div class="header-actions">
+            <!-- Connection Status -->
+            <div class="connection-status" id="connectionStatus">
+              <div class="status-indicator"></div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                <line x1="12" y1="20" x2="12.01" y2="20"></line>
+              </svg>
+              <span id="statusText">OFFLINE</span>
+              <button id="disconnectBtn" class="disconnect-btn" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             </div>
 
-            <button class="header-button primary" id="header-scan-btn">
-              <i class="fas fa-search"></i>
-              <span>Scan</span>
+            <!-- Scan Button -->
+            <button class="scan-btn" id="header-scan-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"></path>
+                <polyline points="8,1 16,1 16,7 8,7 8,1"></polyline>
+              </svg>
+              <span id="scanBtnText">SCAN</span>
             </button>
 
-            <button class="header-button" id="header-add-device-btn">
-              <i class="fas fa-plus"></i>
-              <span>Add Device</span>
+            <!-- Add Device Button -->
+            <button class="scan-btn add-device-btn" id="header-add-device-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>ADD</span>
             </button>
 
-            <button class="header-button icon-only" id="theme-toggle">
-              <i class="fas fa-moon"></i>
+            <!-- Security Indicator -->
+            <div class="security-indicator">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span>AES-256</span>
+            </div>
+
+            <!-- Theme Toggle -->
+            <button class="icon-btn" id="theme-toggle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
             </button>
 
-            <button class="header-button icon-only" id="settings-btn">
-              <i class="fas fa-cog"></i>
+            <!-- Settings -->
+            <button class="icon-btn settings-btn" id="settings-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
             </button>
-          </div>
 
-          <!-- PRZYCISKI AUTH - TERAZ NA PRAWEJ STRONIE -->
-          <div class="auth-buttons">
-            <button class="header-button auth-btn login-btn" id="login-btn">
-              <i class="fas fa-sign-in-alt"></i>
-              <span>Login</span>
-            </button>
-            <button class="header-button auth-btn register-btn" id="register-btn">
-              <i class="fas fa-user-plus"></i>
-              <span>Register</span>
-            </button>
+            <!-- User Menu -->
+            <div class="user-menu">
+              <button class="icon-btn user-btn" id="login-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </button>
+              <div class="user-dropdown" id="userDropdown">
+                <button class="dropdown-item" id="register-btn">
+                  <span>&gt; register.exe</span>
+                </button>
+                <button class="dropdown-item">
+                  <span>&gt; profile.cfg</span>
+                </button>
+                <hr class="dropdown-divider">
+                <button class="dropdown-item danger">
+                  <span>&gt; logout.sh</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
