@@ -263,7 +263,7 @@
                   </div>
                 </div>
                 <div class="scan-info-message">
-                  <p>Upewnij się, że urządzenie jest włączone i wykrywalne. Wybierz urzadzenie poniżej, aby nawiązać połączenie.</p>
+                  <p>Upewnij się, że urządzenie jest włączone i wykrywalne. Wybierz urządzenie poniżej, aby nawiązać połączenie.</p>
                 </div>
                 <div id="scan-results-container" class="scan-results-container"></div>
                 <div class="manual-device-link">
@@ -362,35 +362,82 @@
     </div>
   </div>
 
-  <!-- Modal edycji urządzenia -->
+  <!-- Modal edycji urządzenia - CYBERPUNK STYLE -->
   <div id="device-edit-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content device-edit-modal-content">
       <span class="close-modal">&times;</span>
-      <h2>Edytuj urządzenie</h2>
-      <form id="edit-device-form">
+      
+      <div class="modal-header device-edit-header">
+        <h2><i class="fas fa-edit"></i> Edytuj urządzenie</h2>
+        <p>Zmień ustawienia i właściwości urządzenia</p>
+      </div>
+      
+      <form id="edit-device-form" class="device-edit-form">
         <input type="hidden" id="edit-device-address-hidden">
-        <div class="form-group">
-          <label for="edit-device-name">Nazwa urządzenia:</label>
-          <input type="text" id="edit-device-name" required>
+        
+        <div class="form-section">
+          <h3>Podstawowe informacje</h3>
+          
+          <div class="form-group">
+            <label for="edit-device-name">
+              <i class="fas fa-tag"></i>
+              Nazwa urządzenia:
+            </label>
+            <input type="text" id="edit-device-name" required placeholder="np. Moje Słuchawki">
+            <div class="input-hint">Nazwa wyświetlana w aplikacji</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-device-type">
+              <i class="fas fa-list"></i>
+              Typ urządzenia:
+            </label>
+            <select id="edit-device-type" required>
+              <option value="headphones">🎧 Słuchawki</option>
+              <option value="speaker">🔊 Głośnik</option>
+              <option value="keyboard">⌨️ Klawiatura</option>
+              <option value="mouse">🖱️ Mysz</option>
+              <option value="gamepad">🎮 Kontroler</option>
+              <option value="phone">📱 Telefon</option>
+              <option value="tablet">📱 Tablet</option>
+              <option value="laptop">💻 Laptop</option>
+              <option value="desktop">🖥️ Komputer</option>
+              <option value="other">📱 Inne</option>
+            </select>
+            <div class="input-hint">Wybierz typ dla lepszej organizacji</div>
+          </div>
+          
+          <div class="form-group mac-address-display">
+            <label for="edit-device-address-display">
+              <i class="fas fa-wifi"></i>
+              Adres MAC:
+            </label>
+            <input type="text" id="edit-device-address-display" disabled readonly>
+            <div class="input-hint">Adres MAC nie może być zmieniony</div>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="edit-device-type">Typ urządzenia:</label>
-          <select id="edit-device-type">
-            <option value="headphones">Słuchawki</option>
-            <option value="speaker">Głośnik</option>
-            <option value="keyboard">Klawiatura</option>
-            <option value="mouse">Mysz</option>
-            <option value="gamepad">Kontroler</option>
-            <option value="other">Inne</option>
-          </select>
-        </div>
-        <div class="form-group mac-address-display">
-          <label for="edit-device-address-display">Adres MAC:</label>
-          <input type="text" id="edit-device-address-display" disabled>
-        </div>
+        
         <div class="form-actions">
-          <button type="submit" class="btn">Zapisz</button>
-          <button type="button" class="btn btn-outline" id="cancel-edit-device">Anuluj</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Zapisz zmiany
+          </button>
+          <button type="button" class="btn btn-outline" id="cancel-edit-device">
+            <i class="fas fa-times"></i>
+            Anuluj
+          </button>
+          <button type="button" class="btn btn-danger" id="delete-device-btn">
+            <i class="fas fa-trash"></i>
+            Usuń urządzenie
+          </button>
+        </div>
+        
+        <div class="modal-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <strong>Uwaga:</strong> Nie można edytować urządzenia, które jest aktualnie połączone. 
+            Najpierw rozłącz urządzenie, aby móc wprowadzić zmiany.
+          </div>
         </div>
       </form>
     </div>

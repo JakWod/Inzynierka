@@ -1,15 +1,19 @@
-// Cyberpunk Sidebar functionality - POPRAWIONA WERSJA
-// Fixes: 
+// Cyberpunk Sidebar functionality - FINALNA WERSJA
+// Features: 
 // - Gradient scrollbar working properly
-// - Devices now save to localStorage properly (favorites + discovered)
+// - Devices save to localStorage properly (favorites + discovered)
 // - New devices go to "discovered" by default, not "favorites"  
 // - Connected devices appear in "active connection" AND remain in their original lists
-// - Auto-refresh temporarily disabled
-// - Connected devices in lists have hidden connect and pulsing indicator, but normal styling
+// - Connected devices in lists have hidden connect button and pulsing indicator
 // - Star animation changed from aura to opacity pulsing
 // - Edit and favorite buttons remain fully functional for connected devices
-// - FIXED: Active connection section now shows properly with 'active' class
-// - ADDED: Connect button animation with spinner similar to scan button
+// - Active connection section shows properly with 'active' class animation
+// - Connect button animation with spinner similar to scan button
+// - Full edit modal functionality with cyberpunk styling
+// - Device deletion with confirmation and validation
+// - Form validation with visual feedback (error/success animations)
+// - Connected device protection (cannot edit/delete while connected)
+// - Modal accessibility (ESC key, click outside, proper focus management)
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -128,11 +132,76 @@ document.addEventListener('DOMContentLoaded', function() {
         const editForm = document.getElementById('edit-device-form');
         
         if (editModal) {
-            editModal.classList.remove('show');
-            setTimeout(() => {
-                editModal.style.display = 'none';
-                if (editForm) editForm.reset();
-            }, 300); // Czas na animację fadeOut
+            editModal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Przywróć scrolling
+            
+            if (editForm) {
+                editForm.reset();
+                
+                // Usuń klasy walidacji
+                const formGroups = editForm.querySelectorAll('.form-group');
+                formGroups.forEach(group => {
+                    group.classList.remove('error', 'success');
+                });
+            }
+            
+            addToLog('Edit modal closed', 'INFO');
+        }
+    }
+    
+    /**
+     * Usuwa urządzenie z list
+     */
+    function deleteDevice(address, deviceName) {
+        // Sprawdź czy urządzenie jest połączone
+        const isDeviceConnected = connectedDevice && connectedDevice.address === address;
+        
+        if (isDeviceConnected) {
+            showToast('Nie można usunąć połączonego urządzenia. Najpierw je rozłącz.', 'error');
+            return false;
+        }
+        
+        let deviceDeleted = false;
+        
+        try {
+            // Usuń z pairedDevices (favorites)
+            const pairedIndex = pairedDevices.findIndex(d => d.address === address);
+            if (pairedIndex !== -1) {
+                pairedDevices.splice(pairedIndex, 1);
+                localStorage.setItem('favoriteDevices', JSON.stringify(pairedDevices));
+                deviceDeleted = true;
+                addToLog(`Deleted device from favorites: ${deviceName} (${address})`, 'INFO');
+            }
+            
+            // Usuń z discoveredDevices
+            const discoveredIndex = discoveredDevices.findIndex(d => d.address === address);
+            if (discoveredIndex !== -1) {
+                discoveredDevices.splice(discoveredIndex, 1);
+                localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
+                deviceDeleted = true;
+                addToLog(`Deleted device from discovered: ${deviceName} (${address})`, 'INFO');
+            }
+            
+            if (deviceDeleted) {
+                // Odśwież wyświetlanie
+                displayPairedDevices();
+                displayDiscoveredDevices();
+                
+                closeEditDeviceModal();
+                
+                showToast(`Urządzenie "${deviceName}" zostało usunięte`, 'info');
+                addToLog(`Device successfully deleted: ${deviceName} (${address})`, 'SUCCESS');
+                return true;
+            } else {
+                showToast('Nie znaleziono urządzenia do usunięcia', 'error');
+                addToLog(`Device not found for deletion: ${address}`, 'ERROR');
+                return false;
+            }
+            
+        } catch (error) {
+            addToLog(`Error deleting device ${deviceName}: ${error.message}`, 'ERROR');
+            showToast('Błąd podczas usuwania urządzenia', 'error');
+            return false;
         }
     }
             });
@@ -871,6 +940,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const typeSelect = document.getElementById('edit-device-type');
         const addressDisplay = document.getElementById('edit-device-address-display');
         const addressHidden = document.getElementById('edit-device-address-hidden');
+        const deleteButton = document.getElementById('delete-device-btn');
+        const modalWarning = modal ? modal.querySelector('.modal-warning') : null;
         
         if (!modal || !nameInput || !typeSelect || !addressDisplay || !addressHidden) {
             addToLog('Edit modal elements not found', 'ERROR');
@@ -884,15 +955,39 @@ document.addEventListener('DOMContentLoaded', function() {
         addressDisplay.value = device.address;
         addressHidden.value = device.address;
         
-        // Pokaż modal z animacją
-        modal.style.display = 'block';
-        setTimeout(() => {
-            modal.classList.add('show');
-            nameInput.focus();
-            nameInput.select(); // Zaznacz całą nazwę dla łatwej edycji
-        }, 10);
+        // Sprawdź czy urządzenie jest połączone
+        const isConnected = device.connected === true;
         
-        addToLog(`Edit modal opened for device: ${device.name} (${device.address})`, 'INFO');
+        // Pokaż/ukryj ostrzeżenie w zależności od statusu połączenia
+        if (modalWarning) {
+            if (isConnected) {
+                modalWarning.style.display = 'flex';
+                // Wyłącz pola formularza jeśli urządzenie jest połączone
+                nameInput.disabled = true;
+                typeSelect.disabled = true;
+                if (deleteButton) deleteButton.disabled = true;
+            } else {
+                modalWarning.style.display = 'none';
+                // Włącz pola formularza
+                nameInput.disabled = false;
+                typeSelect.disabled = false;
+                if (deleteButton) deleteButton.disabled = false;
+            }
+        }
+        
+        // Pokaż modal
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Zablokuj scrolling strony
+        
+        // Auto-focus i zaznacz tekst
+        setTimeout(() => {
+            if (!isConnected) {
+                nameInput.focus();
+                nameInput.select();
+            }
+        }, 100);
+        
+        addToLog(`Edit modal opened for device: ${device.name} (${device.address}) - Connected: ${isConnected}`, 'INFO');
     }
     
     /**
@@ -1017,6 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openEditDeviceModal = openEditDeviceModal;
     window.closeEditDeviceModal = closeEditDeviceModal;
     window.saveDeviceChanges = saveDeviceChanges;
+    window.deleteDevice = deleteDevice;
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
 });

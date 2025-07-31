@@ -1295,9 +1295,14 @@ body:has(.toast-container) {
   left: -9999px !important;
 }
 
-/* Modal edycji urządzenia - CSS w stylu Cyberpunk */
+/* ========================================
+   MODAL EDYCJI URZĄDZENIA - CYBERPUNK STYLE
+   ======================================== */
 
-/* Podstawowy modal */
+/* Device Edit Modal Styles - CYBERPUNK THEMED */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* Modal Overlay */
 #device-edit-modal {
   display: none;
   position: fixed;
@@ -1306,269 +1311,476 @@ body:has(.toast-container) {
   top: 0;
   width: 100%;
   height: 100%;
+  overflow: auto;
   background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
-  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(4px);
+  animation: modalFadeIn 0.3s ease;
 }
 
-#device-edit-modal.show {
-  display: block;
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-/* Zawartość modala */
-#device-edit-modal .modal-content {
-  background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
-  border: 2px solid var(--cyberpunk-green);
-  border-radius: 0;
-  position: relative;
+/* Device Edit Modal Content */
+#device-edit-modal .device-edit-modal-content {
+  background: #000;
   margin: 5% auto;
   padding: 0;
+  border: 2px solid var(--cyberpunk-green);
+  border-radius: 0;
   width: 90%;
-  max-width: 500px;
+  max-width: 600px;
   box-shadow: 
-    0 0 30px rgba(74, 222, 128, 0.3),
-    inset 0 0 50px rgba(74, 222, 128, 0.05);
-  animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  font-family: "JetBrains Mono", monospace;
-}
-
-/* Header modala */
-#device-edit-modal .modal-content h2 {
-  background: linear-gradient(90deg, var(--cyberpunk-green), rgba(96, 165, 250, 0.8));
-  color: #000;
-  margin: 0;
-  padding: 20px 25px;
-  font-size: 18px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+    0 0 20px rgba(74, 222, 128, 0.3),
+    inset 0 0 20px rgba(74, 222, 128, 0.05);
   position: relative;
+  font-family: "JetBrains Mono", monospace;
+  animation: modalSlideIn 0.3s ease;
 }
 
-#device-edit-modal .modal-content h2::before {
-  content: "⚡";
-  margin-right: 10px;
-  font-size: 20px;
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* X - przycisk zamykania */
+/* Cyberpunk Glow Effect */
+#device-edit-modal .device-edit-modal-content::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(45deg, 
+    rgba(74, 222, 128, 0.1) 0%,
+    rgba(96, 165, 250, 0.1) 50%,
+    rgba(192, 132, 252, 0.1) 100%
+  );
+  border-radius: 0;
+  filter: blur(6px);
+  z-index: -1;
+  opacity: 0.6;
+}
+
+/* Close Button */
 #device-edit-modal .close-modal {
+  color: var(--cyberpunk-green);
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
   position: absolute;
   top: 15px;
   right: 20px;
-  color: #000;
-  font-size: 28px;
-  font-weight: bold;
   cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: all 0.2s ease;
+  z-index: 10;
 }
 
-#device-edit-modal .close-modal:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
+#device-edit-modal .close-modal:hover,
+#device-edit-modal .close-modal:focus {
+  color: rgba(74, 222, 128, 0.8);
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
   transform: scale(1.1);
 }
 
-/* Formularz edycji */
-#edit-device-form {
-  padding: 25px;
-  background: #000;
+/* Modal Header */
+#device-edit-modal .device-edit-header {
+  background: linear-gradient(45deg, 
+    rgba(74, 222, 128, 0.1) 0%,
+    rgba(96, 165, 250, 0.05) 100%
+  );
+  padding: 20px 25px;
+  border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+  position: relative;
 }
 
-/* Grupy pól formularza */
-#edit-device-form .form-group {
-  margin-bottom: 20px;
-}
-
-#edit-device-form .form-group:last-child {
-  margin-bottom: 0;
-}
-
-/* Etykiety */
-#edit-device-form label {
-  display: block;
+#device-edit-modal .device-edit-header h2 {
   color: var(--cyberpunk-green);
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Pola tekstowe */
-#edit-device-form input[type="text"],
-#edit-device-form select {
+#device-edit-modal .device-edit-header h2 i {
+  color: var(--cyberpunk-blue);
+}
+
+#device-edit-modal .device-edit-header p {
+  color: rgba(156, 163, 175, 0.8);
+  margin: 5px 0 0 0;
+  font-size: 0.9rem;
+}
+
+/* Form Styling */
+#device-edit-modal .device-edit-form {
+  padding: 25px;
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyberpunk-green) #000;
+}
+
+#device-edit-modal .device-edit-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+#device-edit-modal .device-edit-form::-webkit-scrollbar-track {
+  background: #000;
+  border-radius: 0;
+}
+
+#device-edit-modal .device-edit-form::-webkit-scrollbar-thumb {
+  background: var(--cyberpunk-green);
+  border-radius: 0;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+#device-edit-modal .device-edit-form::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 222, 128, 0.8);
+}
+
+/* Form Sections */
+#device-edit-modal .form-section {
+  margin-bottom: 30px;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: 0;
+  padding: 20px;
+  background: rgba(74, 222, 128, 0.02);
+  position: relative;
+}
+
+#device-edit-modal .form-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    var(--cyberpunk-green) 0%,
+    var(--cyberpunk-blue) 50%,
+    var(--cyberpunk-purple) 100%
+  );
+}
+
+#device-edit-modal .form-section h3 {
+  color: var(--cyberpunk-blue);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Form Groups */
+#device-edit-modal .form-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+#device-edit-modal .form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cyberpunk-green);
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+#device-edit-modal .form-group label i {
+  color: var(--cyberpunk-blue);
+  font-size: 0.8rem;
+}
+
+/* Input Styling */
+#device-edit-modal .form-group input,
+#device-edit-modal .form-group select {
   width: 100%;
   padding: 12px 15px;
-  background: #111;
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  background: #000;
+  border: 1px solid rgba(74, 222, 128, 0.4);
   border-radius: 0;
-  color: #fff;
+  color: var(--cyberpunk-green);
   font-family: "JetBrains Mono", monospace;
-  font-size: 14px;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
 }
 
-#edit-device-form input[type="text"]:focus,
-#edit-device-form select:focus {
+#device-edit-modal .form-group input:focus,
+#device-edit-modal .form-group select:focus {
   outline: none;
   border-color: var(--cyberpunk-green);
   box-shadow: 
     inset 0 0 10px rgba(0, 0, 0, 0.5),
-    0 0 15px rgba(74, 222, 128, 0.4);
-  background: #1a1a1a;
+    0 0 15px rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.02);
 }
 
-/* Pole adresu MAC (disabled) */
-#edit-device-form .mac-address-display input[type="text"]:disabled {
-  background: #0a0a0a;
-  color: #666;
+#device-edit-modal .form-group input[disabled],
+#device-edit-modal .form-group input[readonly] {
+  background: rgba(156, 163, 175, 0.1);
+  color: rgba(156, 163, 175, 0.7);
+  border-color: rgba(156, 163, 175, 0.3);
   cursor: not-allowed;
-  border-color: rgba(74, 222, 128, 0.1);
 }
 
-/* Select dropdown */
-#edit-device-form select {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 40px;
+#device-edit-modal .form-group input::placeholder {
+  color: rgba(156, 163, 175, 0.5);
 }
 
-#edit-device-form select option {
-  background: #111;
-  color: #fff;
-  padding: 10px;
+#device-edit-modal .form-group select option {
+  background: #000;
+  color: var(--cyberpunk-green);
+  padding: 8px;
 }
 
-/* Akcje formularza */
-#edit-device-form .form-actions {
+/* Input Hints */
+#device-edit-modal .input-hint {
+  color: rgba(156, 163, 175, 0.6);
+  font-size: 0.75rem;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* Form Actions */
+#device-edit-modal .form-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 15px;
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 1px solid rgba(74, 222, 128, 0.2);
+  border-top: 1px solid rgba(74, 222, 128, 0.3);
+  flex-wrap: wrap;
 }
 
-/* Przyciski akcji */
-#edit-device-form .form-actions .btn {
-  padding: 12px 25px;
+#device-edit-modal .form-actions .btn {
+  flex: 1;
+  min-width: 150px;
+  padding: 12px 20px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 13px;
+  font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: none;
   border-radius: 0;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid;
   position: relative;
   overflow: hidden;
 }
 
-/* Przycisk Zapisz */
-#edit-device-form .form-actions .btn:not(.btn-outline) {
-  background: linear-gradient(45deg, var(--cyberpunk-green), rgba(96, 165, 250, 0.8));
-  color: #000;
-  border: 1px solid var(--cyberpunk-green);
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+#device-edit-modal .form-actions .btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
 }
 
-#edit-device-form .form-actions .btn:not(.btn-outline):hover {
-  background: linear-gradient(45deg, rgba(74, 222, 128, 0.9), var(--cyberpunk-blue));
-  box-shadow: 0 0 25px rgba(74, 222, 128, 0.5);
+#device-edit-modal .form-actions .btn:hover::before {
+  opacity: 0.1;
+}
+
+/* Primary Button */
+#device-edit-modal .form-actions .btn-primary {
+  background: rgba(74, 222, 128, 0.1);
+  color: var(--cyberpunk-green);
+  border-color: var(--cyberpunk-green);
+}
+
+#device-edit-modal .form-actions .btn-primary::before {
+  background: var(--cyberpunk-green);
+}
+
+#device-edit-modal .form-actions .btn-primary:hover {
+  background: rgba(74, 222, 128, 0.2);
+  border-color: rgba(74, 222, 128, 0.8);
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
   transform: translateY(-2px);
 }
 
-#edit-device-form .form-actions .btn:not(.btn-outline):active {
-  transform: translateY(0);
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
-}
-
-/* Przycisk Anuluj */
-#edit-device-form .form-actions .btn.btn-outline {
+/* Outline Button */
+#device-edit-modal .form-actions .btn-outline {
   background: transparent;
-  color: #888;
-  border: 1px solid #444;
+  color: var(--cyberpunk-blue);
+  border-color: var(--cyberpunk-blue);
 }
 
-#edit-device-form .form-actions .btn.btn-outline:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  border-color: #666;
+#device-edit-modal .form-actions .btn-outline::before {
+  background: var(--cyberpunk-blue);
 }
 
-/* Animacje */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+#device-edit-modal .form-actions .btn-outline:hover {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.8);
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.3);
+  transform: translateY(-2px);
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+/* Danger Button */
+#device-edit-modal .form-actions .btn-danger {
+  background: rgba(248, 113, 113, 0.1);
+  color: rgb(248, 113, 113);
+  border-color: rgb(248, 113, 113);
 }
 
-/* Responsywność */
+#device-edit-modal .form-actions .btn-danger::before {
+  background: rgb(248, 113, 113);
+}
+
+#device-edit-modal .form-actions .btn-danger:hover {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.8);
+  box-shadow: 0 0 15px rgba(248, 113, 113, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Modal Warning */
+#device-edit-modal .modal-warning {
+  background: rgba(241, 196, 15, 0.1);
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  border-left: 4px solid rgb(241, 196, 15);
+  padding: 15px 20px;
+  margin: 20px 0 0 0;
+  color: rgba(241, 196, 15, 0.9);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 0;
+}
+
+#device-edit-modal .modal-warning i {
+  color: rgb(241, 196, 15);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+#device-edit-modal .modal-warning strong {
+  color: rgb(241, 196, 15);
+}
+
+/* Animation for form validation */
+#device-edit-modal .form-group.error input,
+#device-edit-modal .form-group.error select {
+  border-color: rgb(248, 113, 113);
+  box-shadow: 
+    inset 0 0 10px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(248, 113, 113, 0.3);
+  animation: shakeError 0.3s ease;
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Success animation */
+#device-edit-modal .form-group.success input,
+#device-edit-modal .form-group.success select {
+  border-color: var(--cyberpunk-green);
+  box-shadow: 
+    inset 0 0 10px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(74, 222, 128, 0.4);
+}
+
+/* Responsywność dla modala edycji urządzenia */
 @media (max-width: 768px) {
-  #device-edit-modal .modal-content {
+  #device-edit-modal .device-edit-modal-content {
     width: 95%;
-    margin: 10% auto;
+    margin: 2% auto;
   }
   
-  #device-edit-modal .modal-content h2 {
+  #device-edit-modal .device-edit-header {
     padding: 15px 20px;
-    font-size: 16px;
   }
   
-  #edit-device-form {
+  #device-edit-modal .device-edit-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  #device-edit-modal .device-edit-form {
     padding: 20px;
+    max-height: 80vh;
   }
   
-  #edit-device-form .form-actions {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  #edit-device-form .form-actions .btn {
-    width: 100%;
+  #device-edit-modal .form-section {
     padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  #device-edit-modal .form-actions {
+    flex-direction: column;
+  }
+  
+  #device-edit-modal .form-actions .btn {
+    min-width: auto;
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  #device-edit-modal .modal-content {
+  #device-edit-modal .device-edit-modal-content {
     width: 98%;
-    margin: 5% auto;
+    margin: 1% auto;
   }
   
-  #edit-device-form input[type="text"],
-  #edit-device-form select {
+  #device-edit-modal .device-edit-header {
+    padding: 12px 15px;
+  }
+  
+  #device-edit-modal .device-edit-header h2 {
+    font-size: 1.1rem;
+  }
+  
+  #device-edit-modal .device-edit-form {
+    padding: 15px;
+  }
+  
+  #device-edit-modal .form-section {
+    padding: 12px;
+  }
+  
+  #device-edit-modal .form-group input,
+  #device-edit-modal .form-group select {
     padding: 10px 12px;
-    font-size: 13px;
+    font-size: 0.85rem;
+  }
+  
+  #device-edit-modal .form-actions .btn {
+    padding: 10px 15px;
+    font-size: 0.8rem;
+  }
+  
+  #device-edit-modal .modal-warning {
+    margin: 15px 0;
+    padding: 12px 15px;
+    font-size: 0.8rem;
   }
 }
