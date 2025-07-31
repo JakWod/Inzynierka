@@ -1294,3 +1294,281 @@ body:has(.toast-container) {
   position: absolute !important;
   left: -9999px !important;
 }
+
+/* Modal edycji urządzenia - CSS w stylu Cyberpunk */
+
+/* Podstawowy modal */
+#device-edit-modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+#device-edit-modal.show {
+  display: block;
+}
+
+/* Zawartość modala */
+#device-edit-modal .modal-content {
+  background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+  border: 2px solid var(--cyberpunk-green);
+  border-radius: 0;
+  position: relative;
+  margin: 5% auto;
+  padding: 0;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 
+    0 0 30px rgba(74, 222, 128, 0.3),
+    inset 0 0 50px rgba(74, 222, 128, 0.05);
+  animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* Header modala */
+#device-edit-modal .modal-content h2 {
+  background: linear-gradient(90deg, var(--cyberpunk-green), rgba(96, 165, 250, 0.8));
+  color: #000;
+  margin: 0;
+  padding: 20px 25px;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+#device-edit-modal .modal-content h2::before {
+  content: "⚡";
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+/* X - przycisk zamykania */
+#device-edit-modal .close-modal {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: #000;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+#device-edit-modal .close-modal:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: scale(1.1);
+}
+
+/* Formularz edycji */
+#edit-device-form {
+  padding: 25px;
+  background: #000;
+}
+
+/* Grupy pól formularza */
+#edit-device-form .form-group {
+  margin-bottom: 20px;
+}
+
+#edit-device-form .form-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Etykiety */
+#edit-device-form label {
+  display: block;
+  color: var(--cyberpunk-green);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Pola tekstowe */
+#edit-device-form input[type="text"],
+#edit-device-form select {
+  width: 100%;
+  padding: 12px 15px;
+  background: #111;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 0;
+  color: #fff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#edit-device-form input[type="text"]:focus,
+#edit-device-form select:focus {
+  outline: none;
+  border-color: var(--cyberpunk-green);
+  box-shadow: 
+    inset 0 0 10px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(74, 222, 128, 0.4);
+  background: #1a1a1a;
+}
+
+/* Pole adresu MAC (disabled) */
+#edit-device-form .mac-address-display input[type="text"]:disabled {
+  background: #0a0a0a;
+  color: #666;
+  cursor: not-allowed;
+  border-color: rgba(74, 222, 128, 0.1);
+}
+
+/* Select dropdown */
+#edit-device-form select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+#edit-device-form select option {
+  background: #111;
+  color: #fff;
+  padding: 10px;
+}
+
+/* Akcje formularza */
+#edit-device-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+/* Przyciski akcji */
+#edit-device-form .form-actions .btn {
+  padding: 12px 25px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Przycisk Zapisz */
+#edit-device-form .form-actions .btn:not(.btn-outline) {
+  background: linear-gradient(45deg, var(--cyberpunk-green), rgba(96, 165, 250, 0.8));
+  color: #000;
+  border: 1px solid var(--cyberpunk-green);
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+}
+
+#edit-device-form .form-actions .btn:not(.btn-outline):hover {
+  background: linear-gradient(45deg, rgba(74, 222, 128, 0.9), var(--cyberpunk-blue));
+  box-shadow: 0 0 25px rgba(74, 222, 128, 0.5);
+  transform: translateY(-2px);
+}
+
+#edit-device-form .form-actions .btn:not(.btn-outline):active {
+  transform: translateY(0);
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+}
+
+/* Przycisk Anuluj */
+#edit-device-form .form-actions .btn.btn-outline {
+  background: transparent;
+  color: #888;
+  border: 1px solid #444;
+}
+
+#edit-device-form .form-actions .btn.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-color: #666;
+}
+
+/* Animacje */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+  #device-edit-modal .modal-content {
+    width: 95%;
+    margin: 10% auto;
+  }
+  
+  #device-edit-modal .modal-content h2 {
+    padding: 15px 20px;
+    font-size: 16px;
+  }
+  
+  #edit-device-form {
+    padding: 20px;
+  }
+  
+  #edit-device-form .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  #edit-device-form .form-actions .btn {
+    width: 100%;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  #device-edit-modal .modal-content {
+    width: 98%;
+    margin: 5% auto;
+  }
+  
+  #edit-device-form input[type="text"],
+  #edit-device-form select {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}

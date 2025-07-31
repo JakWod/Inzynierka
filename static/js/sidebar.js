@@ -8,6 +8,8 @@
 // - Connected devices in lists have hidden connect and pulsing indicator, but normal styling
 // - Star animation changed from aura to opacity pulsing
 // - Edit and favorite buttons remain fully functional for connected devices
+// - FIXED: Active connection section now shows properly with 'active' class
+// - ADDED: Connect button animation with spinner similar to scan button
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -31,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize
     loadPairedDevices();
+    setupEditDeviceModal();
     
     // Sidebar toggle functionality
     if (sidebarToggle) {
@@ -84,8 +87,92 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Utility Functions
+     * Konfiguruje modal edycji urządzenia
      */
+    function setupEditDeviceModal() {
+        const editForm = document.getElementById('edit-device-form');
+        const editModal = document.getElementById('device-edit-modal');
+        
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const address = document.getElementById('edit-device-address-hidden').value;
+                const newName = document.getElementById('edit-device-name').value.trim();
+                const newType = document.getElementById('edit-device-type').value;
+                
+                if (!address || !newName) {
+                    showToast('Proszę wypełnić wszystkie wymagane pola', 'warning');
+                    return;
+                }
+                
+                // Walidacja nazwy urządzenia
+                if (newName.length < 1) {
+                    showToast('Nazwa urządzenia nie może być pusta', 'warning');
+                    return;
+                }
+                
+                if (newName.length > 50) {
+                    showToast('Nazwa urządzenia nie może być dłuższa niż 50 znaków', 'warning');
+                    return;
+                }
+                
+                // Zapisz zmiany
+                const success = saveDeviceChanges(address, newName, newType);
+                
+    /**
+     * Zamyka modal edycji urządzenia z animacją
+     */
+    function closeEditDeviceModal() {
+        const editModal = document.getElementById('device-edit-modal');
+        const editForm = document.getElementById('edit-device-form');
+        
+        if (editModal) {
+            editModal.classList.remove('show');
+            setTimeout(() => {
+                editModal.style.display = 'none';
+                if (editForm) editForm.reset();
+            }, 300); // Czas na animację fadeOut
+        }
+    }
+            });
+        }
+        
+        // Obsługa zamykania modala
+        const closeButtons = document.querySelectorAll('#device-edit-modal .close-modal');
+        const cancelButton = document.getElementById('cancel-edit-device');
+        
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                closeEditDeviceModal();
+            });
+        });
+        
+        // Przycisk Anuluj
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function() {
+                closeEditDeviceModal();
+            });
+        }
+        
+        // Zamykanie modala przez kliknięcie w tło
+        if (editModal) {
+            editModal.addEventListener('click', function(e) {
+                if (e.target === editModal) {
+                    closeEditDeviceModal();
+                }
+            });
+        }
+        
+        // Zamykanie modala przez ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && editModal && editModal.style.display === 'block') {
+                closeEditDeviceModal();
+            }
+        });
+        
+        addToLog('Edit device modal initialized', 'INFO');
+    }
     function getDeviceIcon(type) {
         const icons = {
             headphones: '🎧',
@@ -317,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Aktualizuje wyświetlanie połączonego urządzenia - POPRAWIONA WERSJA
+     * FIXED: Dodano klasę 'active' dla prawidłowego wyświetlania sekcji
      */
     function updateConnectionDisplay() {
         if (!connectedDeviceSection || !connectedDeviceContainer) return;
@@ -325,10 +413,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (isConnected && connectedDevice) {
             connectedDeviceSection.style.display = 'block';
+            connectedDeviceSection.classList.add('active'); // DODANO KLASĘ ACTIVE
             connectedDeviceContainer.innerHTML = createDeviceCard(connectedDevice, true, false);
             addToLog(`Connected device section shown for: ${connectedDevice.name} (${connectedDevice.address})`, 'INFO');
         } else {
             connectedDeviceSection.style.display = 'none';
+            connectedDeviceSection.classList.remove('active'); // USUNIĘTO KLASĘ ACTIVE
             addToLog('Connected device section hidden', 'INFO');
         }
     }
@@ -454,11 +544,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Łączy z urządzeniem
+     * Łączy z urządzeniem - ULEPSZONA WERSJA Z ANIMACJĄ
+     * ADDED: Spinner animation similar to scan button
      */
     window.connectToDevice = async function(address) {
         try {
             addToLog(`Attempting to connect to ${address}...`, 'CONNECT');
+            
+            // Znajdź przycisk connect dla tego urządzenia i dodaj animację
+            const deviceCards = document.querySelectorAll('.device-card');
+            let connectButton = null;
+            
+            deviceCards.forEach(card => {
+                try {
+                    const deviceData = JSON.parse(card.dataset.device);
+                    if (deviceData.address === address) {
+                        connectButton = card.querySelector('.connect-btn:not(.hidden)');
+                    }
+                } catch (error) {
+                    console.warn('Error parsing device data:', error);
+                }
+            });
+            
+            // Animacja przycisku - spinner jak w scan
+            let originalButtonContent = 'CONNECT';
+            if (connectButton) {
+                originalButtonContent = connectButton.innerHTML;
+                connectButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CONNECTING...';
+                connectButton.disabled = true;
+                connectButton.style.opacity = "0.7";
+                connectButton.style.transform = "translateY(-1px)";
+            }
             
             const formData = new FormData();
             formData.append('address', address);
@@ -469,10 +585,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (response.ok) {
+                // Opóźnienie dla efektu ładowania
                 setTimeout(async () => {
                     await checkConnectionStatus();
                     displayPairedDevices();
                     displayDiscoveredDevices();
+                    
+                    // Przywróć przycisk po zakończeniu
+                    if (connectButton) {
+                        connectButton.innerHTML = originalButtonContent;
+                        connectButton.disabled = false;
+                        connectButton.style.opacity = "1";
+                        connectButton.style.transform = "translateY(0)";
+                    }
                 }, 2000);
                 
                 addToLog(`Connection request sent for ${address}`, 'INFO');
@@ -483,6 +608,25 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             addToLog(`Failed to connect to ${address}: ${error.message}`, 'ERROR');
             showToast(`Failed to connect to device`, 'error');
+            
+            // Przywróć przycisk w przypadku błędu
+            const deviceCards = document.querySelectorAll('.device-card');
+            deviceCards.forEach(card => {
+                try {
+                    const deviceData = JSON.parse(card.dataset.device);
+                    if (deviceData.address === address) {
+                        const connectButton = card.querySelector('.connect-btn');
+                        if (connectButton) {
+                            connectButton.innerHTML = 'CONNECT';
+                            connectButton.disabled = false;
+                            connectButton.style.opacity = "1";
+                            connectButton.style.transform = "translateY(0)";
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Error restoring button:', error);
+                }
+            });
         }
     };
     
@@ -674,15 +818,134 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Edytuje urządzenie
+     * Edytuje urządzenie - PEŁNA FUNKCJONALNOŚĆ Z ANIMACJĄ
      */
     function editDevice(address) {
         const device = [...pairedDevices, ...discoveredDevices].find(d => d.address === address);
         if (device) {
-            addToLog(`Opening edit dialog for device: ${device.name}`, 'INFO');
-            // Tutaj można dodać modal do edycji urządzenia
-            // Na razie tylko log
-            console.log('Edit device:', device);
+            // Znajdź przycisk edit dla tego urządzenia i dodaj animację
+            const deviceCards = document.querySelectorAll('.device-card');
+            let editButton = null;
+            
+            deviceCards.forEach(card => {
+                try {
+                    const deviceData = JSON.parse(card.dataset.device);
+                    if (deviceData.address === address) {
+                        editButton = card.querySelector('.device-edit');
+                    }
+                } catch (error) {
+                    console.warn('Error parsing device data for edit:', error);
+                }
+            });
+            
+            // Animacja przycisku edit
+            let originalButtonContent = 'EDIT';
+            if (editButton) {
+                originalButtonContent = editButton.innerHTML;
+                editButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                editButton.disabled = true;
+                editButton.style.opacity = "0.7";
+            }
+            
+            // Krótkie opóźnienie dla efektu ładowania
+            setTimeout(() => {
+                addToLog(`Opening edit dialog for device: ${device.name}`, 'INFO');
+                openEditDeviceModal(device);
+                
+                // Przywróć przycisk
+                if (editButton) {
+                    editButton.innerHTML = originalButtonContent;
+                    editButton.disabled = false;
+                    editButton.style.opacity = "1";
+                }
+            }, 300);
+        }
+    }
+    
+    /**
+     * Otwiera modal edycji urządzenia
+     */
+    function openEditDeviceModal(device) {
+        const modal = document.getElementById('device-edit-modal');
+        const nameInput = document.getElementById('edit-device-name');
+        const typeSelect = document.getElementById('edit-device-type');
+        const addressDisplay = document.getElementById('edit-device-address-display');
+        const addressHidden = document.getElementById('edit-device-address-hidden');
+        
+        if (!modal || !nameInput || !typeSelect || !addressDisplay || !addressHidden) {
+            addToLog('Edit modal elements not found', 'ERROR');
+            showToast('Błąd: Nie można otworzyć okna edycji', 'error');
+            return;
+        }
+        
+        // Wypełnij pola danymi urządzenia
+        nameInput.value = device.name || '';
+        typeSelect.value = device.type || 'other';
+        addressDisplay.value = device.address;
+        addressHidden.value = device.address;
+        
+        // Pokaż modal z animacją
+        modal.style.display = 'block';
+        setTimeout(() => {
+            modal.classList.add('show');
+            nameInput.focus();
+            nameInput.select(); // Zaznacz całą nazwę dla łatwej edycji
+        }, 10);
+        
+        addToLog(`Edit modal opened for device: ${device.name} (${device.address})`, 'INFO');
+    }
+    
+    /**
+     * Zapisuje zmiany w edytowanym urządzeniu
+     */
+    function saveDeviceChanges(address, newName, newType) {
+        let deviceUpdated = false;
+        let deviceLocation = '';
+        
+        // Znajdź i zaktualizuj urządzenie w pairedDevices
+        const pairedIndex = pairedDevices.findIndex(d => d.address === address);
+        if (pairedIndex !== -1) {
+            const oldName = pairedDevices[pairedIndex].name;
+            pairedDevices[pairedIndex].name = newName;
+            pairedDevices[pairedIndex].type = newType;
+            localStorage.setItem('favoriteDevices', JSON.stringify(pairedDevices));
+            deviceUpdated = true;
+            deviceLocation = 'favorites';
+            addToLog(`Updated device in favorites: ${oldName} -> ${newName} (${newType})`, 'INFO');
+        }
+        
+        // Znajdź i zaktualizuj urządzenie w discoveredDevices
+        const discoveredIndex = discoveredDevices.findIndex(d => d.address === address);
+        if (discoveredIndex !== -1) {
+            const oldName = discoveredDevices[discoveredIndex].name;
+            discoveredDevices[discoveredIndex].name = newName;
+            discoveredDevices[discoveredIndex].type = newType;
+            localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
+            deviceUpdated = true;
+            deviceLocation = deviceLocation ? 'both' : 'discovered';
+            addToLog(`Updated device in discovered: ${oldName} -> ${newName} (${newType})`, 'INFO');
+        }
+        
+        // Zaktualizuj połączone urządzenie jeśli to ono było edytowane
+        if (connectedDevice && connectedDevice.address === address) {
+            connectedDevice.name = newName;
+            connectedDevice.type = newType;
+            addToLog(`Updated connected device: ${newName} (${newType})`, 'INFO');
+        }
+        
+        if (deviceUpdated) {
+            // Odśwież wyświetlanie
+            displayPairedDevices();
+            displayDiscoveredDevices();
+            updateConnectionDisplay();
+            
+            showToast(`Urządzenie "${newName}" zostało zaktualizowane`, 'success');
+            addToLog(`Device successfully updated in ${deviceLocation}`, 'SUCCESS');
+            return true;
+        } else {
+            showToast('Nie znaleziono urządzenia do edycji', 'error');
+            addToLog(`Device with address ${address} not found for editing`, 'ERROR');
+            return false;
         }
     }
     
@@ -751,6 +1014,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadPairedDevices = loadPairedDevices;
     window.checkConnectionStatus = checkConnectionStatus;
     window.editDevice = editDevice;
+    window.openEditDeviceModal = openEditDeviceModal;
+    window.closeEditDeviceModal = closeEditDeviceModal;
+    window.saveDeviceChanges = saveDeviceChanges;
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
 });
