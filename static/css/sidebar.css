@@ -548,12 +548,12 @@
 
 /* SPECYFICZNE STYLE DLA POSZCZEGÓLNYCH SEKCJI */
 #favorite-devices-section.collapsed {
-  padding-bottom: 0 !important;
+  padding-bottom: 0.20rem !important;
   transition: padding-bottom 0.3s ease;
 }
 
 #connected-device-section.collapsed {
-  padding-bottom: 0 !important;
+  padding-bottom: 0.20rem !important;
   max-height: 60px; /* Tylko wysokość nagłówka */
 }
 
