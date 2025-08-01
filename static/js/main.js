@@ -1,6 +1,7 @@
 /**
  * Main JavaScript file for Bluetooth Manager
  * Contains core application functionality, scanning, and toast notifications
+ * ADDED: Device name truncation support for scan results
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -23,6 +24,45 @@ document.addEventListener('DOMContentLoaded', function() {
   // ========================================
   
   let scanResultsVisible = false;
+  
+  // ========================================
+  // DEVICE NAME TRUNCATION FUNCTIONS
+  // ========================================
+  
+  /**
+   * Skraca nazwę urządzenia dla wyników skanowania (25 znaków + "...")
+   * @param {string} name - Nazwa urządzenia
+   * @param {number} maxLength - Maksymalna długość (domyślnie 25)
+   * @returns {string} - Skrócona nazwa
+   */
+  function truncateDeviceName(name, maxLength = 25) {
+    if (!name || name === 'Nieznane urządzenie') return name || 'Nieznane urządzenie';
+    if (name.length <= maxLength) return name;
+    return name.substring(0, maxLength) + '...';
+  }
+  
+  /**
+   * Skraca nazwę urządzenia w zależności od szerokości ekranu (dla responsywności)
+   * @param {string} name - Nazwa urządzenia
+   * @returns {string} - Skrócona nazwa dostosowana do ekranu
+   */
+  function truncateDeviceNameResponsive(name) {
+    if (!name || name === 'Nieznane urządzenie') return name || 'Nieznane urządzenie';
+    
+    const screenWidth = window.innerWidth;
+    let maxLength;
+    
+    if (screenWidth <= 480) {
+      maxLength = 15; // Bardzo małe ekrany
+    } else if (screenWidth <= 768) {
+      maxLength = 20; // Średnie ekrany  
+    } else {
+      maxLength = 25; // Duże ekrany
+    }
+    
+    if (name.length <= maxLength) return name;
+    return name.substring(0, maxLength) + '...';
+  }
   
   // ========================================
   // INITIALIZATION
@@ -274,6 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   /**
    * Create a device element for scan results
+   * UPDATED: Added device name truncation for better UI
    * @param {Object} device - Device data
    * @returns {HTMLElement} - Device element
    */
@@ -300,7 +341,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const nameElement = document.createElement('div');
     nameElement.className = 'scan-device-name';
-    nameElement.textContent = device.name || 'Nieznane urządzenie';
+    
+    // UPDATED: Skróć nazwę urządzenia responsywnie
+    const originalName = device.name || 'Nieznane urządzenie';
+    const truncatedName = truncateDeviceNameResponsive(originalName);
+    nameElement.textContent = truncatedName;
+    
+    // Dodaj tooltip z pełną nazwą jeśli została skrócona
+    if (truncatedName !== originalName) {
+      nameElement.title = originalName;
+      nameElement.style.cursor = 'help';
+    }
     
     const addressElement = document.createElement('div');
     addressElement.className = 'scan-device-address';
@@ -354,7 +405,8 @@ document.addEventListener('DOMContentLoaded', function() {
         addDeviceToList(device);
       } else {
         const existingName = existingDevice.name || 'Nieznane urządzenie';
-        showToast(`Urządzenie "${existingName}" jest już na liście sparowanych urządzeń`, 'warning', 4000);
+        const truncatedExistingName = truncateDeviceName(existingName);
+        showToast(`Urządzenie "${truncatedExistingName}" jest już na liście sparowanych urządzeń`, 'warning', 4000);
       }
     });
     
@@ -475,15 +527,18 @@ document.addEventListener('DOMContentLoaded', function() {
   
   /**
    * Add device to the paired devices list
+   * UPDATED: Added device name truncation for toast messages
    * @param {Object} device - Device data
    */
   function addDeviceToList(device) {
     const deviceName = device.name || 'Nieznane urządzenie';
+    const truncatedDeviceName = truncateDeviceName(deviceName);
     
     const existingDevice = checkDeviceExists(device.address);
     if (existingDevice) {
       const existingName = existingDevice.name || 'Nieznane urządzenie';
-      showToast(`Urządzenie "${existingName}" jest już na liście sparowanych urządzeń`, 'warning', 5000);
+      const truncatedExistingName = truncateDeviceName(existingName);
+      showToast(`Urządzenie "${truncatedExistingName}" jest już na liście sparowanych urządzeń`, 'warning', 5000);
       addToMainLog(`[DUPLIKAT] Urządzenie ${deviceName} (${device.address}) już istnieje na liście`);
       return;
     }
@@ -500,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }));
     
     addToMainLog(`[DODANO] Urządzenie ${deviceName} dodane do listy`);
-    showToast(`Urządzenie "${deviceName}" zostało dodane do listy sparowanych`, 'success', 5000);
+    showToast(`Urządzenie "${truncatedDeviceName}" zostało dodane do listy sparowanych`, 'success', 5000);
     
     setTimeout(() => {
       if (scanResultsVisible) {
@@ -649,7 +704,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const existingDevice = checkDeviceExists(address);
         if (existingDevice) {
           const existingName = existingDevice.name || 'Nieznane urządzenie';
-          showToast(`Urządzenie "${existingName}" jest już na liście sparowanych urządzeń`, 'warning', 5000);
+          const truncatedExistingName = truncateDeviceName(existingName);
+          showToast(`Urządzenie "${truncatedExistingName}" jest już na liście sparowanych urządzeń`, 'warning', 5000);
           addToMainLog(`[DUPLIKAT] Próba ręcznego dodania istniejącego urządzenia: ${name} (${address})`);
           return;
         }
@@ -667,8 +723,9 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }));
         
+        const truncatedDeviceName = truncateDeviceName(name);
         addToMainLog(`[MANUAL] Dodano urządzenie ręcznie: ${name} (${address})`);
-        showToast(`Urządzenie "${name}" zostało dodane ręcznie do listy`, 'success', 5000);
+        showToast(`Urządzenie "${truncatedDeviceName}" zostało dodane ręcznie do listy`, 'success', 5000);
         
         manualDeviceModal.style.display = 'none';
         addManualDeviceForm.reset();
@@ -813,6 +870,27 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // ========================================
+  // RESPONSIVE DEVICE NAME TRUNCATION
+  // ========================================
+  
+  // Update device names when window is resized
+  window.addEventListener('resize', function() {
+    // Re-render scan results with new responsive lengths
+    if (scanResultsVisible) {
+      const deviceItems = scanResultsContainer.querySelectorAll('.scan-device-item');
+      deviceItems.forEach(item => {
+        const nameElement = item.querySelector('.scan-device-name');
+        if (nameElement && nameElement.title) {
+          // Re-truncate with new screen size
+          const originalName = nameElement.title;
+          const truncatedName = truncateDeviceNameResponsive(originalName);
+          nameElement.textContent = truncatedName;
+        }
+      });
+    }
+  });
+  
+  // ========================================
   // EVENT LISTENERS
   // ========================================
   
@@ -837,11 +915,17 @@ document.addEventListener('DOMContentLoaded', function() {
     addToMainLog,
     fetchScanResults,
     hideScanResults,
-    updateScanButtonText
+    updateScanButtonText,
+    truncateDeviceName,
+    truncateDeviceNameResponsive
   };
   
   // Export showToast globally for other modules
   window.showToast = showToast;
+  
+  // Export truncation functions globally
+  window.truncateDeviceName = truncateDeviceName;
+  window.truncateDeviceNameResponsive = truncateDeviceNameResponsive;
   
   console.log('Main application initialized successfully');
 });

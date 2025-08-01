@@ -14,6 +14,9 @@
 // - Form validation with visual feedback (error/success animations)
 // - Connected device protection (cannot edit/delete while connected)
 // - Modal accessibility (ESC key, click outside, proper focus management)
+// - Header connection status updates with device name and blinking indicator
+// - Red wifi icon for disconnection instead of X button
+// - ADDED: Device name truncation for better UI (25 chars + "..." for cards, max 7 chars for header)
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -39,6 +42,50 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPairedDevices();
     setupEditDeviceModal();
     initializeSectionStates();
+    
+    // ========================================
+    // DEVICE NAME TRUNCATION FUNCTIONS
+    // ========================================
+    
+    /**
+     * Skraca nazwę urządzenia dla kart urządzeń (25 znaków + "...")
+     * @param {string} name - Nazwa urządzenia
+     * @param {number} maxLength - Maksymalna długość (domyślnie 25)
+     * @returns {string} - Skrócona nazwa
+     */
+    function truncateDeviceName(name, maxLength = 25) {
+        if (!name) return 'Nieznane urządzenie';
+        if (name.length <= maxLength) return name;
+        return name.substring(0, maxLength) + '...';
+    }
+    
+    /**
+     * Skraca nazwę urządzenia dla headera (maksymalnie 7 znaków włącznie z "..." w uppercase)
+     * @param {string} name - Nazwa urządzenia
+     * @param {number} maxLength - Maksymalna długość całkowita (domyślnie 7)
+     * @returns {string} - Skrócona nazwa w uppercase
+     */
+    function truncateDeviceNameForHeader(name, maxLength = 7) {
+        if (!name) return 'OFFLINE';
+        const upperName = name.toUpperCase();
+        if (upperName.length <= maxLength) return upperName;
+        // Jeśli trzeba skrócić, zostaw miejsce na "..." (3 znaki)
+        const availableChars = maxLength - 3;
+        if (availableChars <= 0) return '...';
+        return name.substring(0, availableChars).toUpperCase() + '...';
+    }
+    
+    /**
+     * Skraca nazwę urządzenia dynamicznie w zależności od szerokości ekranu (maksymalnie 7 znaków dla headera)
+     * @param {string} name - Nazwa urządzenia
+     * @returns {string} - Skrócona nazwa dostosowana do ekranu (maksymalnie 7 znaków)
+     */
+    function truncateDeviceNameResponsive(name) {
+        if (!name) return 'OFFLINE';
+        
+        // Zawsze używamy maksymalnie 7 znaków dla headera (4 znaki + "...")
+        return truncateDeviceNameForHeader(name, 7);
+    }
     
     // Sidebar toggle functionality
     if (sidebarToggle) {
@@ -291,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 closeEditDeviceModal();
                 
-                showToast(`Urządzenie "${deviceName}" zostało usunięte`, 'info');
+                showToast(`Urządzenie "${truncateDeviceName(deviceName)}" zostało usunięte`, 'info');
                 addToLog(`Device successfully deleted: ${deviceName} (${address})`, 'SUCCESS');
                 return true;
             } else {
@@ -421,6 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Sprawdza status połączenia - POPRAWIONA WERSJA
+     * ADDED: Wywołanie aktualizacji headera po sprawdzeniu statusu
      */
     async function checkConnectionStatus() {
         try {
@@ -544,12 +592,14 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * Aktualizuje wyświetlanie połączonego urządzenia - POPRAWIONA WERSJA
      * FIXED: Dodano klasę 'active' dla prawidłowego wyświetlania sekcji + obsługa collapsed
+     * ADDED: Aktualizacja headera z nazwą urządzenia i migającą lampką
      */
     function updateConnectionDisplay() {
         if (!connectedDeviceSection || !connectedDeviceContainer) return;
         
         addToLog(`Updating connection display: isConnected=${isConnected}, connectedDevice=${connectedDevice ? connectedDevice.name : 'null'}`, 'DEBUG');
         
+        // Aktualizacja sidebara
         if (isConnected && connectedDevice) {
             connectedDeviceSection.style.display = 'block';
             connectedDeviceSection.classList.add('active'); // DODANO KLASĘ ACTIVE
@@ -563,23 +613,118 @@ document.addEventListener('DOMContentLoaded', function() {
             addToLog('Connected device section hidden', 'INFO');
         }
         
+        // DODANO: Aktualizacja headera
+        updateHeaderConnectionStatus();
+        
         // Sprawdź i zaktualizuj stan collapsed po zmianie
         setTimeout(() => initializeSectionStates(), 100);
     }
     
     /**
-     * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA
+     * NOWA FUNKCJA: Aktualizuje status połączenia w headerze
+     * FIXED: Czerwona ikona wifi zamiast przycisku X
+     * ADDED: Skracanie nazwy urządzenia w headerze do maksymalnie 7 znaków (4 znaki + "...")
+     */
+    function updateHeaderConnectionStatus() {
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusIndicator = connectionStatus ? connectionStatus.querySelector('.status-indicator') : null;
+        const statusText = document.getElementById('statusText');
+        
+        if (!connectionStatus || !statusText) return;
+        
+        if (isConnected && connectedDevice) {
+            // Urządzenie połączone - pokaż nazwę z migającą lampką
+            connectionStatus.classList.add('connected');
+            
+            if (statusIndicator) {
+                statusIndicator.classList.add('active');
+            }
+            
+            // Zmień tekst na skróconą nazwę urządzenia (maksymalnie 7 znaków w uppercase)
+            const truncatedName = truncateDeviceNameResponsive(connectedDevice.name);
+            statusText.textContent = truncatedName;
+            
+            // Dodaj czerwoną ikonę wifi po prawej stronie nazwy urządzenia
+            let disconnectWifiIcon = connectionStatus.querySelector('.disconnect-wifi-icon');
+            if (!disconnectWifiIcon) {
+                disconnectWifiIcon = document.createElement('svg');
+                disconnectWifiIcon.className = 'disconnect-wifi-icon';
+                disconnectWifiIcon.innerHTML = `
+                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                `;
+                disconnectWifiIcon.setAttribute('width', '16');
+                disconnectWifiIcon.setAttribute('height', '16');
+                disconnectWifiIcon.setAttribute('viewBox', '0 0 24 24');
+                disconnectWifiIcon.setAttribute('fill', 'none');
+                disconnectWifiIcon.setAttribute('stroke', 'currentColor');
+                disconnectWifiIcon.setAttribute('stroke-width', '2');
+                disconnectWifiIcon.style.color = '#ef4444'; // Czerwony kolor
+                disconnectWifiIcon.style.cursor = 'pointer';
+                disconnectWifiIcon.style.transition = 'all 0.2s ease';
+                disconnectWifiIcon.style.marginLeft = '0.5rem';
+                disconnectWifiIcon.style.flexShrink = '0';
+                
+                // Hover effect
+                disconnectWifiIcon.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.2)';
+                    this.style.filter = 'drop-shadow(0 0 4px #ef4444)';
+                });
+                
+                disconnectWifiIcon.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.filter = 'none';
+                });
+                
+                // Click handler
+                disconnectWifiIcon.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    disconnectFromDevice();
+                });
+                
+                connectionStatus.appendChild(disconnectWifiIcon);
+            }
+            
+            addToLog(`Header updated with connected device: ${truncatedName}`, 'INFO');
+        } else {
+            // Brak połączenia - przywróć domyślny stan
+            connectionStatus.classList.remove('connected');
+            
+            if (statusIndicator) {
+                statusIndicator.classList.remove('active');
+            }
+            
+            // Przywróć tekst "OFFLINE"
+            statusText.textContent = 'OFFLINE';
+            
+            // Usuń czerwoną ikonę wifi
+            const disconnectWifiIcon = connectionStatus.querySelector('.disconnect-wifi-icon');
+            if (disconnectWifiIcon) {
+                disconnectWifiIcon.remove();
+            }
+            
+            addToLog('Header updated to offline state', 'INFO');
+        }
+    }
+    
+    /**
+     * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA Z SKRACANIEM NAZW
      * @param {Object} device - Obiekt urządzenia
      * @param {boolean} isConnectedSection - Czy to sekcja active connection
      * @param {boolean} showInLists - Czy to urządzenie w głównych listach
      */
     function createDeviceCard(device, isConnectedSection = false, showInLists = false) {
+        // Skróć nazwę urządzenia dla lepszego wyświetlania
+        const truncatedName = truncateDeviceName(device.name);
+        
         if (isConnectedSection) {
             // Uproszczona wersja dla sekcji połączonego urządzenia (active connection)
             return `
                 <div class="device-card connected" data-device='${JSON.stringify(device)}'>
                     <div class="device-info connected-device-info">
-                        <div class="device-name">${(device.name).toUpperCase()}</div>
+                        <div class="device-name">${truncatedName.toUpperCase()}</div>
                         <div class="device-address">${device.address}</div>
                     </div>
                     
@@ -601,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="device-card" data-device='${JSON.stringify(device)}'>
                     <div class="device-info">
                         <div class="device-name">
-                            ${(device.name).toUpperCase()}
+                            ${truncatedName.toUpperCase()}
                             ${connectionIndicator}
                         </div>
                         <div class="device-address">${device.address}</div>
@@ -626,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return `
                 <div class="device-card" data-device='${JSON.stringify(device)}'>
                     <div class="device-info">
-                        <div class="device-name">${(device.name).toUpperCase()}</div>
+                        <div class="device-name">${truncatedName.toUpperCase()}</div>
                         <div class="device-address">${device.address}</div>
                         <div class="device-type">${(device.type || 'other').toUpperCase()}</div>
                     </div>
@@ -776,6 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Rozłącza urządzenie - POPRAWIONA WERSJA
+     * ADDED: Aktualizacja headera po rozłączeniu
      */
     window.disconnectFromDevice = async function() {
         try {
@@ -802,7 +948,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('favoriteDevices', JSON.stringify(pairedDevices));
                 localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
                 
-                updateConnectionDisplay();
+                updateConnectionDisplay(); // To już wywołuje updateHeaderConnectionStatus()
                 displayPairedDevices();
                 displayDiscoveredDevices();
                 
@@ -856,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
             
             addToLog(`Device removed from favorites: ${device.name}`, 'INFO');
-            showToast(`Urządzenie "${device.name}" usunięte z ulubionych`, 'info');
+            showToast(`Urządzenie "${truncateDeviceName(device.name)}" usunięte z ulubionych`, 'info');
         } else {
             // Urządzenie nie jest w ulubionych - znajdź je w discovered i dodaj do ulubionych
             const discoveredIndex = discoveredDevices.findIndex(device => device.address === address);
@@ -875,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('favoriteDevices', JSON.stringify(pairedDevices));
                 
                 addToLog(`Device ${device.name} added to favorites`, 'INFO');
-                showToast(`Urządzenie "${device.name}" dodane do ulubionych`, 'success');
+                showToast(`Urządzenie "${truncateDeviceName(device.name)}" dodane do ulubionych`, 'success');
             }
         }
         
@@ -1100,6 +1246,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (connectedDevice && connectedDevice.address === address) {
             connectedDevice.name = newName;
             connectedDevice.type = newType;
+            updateHeaderConnectionStatus(); // Aktualizuj header z nową nazwą
             addToLog(`Updated connected device: ${newName} (${newType})`, 'INFO');
         }
         
@@ -1109,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', function() {
             displayDiscoveredDevices();
             updateConnectionDisplay();
             
-            showToast(`Urządzenie "${newName}" zostało zaktualizowane`, 'success');
+            showToast(`Urządzenie "${truncateDeviceName(newName)}" zostało zaktualizowane`, 'success');
             addToLog(`Device successfully updated in ${deviceLocation}`, 'SUCCESS');
             return true;
         } else {
@@ -1167,6 +1314,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return stats;
     }
     
+    // Aktualizuj header przy zmianie rozmiaru okna (dla responsive truncation)
+    window.addEventListener('resize', function() {
+        if (isConnected && connectedDevice) {
+            updateHeaderConnectionStatus();
+        }
+    });
+    
     // Sprawdzaj status połączenia co 5 sekund - WYŁĄCZONE TYMCZASOWO
     // setInterval(checkConnectionStatus, 5000);
     
@@ -1177,7 +1331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Udostępnij funkcje globalnie
+    // Udostępnij funkcje globalnie - ZAKTUALIZOWANE
     window.toggleFavorite = toggleFavorite;
     window.addPairedDevice = addPairedDevice;
     window.addDeviceToFavorites = addDeviceToFavorites;
@@ -1191,4 +1345,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
     window.initializeSectionStates = initializeSectionStates;
+    window.updateHeaderConnectionStatus = updateHeaderConnectionStatus; // DODANO
+    window.updateConnectionDisplay = updateConnectionDisplay; // DODANO
+    window.truncateDeviceName = truncateDeviceName; // DODANO
+    window.truncateDeviceNameForHeader = truncateDeviceNameForHeader; // DODANO
+    window.truncateDeviceNameResponsive = truncateDeviceNameResponsive; // DODANO
 });

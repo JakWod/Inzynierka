@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Theme toggle - POPRAWIONA WERSJA
+    // Theme toggle - ULEPSZONA WERSJA Z OBSŁUGĄ SIDEBARA
     if (themeToggle) {
       // Check for saved theme preference or default to dark
       const currentTheme = localStorage.getItem('theme') || 'dark';
@@ -281,49 +281,72 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // ========================================
-  // THEME MANAGEMENT - POPRAWIONA WERSJA
+  // THEME MANAGEMENT - ULEPSZONA WERSJA Z OBSŁUGĄ SIDEBARA
   // ========================================
   
   /**
-   * Apply theme to the application - POPRAWIONA WERSJA
+   * Apply theme to the application - ULEPSZONA WERSJA Z OBSŁUGĄ SIDEBARA
    * @param {string} theme - Theme name (dark/light)
    */
   function applyTheme(theme) {
-  console.log(`Applying theme: ${theme}`);
-  
-  // Set theme attribute on body
-  document.body.setAttribute('data-theme', theme);
-  
-  // Get theme toggle button
-  const themeToggle = document.getElementById('theme-toggle');
-  
-  if (themeToggle) {
-    console.log(`Current button HTML before change: ${themeToggle.innerHTML}`);
+    console.log(`Applying theme: ${theme}`);
     
-    // NOWE PODEJŚCIE: Bezpośrednie ustawienie innerHTML
-    if (theme === 'dark') {
-      // W dark mode pokazuj ikonę słońca (żeby przełączyć na light)
-      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-      themeToggle.title = 'Switch to Light Mode';
-      console.log('Dark theme: Set sun icon via innerHTML');
+    // Set theme attribute on body - to automatically applies to ALL elements including sidebar
+    document.body.setAttribute('data-theme', theme);
+    
+    // Log theme application to sidebar specifically
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      console.log(`Theme ${theme} applied to sidebar - checking sidebar styles...`);
+      
+      // Log computed styles for verification
+      setTimeout(() => {
+        const sidebarStyles = window.getComputedStyle(sidebar);
+        const backgroundColor = sidebarStyles.backgroundColor;
+        const borderColor = sidebarStyles.borderRightColor;
+        console.log(`Sidebar background: ${backgroundColor}, border: ${borderColor}`);
+      }, 100);
     } else {
-      // W light mode pokazuj ikonę księżyca (żeby przełączyć na dark)
-      themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-      themeToggle.title = 'Switch to Dark Mode';
-      console.log('Light theme: Set moon icon via innerHTML');
+      console.warn('Sidebar element not found - theme may not apply to sidebar');
     }
     
-    console.log(`Button HTML after change: ${themeToggle.innerHTML}`);
-  } else {
-    console.error('Theme toggle button not found');
+    // Get theme toggle button
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    if (themeToggle) {
+      console.log(`Current button HTML before change: ${themeToggle.innerHTML}`);
+      
+      // NOWE PODEJŚCIE: Bezpośrednie ustawienie innerHTML
+      if (theme === 'dark') {
+        // W dark mode pokazuj ikonę słońca (żeby przełączyć na light)
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        themeToggle.title = 'Switch to Light Mode';
+        console.log('Dark theme: Set sun icon via innerHTML');
+      } else {
+        // W light mode pokazuj ikonę księżyca (żeby przełączyć na dark)
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        themeToggle.title = 'Switch to Dark Mode';
+        console.log('Light theme: Set moon icon via innerHTML');
+      }
+      
+      console.log(`Button HTML after change: ${themeToggle.innerHTML}`);
+    } else {
+      console.error('Theme toggle button not found');
+    }
+    
+    // Update any other theme-dependent elements
+    updateThemeDependentElements(theme);
+    
+    // Dispatch custom event for other components that might need to know about theme change
+    window.dispatchEvent(new CustomEvent('themeChanged', {
+      detail: { theme: theme }
+    }));
+    
+    console.log(`Theme ${theme} applied successfully to entire application`);
   }
-  
-  // Update any other theme-dependent elements
-  updateThemeDependentElements(theme);
-}
 
   /**
-   * Update other elements that depend on theme
+   * Update other elements that depend on theme - ROZSZERZONA WERSJA
    * @param {string} theme - Current theme
    */
   function updateThemeDependentElements(theme) {
@@ -334,11 +357,24 @@ document.addEventListener('DOMContentLoaded', function() {
       root.style.setProperty('--theme-bg', '#1e1e1e');
       root.style.setProperty('--theme-text', '#e0e0e0');
       root.style.setProperty('--theme-border', '#444');
+      root.style.setProperty('--theme-sidebar-bg', '#000000');
+      root.style.setProperty('--theme-sidebar-text', '#4ade80');
     } else {
       root.style.setProperty('--theme-bg', '#ffffff');
       root.style.setProperty('--theme-text', '#212529');
       root.style.setProperty('--theme-border', '#dee2e6');
+      root.style.setProperty('--theme-sidebar-bg', '#ffffff');
+      root.style.setProperty('--theme-sidebar-text', '#059669');
     }
+    
+    // Update any special elements that might need manual theme updates
+    const specialElements = document.querySelectorAll('.needs-theme-update');
+    specialElements.forEach(element => {
+      element.classList.remove('theme-dark', 'theme-light');
+      element.classList.add(`theme-${theme}`);
+    });
+    
+    console.log(`Theme-dependent elements updated for ${theme} mode`);
   }
   
   // ========================================
@@ -424,11 +460,20 @@ document.addEventListener('DOMContentLoaded', function() {
             border: 1px solid rgba(255, 255, 255, 0.1);
           }
           
+          [data-theme="light"] .settings-section {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.1);
+          }
+          
           .settings-section h3 {
             margin-top: 0;
             margin-bottom: 15px;
             color: #3498db;
             font-size: 16px;
+          }
+          
+          [data-theme="light"] .settings-section h3 {
+            color: #1d4ed8;
           }
           
           .setting-item {
@@ -451,6 +496,10 @@ document.addEventListener('DOMContentLoaded', function() {
             gap: 8px;
           }
           
+          [data-theme="light"] .setting-item label {
+            color: #374151;
+          }
+          
           .setting-item input[type="checkbox"] {
             margin: 0;
           }
@@ -465,10 +514,22 @@ document.addEventListener('DOMContentLoaded', function() {
             min-width: 120px;
           }
           
+          [data-theme="light"] .setting-item select,
+          [data-theme="light"] .setting-item input[type="number"] {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+            color: #374151;
+          }
+          
           .setting-item select:focus,
           .setting-item input[type="number"]:focus {
             border-color: #3498db;
             outline: none;
+          }
+          
+          [data-theme="light"] .setting-item select:focus,
+          [data-theme="light"] .setting-item input[type="number"]:focus {
+            border-color: #1d4ed8;
           }
         `;
         document.head.appendChild(settingsStyle);
@@ -485,6 +546,14 @@ document.addEventListener('DOMContentLoaded', function() {
       // Load current settings
       const themeSelector = settingsModal.querySelector('#theme-selector');
       themeSelector.value = localStorage.getItem('theme') || 'dark';
+      
+      // Theme selector change handler
+      themeSelector.addEventListener('change', function() {
+        const newTheme = this.value;
+        applyTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+        console.log(`Theme changed via settings to: ${newTheme}`);
+      });
       
       // Save settings handler
       const saveBtn = settingsModal.querySelector('#save-settings');
@@ -1058,6 +1127,28 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // ========================================
+  // THEME EVENT LISTENERS
+  // ========================================
+  
+  // Listen for theme changes from other parts of the application
+  window.addEventListener('themeChanged', function(e) {
+    const theme = e.detail.theme;
+    console.log(`Theme change event received: ${theme}`);
+    
+    // Update theme toggle button if needed
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      if (theme === 'dark') {
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        themeToggle.title = 'Switch to Light Mode';
+      } else {
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        themeToggle.title = 'Switch to Dark Mode';
+      }
+    }
+  });
+  
+  // ========================================
   // GLOBAL EXPORTS
   // ========================================
   
@@ -1068,7 +1159,8 @@ document.addEventListener('DOMContentLoaded', function() {
     hideModal,
     getCurrentUser: () => currentUser,
     isUserLoggedIn: () => isLoggedIn,
-    logout: handleLogout
+    logout: handleLogout,
+    applyTheme: applyTheme
   };
   
   console.log('Header functionality initialized successfully');
