@@ -399,7 +399,7 @@
     </div>
   </div>
 
-  <!-- Modal edycji urządzenia - CYBERPUNK STYLE -->
+  <!-- Modal edycji urządzenia z zakładkami - CYBERPUNK STYLE -->
   <div id="device-edit-modal" class="modal">
     <div class="modal-content device-edit-modal-content">
       <span class="close-modal">&times;</span>
@@ -409,74 +409,213 @@
         <p>Zmień ustawienia i właściwości urządzenia</p>
       </div>
       
-      <form id="edit-device-form" class="device-edit-form">
-        <input type="hidden" id="edit-device-address-hidden">
-        
-        <div class="form-section">
-          <h3>Podstawowe informacje</h3>
-          
-          <div class="form-group">
-            <label for="edit-device-name">
-              <i class="fas fa-tag"></i>
-              Nazwa urządzenia:
-            </label>
-            <input type="text" id="edit-device-name" required placeholder="np. Moje Słuchawki">
-            <div class="input-hint">Nazwa wyświetlana w aplikacji</div>
-          </div>
-          
-          <div class="form-group">
-            <label for="edit-device-type">
-              <i class="fas fa-list"></i>
-              Typ urządzenia:
-            </label>
-            <select id="edit-device-type" required>
-              <option value="headphones">🎧 Słuchawki</option>
-              <option value="speaker">🔊 Głośnik</option>
-              <option value="keyboard">⌨️ Klawiatura</option>
-              <option value="mouse">🖱️ Mysz</option>
-              <option value="gamepad">🎮 Kontroler</option>
-              <option value="phone">📱 Telefon</option>
-              <option value="tablet">📱 Tablet</option>
-              <option value="laptop">💻 Laptop</option>
-              <option value="desktop">🖥️ Komputer</option>
-              <option value="other">📱 Inne</option>
-            </select>
-            <div class="input-hint">Wybierz typ dla lepszej organizacji</div>
-          </div>
-          
-          <div class="form-group mac-address-display">
-            <label for="edit-device-address-display">
-              <i class="fas fa-wifi"></i>
-              Adres MAC:
-            </label>
-            <input type="text" id="edit-device-address-display" disabled readonly>
-            <div class="input-hint">Adres MAC nie może być zmieniony</div>
-          </div>
+      <!-- Zakładki nawigacji -->
+      <div class="device-tabs">
+        <button class="device-tab-btn active" data-tab="basic-info-tab">
+          <i class="fas fa-info-circle"></i>
+          <span>Podstawowe informacje</span>
+        </button>
+        <button class="device-tab-btn" data-tab="device-control-tab">
+          <i class="fas fa-gamepad"></i>
+          <span>Kontrola urządzenia</span>
+        </button>
+      </div>
+      
+      <!-- Zawartość zakładek -->
+      <div class="device-tab-content">
+        <!-- Zakładka 1: Podstawowe informacje -->
+        <div id="basic-info-tab" class="device-tab-panel active">
+          <form id="edit-device-form" class="device-edit-form">
+            <input type="hidden" id="edit-device-address-hidden">
+            
+            <div class="form-section">
+              <h3>Identyfikacja urządzenia</h3>
+              
+              <div class="form-group">
+                <label for="edit-device-name">
+                  <i class="fas fa-tag"></i>
+                  Nazwa urządzenia:
+                </label>
+                <input type="text" id="edit-device-name" required placeholder="np. Moje Słuchawki">
+                <div class="input-hint">Nazwa wyświetlana w aplikacji</div>
+              </div>
+              
+              <div class="form-group">
+                <label for="edit-device-type">
+                  <i class="fas fa-list"></i>
+                  Typ urządzenia:
+                </label>
+                <select id="edit-device-type" required>
+                  <option value="headphones">🎧 Słuchawki</option>
+                  <option value="speaker">🔊 Głośnik</option>
+                  <option value="keyboard">⌨️ Klawiatura</option>
+                  <option value="mouse">🖱️ Mysz</option>
+                  <option value="gamepad">🎮 Kontroler</option>
+                  <option value="phone">📱 Telefon</option>
+                  <option value="tablet">📱 Tablet</option>
+                  <option value="laptop">💻 Laptop</option>
+                  <option value="desktop">🖥️ Komputer</option>
+                  <option value="other">📱 Inne</option>
+                </select>
+                <div class="input-hint">Wybierz typ dla lepszej organizacji</div>
+              </div>
+              
+              <div class="form-group mac-address-display">
+                <label for="edit-device-address-display">
+                  <i class="fas fa-wifi"></i>
+                  Adres MAC:
+                </label>
+                <input type="text" id="edit-device-address-display" disabled readonly>
+                <div class="input-hint">Adres MAC nie może być zmieniony</div>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                Zapisz zmiany
+              </button>
+              <button type="button" class="btn btn-outline" id="cancel-edit-device">
+                <i class="fas fa-times"></i>
+                Anuluj
+              </button>
+              <button type="button" class="btn btn-danger" id="delete-device-btn">
+                <i class="fas fa-trash"></i>
+                Usuń urządzenie
+              </button>
+            </div>
+            
+            <div class="modal-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>
+                <strong>Uwaga:</strong> Nie można edytować urządzenia, które jest aktualnie połączone. 
+                Najpierw rozłącz urządzenie, aby móc wprowadzić zmiany.
+              </div>
+            </div>
+          </form>
         </div>
         
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i>
-            Zapisz zmiany
-          </button>
-          <button type="button" class="btn btn-outline" id="cancel-edit-device">
-            <i class="fas fa-times"></i>
-            Anuluj
-          </button>
-          <button type="button" class="btn btn-danger" id="delete-device-btn">
-            <i class="fas fa-trash"></i>
-            Usuń urządzenie
-          </button>
-        </div>
-        
-        <div class="modal-warning">
-          <i class="fas fa-exclamation-triangle"></i>
-          <div>
-            <strong>Uwaga:</strong> Nie można edytować urządzenia, które jest aktualnie połączone. 
-            Najpierw rozłącz urządzenie, aby móc wprowadzić zmiany.
+        <!-- Zakładka 2: Kontrola urządzenia -->
+        <div id="device-control-tab" class="device-tab-panel">
+          <div class="device-control-content">
+            <!-- Istniejące przyciski -->
+            <div class="control-section">
+              <h3>
+                <i class="fas fa-gamepad"></i>
+                Przyciski sterujące
+              </h3>
+              <div class="device-buttons-list" id="device-buttons-list">
+                <div class="no-buttons-message">
+                  <div class="empty-icon">
+                    <i class="fas fa-hand-pointer"></i>
+                  </div>
+                  <p>Brak zdefiniowanych przycisków</p>
+                  <small>Dodaj pierwszy przycisk poniżej</small>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Formularz dodawania nowego przycisku -->
+            <div class="control-section">
+              <h3>
+                <i class="fas fa-plus-circle"></i>
+                Dodaj nowy przycisk
+              </h3>
+              
+              <div class="button-form" id="button-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="button-name">
+                      <i class="fas fa-tag"></i>
+                      Nazwa przycisku:
+                    </label>
+                    <input type="text" id="button-name" placeholder="np. Włącz LED">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="button-function">
+                      <i class="fas fa-cog"></i>
+                      Funkcja:
+                    </label>
+                    <select id="button-function">
+                      <option value="">Standardowy przycisk</option>
+                      <option value="power">⚡ Zasilanie</option>
+                      <option value="volume-up">🔊 Głośność +</option>
+                      <option value="volume-down">🔉 Głośność -</option>
+                      <option value="play-pause">⏯️ Play/Pause</option>
+                      <option value="next">⏭️ Następny</option>
+                      <option value="previous">⏮️ Poprzedni</option>
+                      <option value="light">💡 Światło/LED</option>
+                      <option value="custom">🔧 Niestandardowa</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <!-- Sekcja komend -->
+                <div class="commands-section">
+                  <h4>
+                    <i class="fas fa-code"></i>
+                    Komendy do wykonania
+                  </h4>
+                  <div class="commands-container" id="commands-container">
+                    <div class="command-field">
+                      <div class="form-group">
+                        <label>Komenda HEX:</label>
+                        <input type="text" class="command-input" placeholder="np. 0x01020304">
+                      </div>
+                      <div class="form-group">
+                        <label>Opóźnienie (ms):</label>
+                        <input type="number" class="delay-input" placeholder="0" min="0" max="10000">
+                      </div>
+                      <button type="button" class="remove-command-btn">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="commands-actions">
+                    <button type="button" id="add-command-btn" class="btn btn-outline btn-small">
+                      <i class="fas fa-plus"></i>
+                      Dodaj komendę
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="button-form-actions">
+                  <button type="button" id="save-button-btn" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Zapisz przycisk
+                  </button>
+                  <button type="button" id="cancel-button-btn" class="btn btn-outline">
+                    <i class="fas fa-times"></i>
+                    Anuluj
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Akcje zaawansowane -->
+            <div class="control-section">
+              <h3>
+                <i class="fas fa-tools"></i>
+                Akcje zaawansowane
+              </h3>
+              
+              <div class="advanced-actions">
+                <button type="button" id="unpair-device-btn" class="btn btn-danger">
+                  <i class="fas fa-unlink"></i>
+                  Rozparuj urządzenie
+                </button>
+                
+                <button type="button" id="reset-buttons-btn" class="btn btn-warning">
+                  <i class="fas fa-redo"></i>
+                  Resetuj wszystkie przyciski
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
   

@@ -1,4 +1,4 @@
-// Cyberpunk Sidebar functionality - FINALNA WERSJA
+// Cyberpunk Sidebar functionality - FINALNA WERSJA Z INTEGRACJĄ NOWEGO MODALA
 // Features: 
 // - Gradient scrollbar working properly
 // - Devices save to localStorage properly (favorites + discovered)
@@ -17,6 +17,7 @@
 // - Header connection status updates with device name and blinking indicator
 // - Red wifi icon for disconnection instead of X button
 // - ADDED: Device name truncation for better UI (25 chars + "..." for cards, max 7 chars for header)
+// - INTEGRACJA: Nowy modal z zakładkami (podstawowe info + kontrola urządzenia)
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -198,103 +199,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Konfiguruje modal edycji urządzenia
+     * Konfiguruje modal edycji urządzenia - INTEGRACJA Z NOWYM MODALEM
      */
     function setupEditDeviceModal() {
-        const editForm = document.getElementById('edit-device-form');
-        const editModal = document.getElementById('device-edit-modal');
+        // Modal jest teraz zarządzany przez device-modal.js
+        // Tutaj tylko sprawdzamy czy funkcje są dostępne
         
-        if (editForm) {
-            editForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+        if (typeof window.deviceModalFunctions !== 'undefined') {
+            addToLog('Device modal functions available', 'INFO');
+        } else {
+            addToLog('Device modal functions not available - loading fallback', 'WARNING');
+            
+            // Fallback - basic modal handling
+            const editModal = document.getElementById('device-edit-modal');
+            if (editModal) {
+                const closeButtons = document.querySelectorAll('#device-edit-modal .close-modal');
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        editModal.style.display = 'none';
+                    });
+                });
                 
-                const address = document.getElementById('edit-device-address-hidden').value;
-                const newName = document.getElementById('edit-device-name').value.trim();
-                const newType = document.getElementById('edit-device-type').value;
+                editModal.addEventListener('click', function(e) {
+                    if (e.target === editModal) {
+                        editModal.style.display = 'none';
+                    }
+                });
                 
-                if (!address || !newName) {
-                    showToast('Proszę wypełnić wszystkie wymagane pola', 'warning');
-                    return;
-                }
-                
-                // Walidacja nazwy urządzenia
-                if (newName.length < 1) {
-                    showToast('Nazwa urządzenia nie może być pusta', 'warning');
-                    return;
-                }
-                
-                if (newName.length > 50) {
-                    showToast('Nazwa urządzenia nie może być dłuższa niż 50 znaków', 'warning');
-                    return;
-                }
-                
-                // Zapisz zmiany
-                const success = saveDeviceChanges(address, newName, newType);
-                
-                if (success) {
-                    closeEditDeviceModal();
-                }
-            });
-        }
-        
-        // Obsługa zamykania modala
-        const closeButtons = document.querySelectorAll('#device-edit-modal .close-modal');
-        const cancelButton = document.getElementById('cancel-edit-device');
-        
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                closeEditDeviceModal();
-            });
-        });
-        
-        // Przycisk Anuluj
-        if (cancelButton) {
-            cancelButton.addEventListener('click', function() {
-                closeEditDeviceModal();
-            });
-        }
-        
-        // Zamykanie modala przez kliknięcie w tło
-        if (editModal) {
-            editModal.addEventListener('click', function(e) {
-                if (e.target === editModal) {
-                    closeEditDeviceModal();
-                }
-            });
-        }
-        
-        // Zamykanie modala przez ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && editModal && editModal.style.display === 'block') {
-                closeEditDeviceModal();
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && editModal.style.display === 'block') {
+                        editModal.style.display = 'none';
+                    }
+                });
             }
-        });
+        }
         
-        addToLog('Edit device modal initialized', 'INFO');
+        addToLog('Edit device modal setup completed', 'INFO');
     }
     
     /**
-     * Zamyka modal edycji urządzenia z animacją
+     * Zamyka modal edycji urządzenia z animacją - INTEGRACJA
      */
     function closeEditDeviceModal() {
-        const editModal = document.getElementById('device-edit-modal');
-        const editForm = document.getElementById('edit-device-form');
-        
-        if (editModal) {
-            editModal.style.display = 'none';
-            document.body.style.overflow = 'auto'; // Przywróć scrolling
-            
-            if (editForm) {
-                editForm.reset();
-                
-                // Usuń klasy walidacji
-                const formGroups = editForm.querySelectorAll('.form-group');
-                formGroups.forEach(group => {
-                    group.classList.remove('error', 'success');
-                });
+        // Użyj nowej funkcji z device-modal.js jeśli dostępna
+        if (typeof window.closeEditDeviceModal === 'function') {
+            window.closeEditDeviceModal();
+        } else {
+            // Fallback
+            const editModal = document.getElementById('device-edit-modal');
+            if (editModal) {
+                editModal.style.display = 'none';
+                addToLog('Edit modal closed (fallback)', 'INFO');
             }
-            
-            addToLog('Edit modal closed', 'INFO');
         }
     }
     
@@ -330,6 +286,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 deviceDeleted = true;
                 addToLog(`Deleted device from discovered: ${deviceName} (${address})`, 'INFO');
             }
+            
+            // Usuń przyciski urządzenia
+            const buttonKey = `device_buttons_${address}`;
+            localStorage.removeItem(buttonKey);
+            addToLog(`Deleted device buttons for: ${address}`, 'INFO');
             
             if (deviceDeleted) {
                 // Odśwież wyświetlanie
@@ -1108,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Edytuje urządzenie - PEŁNA FUNKCJONALNOŚĆ Z ANIMACJĄ
+     * Edytuje urządzenie - ZINTEGROWANA Z NOWYM MODALEM
      */
     function editDevice(address) {
         const device = [...pairedDevices, ...discoveredDevices].find(d => d.address === address);
@@ -1153,62 +1114,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Otwiera modal edycji urządzenia
+     * Otwiera modal edycji urządzenia - ZINTEGROWANA Z NOWYM MODALEM
      */
     function openEditDeviceModal(device) {
-        const modal = document.getElementById('device-edit-modal');
-        const nameInput = document.getElementById('edit-device-name');
-        const typeSelect = document.getElementById('edit-device-type');
-        const addressDisplay = document.getElementById('edit-device-address-display');
-        const addressHidden = document.getElementById('edit-device-address-hidden');
-        const deleteButton = document.getElementById('delete-device-btn');
-        const modalWarning = modal ? modal.querySelector('.modal-warning') : null;
-        
-        if (!modal || !nameInput || !typeSelect || !addressDisplay || !addressHidden) {
-            addToLog('Edit modal elements not found', 'ERROR');
-            showToast('Błąd: Nie można otworzyć okna edycji', 'error');
-            return;
-        }
-        
-        // Wypełnij pola danymi urządzenia
-        nameInput.value = device.name || '';
-        typeSelect.value = device.type || 'other';
-        addressDisplay.value = device.address;
-        addressHidden.value = device.address;
-        
-        // Sprawdź czy urządzenie jest połączone
-        const isConnected = device.connected === true;
-        
-        // Pokaż/ukryj ostrzeżenie w zależności od statusu połączenia
-        if (modalWarning) {
-            if (isConnected) {
-                modalWarning.style.display = 'flex';
-                // Wyłącz pola formularza jeśli urządzenie jest połączone
-                nameInput.disabled = true;
-                typeSelect.disabled = true;
-                if (deleteButton) deleteButton.disabled = true;
-            } else {
-                modalWarning.style.display = 'none';
-                // Włącz pola formularza
-                nameInput.disabled = false;
-                typeSelect.disabled = false;
-                if (deleteButton) deleteButton.disabled = false;
+        // Użyj nowej funkcji z device-modal.js jeśli dostępna
+        if (typeof window.openEditDeviceModal === 'function') {
+            window.openEditDeviceModal(device);
+        } else if (typeof window.deviceModalFunctions !== 'undefined' && window.deviceModalFunctions.openDeviceEditModal) {
+            window.deviceModalFunctions.openDeviceEditModal(device);
+        } else {
+            // Fallback - basic modal
+            const modal = document.getElementById('device-edit-modal');
+            if (modal) {
+                const nameInput = document.getElementById('edit-device-name');
+                const typeSelect = document.getElementById('edit-device-type');
+                const addressDisplay = document.getElementById('edit-device-address-display');
+                const addressHidden = document.getElementById('edit-device-address-hidden');
+                
+                if (nameInput) nameInput.value = device.name || '';
+                if (typeSelect) typeSelect.value = device.type || 'other';
+                if (addressDisplay) addressDisplay.value = device.address;
+                if (addressHidden) addressHidden.value = device.address;
+                
+                modal.style.display = 'block';
+                
+                addToLog('Edit modal opened (fallback)', 'INFO');
             }
         }
-        
-        // Pokaż modal
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden'; // Zablokuj scrolling strony
-        
-        // Auto-focus i zaznacz tekst
-        setTimeout(() => {
-            if (!isConnected) {
-                nameInput.focus();
-                nameInput.select();
-            }
-        }, 100);
-        
-        addToLog(`Edit modal opened for device: ${device.name} (${device.address}) - Connected: ${isConnected}`, 'INFO');
     }
     
     /**
@@ -1298,9 +1230,18 @@ document.addEventListener('DOMContentLoaded', function() {
         discoveredDevices = [];
         localStorage.removeItem('favoriteDevices');
         localStorage.removeItem('discoveredDevices');
+        
+        // Usuń wszystkie przyciski urządzeń
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+            if (key.startsWith('device_buttons_')) {
+                localStorage.removeItem(key);
+            }
+        });
+        
         displayPairedDevices();
         displayDiscoveredDevices();
-        addToLog('All devices cleared', 'INFO');
+        addToLog('All devices and buttons cleared', 'INFO');
     }
     
     function getDeviceStats() {
@@ -1345,9 +1286,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
     window.initializeSectionStates = initializeSectionStates;
-    window.updateHeaderConnectionStatus = updateHeaderConnectionStatus; // DODANO
-    window.updateConnectionDisplay = updateConnectionDisplay; // DODANO
-    window.truncateDeviceName = truncateDeviceName; // DODANO
-    window.truncateDeviceNameForHeader = truncateDeviceNameForHeader; // DODANO
-    window.truncateDeviceNameResponsive = truncateDeviceNameResponsive; // DODANO
+    window.updateHeaderConnectionStatus = updateHeaderConnectionStatus;
+    window.updateConnectionDisplay = updateConnectionDisplay;
+    window.truncateDeviceName = truncateDeviceName;
+    window.truncateDeviceNameForHeader = truncateDeviceNameForHeader;
+    window.truncateDeviceNameResponsive = truncateDeviceNameResponsive;
 });

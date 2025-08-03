@@ -240,7 +240,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #6b7280;
+  background: var(--cyberpunk-red);
   flex-shrink: 0;
 }
 
