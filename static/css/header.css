@@ -1,5 +1,5 @@
 /* ========================================
-   CYBERPUNK HEADER STYLES - ZAMIENIONE Z POPRAWIONĄ RESPONSYWNOŚCIĄ
+   CYBERPUNK HEADER STYLES - ZAMIENIONE Z POPRAWIONĄ RESPONSYWNOŚCIĄ I STAŁYMI PRZYCISKAMI
    ======================================== */
 
 :root {
@@ -46,20 +46,14 @@
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   position: relative;
   z-index: 10;
-  gap: 1rem;
-  flex-wrap: nowrap; /* ZMIANA: domyślnie nowrap */
+  gap: 0rem;
+  flex-wrap: nowrap;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto; /* DODANO: pozwala na przewijanie w poziomie na bardzo małych ekranach */
-  scrollbar-width: none; /* Ukryj scrollbar na Firefox */
-  -ms-overflow-style: none; /* Ukryj scrollbar na IE/Edge */
-}
-
-.header-content::-webkit-scrollbar {
-  display: none; /* Ukryj scrollbar na Chrome/Safari */
+  overflow: hidden; /* Zapobiegaj przepełnieniu */
 }
 
 /* Logo Section */
@@ -69,6 +63,7 @@
   gap: 0.75rem;
   flex-shrink: 0;
   order: 1;
+  min-width: 0;
 }
 
 .logo-icon {
@@ -123,7 +118,7 @@
 /* Search Terminal */
 .search-terminal {
   flex: 1 1 auto;
-  min-width: 330px;
+  min-width: 200px;
   max-width: 400px;
   margin: 0 1rem;
   order: 2;
@@ -185,17 +180,21 @@
   color: rgba(156, 163, 175, 0.5);
 }
 
-/* Header Actions */
+/* Header Actions - STAŁE POZYCJONOWANIE */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
   order: 3;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Nigdy nie zawijaj */
+  min-width: 0;
+  position: relative;
+  width: auto; /* Stała szerokość */
+  max-width: none; /* Bez ograniczeń szerokości */
 }
 
-/* Connection Status */
+/* Connection Status - OGRANICZONA SZEROKOŚĆ */
 .connection-status {
   display: flex;
   align-items: center;
@@ -208,6 +207,10 @@
   font-family: "JetBrains Mono", monospace;
   white-space: nowrap;
   flex-shrink: 0;
+  /* DODANE: Ograniczenia szerokości */
+  max-width: 120px; /* Maksymalna szerokość */
+  min-width: 80px; /* Minimalna szerokość */
+  overflow: hidden; /* Ukryj przepełnienie */
 }
 
 .connection-status.connected {
@@ -251,6 +254,12 @@
   font-weight: 500;
   color: rgba(156, 163, 175, 0.7);
   font-family: "JetBrains Mono", monospace;
+  /* DODANE: Ograniczenia tekstu */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .connection-status.connected #statusText {
@@ -263,7 +272,9 @@
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
+  width: 12px !important;
+  height: 12px !important;
 }
 
 .disconnect-wifi-icon:hover {
@@ -290,6 +301,8 @@
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
+  /* DODANE: Stała szerokość dla przycisków */
+  min-width: 60px;
 }
 
 .scan-btn::before {
@@ -326,6 +339,7 @@
 .add-device-btn {
   border-color: #10b981;
   color: #10b981;
+  min-width: 50px; /* Stała minimalna szerokość */
 }
 
 .add-device-btn::before {
@@ -579,7 +593,7 @@
 }
 
 /* ========================================
-   RESPONSIVE DESIGN - ZNACZNIE POPRAWIONY
+   RESPONSIVE DESIGN - ZNACZNIE POPRAWIONY Z ZABEZPIECZENIEM PRZYCISKÓW
    ======================================== */
 
 /* Bardzo duże ekrany (1400px+) */
@@ -596,6 +610,10 @@
   .header-actions {
     gap: 1rem;
   }
+  
+  .connection-status {
+    max-width: 140px;
+  }
 }
 
 /* Duże ekrany (1200px - 1399px) */
@@ -607,6 +625,10 @@
   .search-terminal {
     max-width: 400px;
     margin: 0 1.5rem;
+  }
+  
+  .connection-status {
+    max-width: 130px;
   }
 }
 
@@ -631,6 +653,7 @@
   
   .connection-status {
     padding: 0.3rem 0.6rem;
+    max-width: 110px;
   }
   
   #statusText {
@@ -647,7 +670,6 @@
   
   .header-content {
     gap: 0.75rem;
-    flex-wrap: nowrap; /* ZMIANA: bez wrap, wszystko obok siebie */
   }
   
   .logo-section {
@@ -693,6 +715,7 @@
   .add-device-btn {
     padding: 0.4rem 0.6rem;
     font-size: 0.7rem;
+    min-width: 50px;
   }
   
   .scan-btn span,
@@ -713,6 +736,7 @@
   
   .connection-status {
     padding: 0.3rem 0.5rem;
+    max-width: 90px; /* Jeszcze mniejsza szerokość */
   }
   
   .security-indicator {
@@ -721,8 +745,8 @@
   }
   
   .disconnect-wifi-icon {
-    width: 14px;
-    height: 14px;
+    width: 10px !important;
+    height: 10px !important;
   }
 }
 
@@ -734,20 +758,14 @@
   }
   
   .header-content {
-    flex-direction: row; /* ZMIANA: pozostaw poziomo */
-    align-items: center;
-    gap: 0.25rem;
-    flex-wrap: nowrap; /* ZMIANA: bez wrap, elementy zawsze obok siebie */
+    gap: 0.5rem;
   }
   
   .logo-section {
-    order: 1;
     gap: 0.25rem;
-    flex-shrink: 0;
   }
   
   .search-terminal {
-    order: 2;
     flex: 1;
     min-width: 120px;
     max-width: 200px;
@@ -755,27 +773,29 @@
   }
   
   .header-actions {
-    order: 3;
     gap: 0.25rem;
+    /* STAŁE POZYCJONOWANIE - przyciski zawsze widoczne */
+    position: relative;
     flex-shrink: 0;
-    flex-wrap: nowrap;
+    min-width: 200px; /* Zagwarantowana minimalna szerokość */
   }
   
   .connection-status {
-    min-width: auto;
     padding: 0.25rem 0.4rem;
+    max-width: 70px; /* Bardzo mała szerokość */
+    min-width: 50px;
   }
   
   .connection-status span {
-    display: none;
+    display: none; /* Ukryj całkowicie na małych ekranach */
   }
   
   .security-indicator {
     display: none;
   }
   
-  /* Ukryj niektóre akcje na bardzo małych ekranach */
-  .header-actions > *:nth-child(n+4) {
+  /* Pokaż tylko najważniejsze przyciski */
+  .header-actions > *:nth-child(n+3) {
     display: none;
   }
 }
@@ -787,8 +807,7 @@
   }
   
   .header-content {
-    gap: 0.2rem;
-    flex-wrap: nowrap; /* ZMIANA: bez wrap */
+    gap: 0.25rem;
   }
   
   .logo-icon {
@@ -825,13 +844,14 @@
   
   .header-actions {
     gap: 0.2rem;
-    flex-shrink: 0;
+    min-width: 150px; /* Zagwarantowana minimalna szerokość */
   }
   
   .scan-btn,
   .add-device-btn {
     padding: 0.3rem 0.5rem;
     font-size: 0.65rem;
+    min-width: 45px;
   }
   
   .icon-btn {
@@ -846,6 +866,8 @@
   
   .connection-status {
     padding: 0.25rem 0.4rem;
+    max-width: 60px; /* Bardzo mała szerokość */
+    min-width: 40px;
   }
   
   .status-indicator {
@@ -854,11 +876,12 @@
   }
   
   .disconnect-wifi-icon {
-    width: 12px;
-    height: 12px;
+    width: 8px !important;
+    height: 8px !important;
+    margin-left: 0.15rem;
   }
   
-  /* Ukryj więcej elementów na małych ekranach */
+  /* Pokaż tylko connection status i scan button */
   .header-actions > *:nth-child(n+3) {
     display: none;
   }
@@ -872,7 +895,6 @@
   
   .header-content {
     gap: 0.15rem;
-    flex-wrap: nowrap; /* ZMIANA: bez wrap */
   }
   
   .logo-section {
@@ -918,14 +940,14 @@
   
   .header-actions {
     gap: 0.15rem;
-    flex-shrink: 0;
+    min-width: 120px; /* Zagwarantowana minimalna szerokość */
   }
   
   .scan-btn,
   .add-device-btn {
     padding: 0.25rem 0.4rem;
     font-size: 0.6rem;
-    min-width: 50px;
+    min-width: 40px;
   }
   
   .icon-btn {
@@ -940,6 +962,8 @@
   
   .connection-status {
     padding: 0.2rem 0.3rem;
+    max-width: 50px; /* Minimalna szerokość */
+    min-width: 35px;
   }
   
   .user-dropdown {
@@ -948,9 +972,9 @@
   }
   
   .disconnect-wifi-icon {
-    width: 10px;
-    height: 10px;
-    margin-left: 0.25rem;
+    width: 6px !important;
+    height: 6px !important;
+    margin-left: 0.1rem;
   }
   
   /* Pokaż tylko najważniejsze elementy */
@@ -967,14 +991,7 @@
   }
   
   .header-content {
-    flex-direction: row;
-    align-items: center;
     gap: 0.5rem;
-  }
-  
-  .logo-section {
-    order: 1;
-    width: auto;
   }
   
   .logo-text p {
@@ -982,22 +999,21 @@
   }
   
   .search-terminal {
-    order: 2;
-    width: auto;
-    flex: 1;
     max-width: 250px;
     margin: 0 0.5rem;
   }
   
   .header-actions {
-    order: 3;
-    width: auto;
-    flex-wrap: nowrap;
     gap: 0.25rem;
+    min-width: 180px;
   }
   
   .security-indicator {
     display: none;
+  }
+  
+  .connection-status {
+    max-width: 80px;
   }
   
   .connection-status span {
@@ -1024,6 +1040,10 @@
   .logo-text p {
     font-size: 0.75rem;
   }
+  
+  .connection-status {
+    max-width: 150px;
+  }
 }
 
 /* Niskie ekrany (wysokość < 600px) */
@@ -1045,36 +1065,13 @@
   .logo-text p {
     font-size: 0.6rem;
   }
-}
-
-/* Poprawki dla specyficznych urządzeń */
-
-/* iPhone SE */
-@media (max-width: 375px) and (max-height: 667px) {
-  .header-actions .scan-btn:nth-child(n+3) {
-    display: none;
-  }
-}
-
-/* iPhone 12 Mini */
-@media (max-width: 390px) and (max-height: 844px) {
-  .terminal-prompt {
-    font-size: 0.6rem;
-  }
-}
-
-/* Bardzo szerokie ekrany (21:9) */
-@media (min-aspect-ratio: 21/9) {
-  .search-terminal {
-    max-width: 600px;
-  }
   
-  .header-actions {
-    gap: 1.5rem;
+  .connection-status {
+    max-width: 100px;
   }
 }
 
-/* Zapewnienie że wszystkie elementy się mieszczą */
+/* Zapewnienie że wszystkie elementy się mieszczą - KRYTYCZNE ZABEZPIECZENIE */
 @media (max-width: 320px) {
   .header {
     padding: 0.2rem 0.3rem;
@@ -1082,7 +1079,7 @@
   
   .header-content {
     gap: 0.1rem;
-    flex-wrap: nowrap; /* ZMIANA: bez wrap nawet na najważniejszych ekranach */
+    overflow: hidden;
   }
   
   .logo-text h1 {
@@ -1094,16 +1091,45 @@
     max-width: 120px;
   }
   
+  .header-actions {
+    /* ABSOLUTNE ZABEZPIECZENIE - przyciski zawsze widoczne */
+    position: relative;
+    flex-shrink: 0 !important;
+    min-width: 100px !important; 
+    max-width: 100px !important;
+    overflow: visible;
+  }
+  
   .scan-btn,
   .add-device-btn {
-    min-width: 40px;
+    min-width: 35px;
     padding: 0.2rem 0.3rem;
     font-size: 0.55rem;
   }
   
-  /* Pokaż tylko connection status i scan button */
+  .connection-status {
+    max-width: 40px !important;
+    min-width: 30px !important;
+    padding: 0.15rem 0.25rem;
+  }
+  
+  .connection-status * {
+    display: none; /* Ukryj wszystko w connection-status na ultra-małych ekranach */
+  }
+  
+  .status-indicator {
+    display: block !important; /* Pokaż tylko lampkę */
+    width: 4px;
+    height: 4px;
+  }
+  
+  /* Pokaż tylko connection status (lampkę) i scan button */
   .header-actions > *:nth-child(n+2) {
     display: none;
+  }
+  
+  .header-actions .connection-status {
+    display: flex !important; /* Zawsze pokaż connection status */
   }
 }
 
