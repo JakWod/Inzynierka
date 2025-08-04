@@ -49,12 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     
     /**
-     * Skraca nazwę urządzenia dla kart urządzeń (25 znaków + "...")
+     * Skraca nazwę urządzenia dla kart urządzeń (27 znaków + "...")
      * @param {string} name - Nazwa urządzenia
-     * @param {number} maxLength - Maksymalna długość (domyślnie 25)
+     * @param {number} maxLength - Maksymalna długość (domyślnie 27)
      * @returns {string} - Skrócona nazwa
      */
-    function truncateDeviceName(name, maxLength = 25) {
+    function truncateDeviceName(name, maxLength = 27) {
         if (!name) return 'Nieznane urządzenie';
         if (name.length <= maxLength) return name;
         return name.substring(0, maxLength) + '...';

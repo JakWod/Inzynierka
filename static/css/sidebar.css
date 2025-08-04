@@ -86,7 +86,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--cyberpunk-green);
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .sidebar.collapsed .sidebar-title-text {
@@ -264,7 +264,7 @@
   font-size: 0.8rem;
   cursor: pointer;
   transition: color 0.2s ease;
-  padding: 0.5rem;
+  padding: 0rem 0.5rem 0.5rem 0.5rem;
   border-radius: 0;
 }
 
