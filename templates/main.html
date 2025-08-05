@@ -156,7 +156,7 @@
 
     <!-- Main content z nowym cyberpunk headerem -->
     <div class="main-content">
-      <!-- CYBERPUNK HEADER - ZASTĄPIONY -->
+      <!-- CYBERPUNK HEADER -->
       <header class="header">
         <div class="header-glow"></div>
         
@@ -200,12 +200,6 @@
                 <line x1="12" y1="20" x2="12.01" y2="20"></line>
               </svg>
               <span id="statusText">OFFLINE</span>
-              <button id="disconnectBtn" class="disconnect-btn" style="display: none;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
             </div>
 
             <!-- Scan Button -->
@@ -214,11 +208,11 @@
                 <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"></path>
                 <polyline points="8,1 16,1 16,7 8,7 8,1"></polyline>
               </svg>
-              <span id="scanBtnText">SCAN</span>
+              <span>SCAN</span>
             </button>
 
             <!-- Add Device Button -->
-            <button class="scan-btn add-device-btn" id="header-add-device-btn">
+            <button class="add-device-btn" id="header-add-device-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -235,11 +229,9 @@
             </div>
 
             <!-- Theme Toggle -->
-            <!-- <button class="icon-btn" id="theme-toggle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-              </svg>
-            </button> -->
+            <button class="icon-btn" id="theme-toggle">
+              <i class="fas fa-sun"></i>
+            </button>
 
             <!-- Settings -->
             <button class="icon-btn settings-btn" id="settings-btn">
@@ -251,21 +243,28 @@
 
             <!-- User Menu -->
             <div class="user-menu">
-              <button class="icon-btn user-btn" id="login-btn">
+              <button class="icon-btn user-btn" id="user-menu-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
               </button>
               <div class="user-dropdown" id="userDropdown">
-                <button class="dropdown-item" id="register-btn">
-                  <span>&gt; register.exe</span>
-                </button>
-                <button class="dropdown-item">
+                <button class="dropdown-item" id="profile-btn" style="display: none;">
+                  <i class="fas fa-user"></i>
                   <span>&gt; profile.cfg</span>
                 </button>
+                <button class="dropdown-item" id="login-dropdown-btn">
+                  <i class="fas fa-sign-in-alt"></i>
+                  <span>&gt; login.exe</span>
+                </button>
+                <button class="dropdown-item" id="register-dropdown-btn">
+                  <i class="fas fa-user-plus"></i>
+                  <span>&gt; register.exe</span>
+                </button>
                 <hr class="dropdown-divider">
-                <button class="dropdown-item danger">
+                <button class="dropdown-item danger" id="logout-dropdown-btn" style="display: none;">
+                  <i class="fas fa-sign-out-alt"></i>
                   <span>&gt; logout.sh</span>
                 </button>
               </div>

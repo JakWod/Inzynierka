@@ -2935,3 +2935,401 @@ select:focus {
     display: none !important;
   }
 }
+
+/* ========================================
+   FIXED ADD BUTTON AND USER MENU STYLES
+   ======================================== */
+
+/* ADD DEVICE BUTTON - CYBERPUNK STYLE */
+#header-add-device-btn,
+.add-device-btn {
+  background: none !important;
+  border: 1px solid #10b981 !important;
+  color: #10b981 !important;
+  padding: 0.5rem 0.8rem !important;
+  border-radius: 6px !important;
+  font-family: "JetBrains Mono", monospace !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  min-width: 50px !important;
+  box-shadow: 0 0 17px 0px rgba(16, 185, 129, 0.6) !important;
+  text-decoration: none !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+#header-add-device-btn:hover,
+.add-device-btn:hover {
+  border-color: #059669 !important;
+  color: #059669 !important;
+  box-shadow: 0 0 18px 6px rgba(5, 150, 105, 0.8) !important;
+  transform: translateY(-1px) !important;
+}
+
+#header-add-device-btn:disabled,
+.add-device-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  box-shadow: 0 0 18px 3px rgba(16, 185, 129, 0.3) !important;
+  transform: none !important;
+}
+
+#header-add-device-btn:active,
+.add-device-btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 0 15px 2px rgba(5, 150, 105, 0.6) !important;
+}
+
+#header-add-device-btn svg,
+.add-device-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke: currentColor !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+}
+
+#header-add-device-btn span,
+.add-device-btn span {
+  font-family: "JetBrains Mono", monospace !important;
+  font-weight: 500 !important;
+  color: inherit !important;
+  flex-shrink: 1 !important;
+}
+
+#header-add-device-btn.loading,
+.add-device-btn.loading {
+  pointer-events: none !important;
+  opacity: 0.7 !important;
+}
+
+#header-add-device-btn.loading svg,
+.add-device-btn.loading svg {
+  animation: spin 1s linear infinite !important;
+}
+
+/* USER DROPDOWN - DYNAMIC HEIGHT */
+.user-menu {
+  position: relative;
+  z-index: 999998 !important;
+}
+
+.user-btn {
+  position: relative;
+  z-index: 999999 !important;
+  background: none;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  color: rgba(156, 163, 175, 0.7);
+  padding: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-btn:hover {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+}
+
+.user-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.user-dropdown {
+  position: fixed !important;
+  top: 70px !important;
+  right: 20px !important;
+  background: #000 !important;
+  border: 2px solid var(--cyberpunk-green) !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 0 !important;
+  min-width: 220px !important;
+  max-width: 280px !important;
+  display: none !important;
+  z-index: 999997 !important;
+  box-shadow: 
+    0 0 20px rgba(74, 222, 128, 0.4),
+    0 8px 32px rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  animation: dropdownSlideIn 0.3s ease-out !important;
+  opacity: 0 !important;
+  transform: translateY(-10px) !important;
+  transition: all 0.3s ease !important;
+  /* DYNAMIC HEIGHT - REMOVED FIXED HEIGHT */
+  height: auto !important;
+  min-height: 80px !important;
+  max-height: 280px !important;
+  overflow: hidden !important;
+}
+
+.user-dropdown.show {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.user-dropdown::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -2px !important;
+  background: linear-gradient(135deg, 
+    rgba(74, 222, 128, 0.2) 0%,
+    rgba(96, 165, 250, 0.2) 50%,
+    rgba(192, 132, 252, 0.2) 100%
+  ) !important;
+  border-radius: 8px !important;
+  filter: blur(6px) !important;
+  z-index: -1 !important;
+  opacity: 0.6 !important;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+  width: 100% !important;
+  background: none !important;
+  border: none !important;
+  color: var(--cyberpunk-green) !important;
+  padding: 0.75rem 1rem !important;
+  text-align: left !important;
+  font-family: "JetBrains Mono", monospace !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  border-radius: 0 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  text-decoration: none !important;
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  box-sizing: border-box !important;
+  z-index: 999996 !important;
+  /* SMOOTH HIDE/SHOW TRANSITION */
+  opacity: 1 !important;
+  transform: scaleY(1) !important;
+  transform-origin: top !important;
+}
+
+/* HIDDEN STATE FOR DROPDOWN ITEMS */
+.dropdown-item[style*="display: none"],
+.dropdown-item[style*="visibility: hidden"] {
+  opacity: 0 !important;
+  transform: scaleY(0) !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+.dropdown-item::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 0 !important;
+  background: linear-gradient(90deg, 
+    var(--cyberpunk-green) 0%,
+    var(--cyberpunk-blue) 100%
+  ) !important;
+  transition: width 0.2s ease !important;
+  z-index: -1 !important;
+}
+
+.dropdown-item:hover::before {
+  width: 100% !important;
+}
+
+.dropdown-item:hover {
+  background: rgba(74, 222, 128, 0.1) !important;
+  color: #fff !important;
+  transform: translateX(4px) scaleY(1) !important;
+}
+
+.dropdown-item i {
+  color: var(--cyberpunk-blue) !important;
+  font-size: 0.9rem !important;
+  width: 16px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+
+.dropdown-item span {
+  flex: 1 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.dropdown-item.danger {
+  color: var(--cyberpunk-red) !important;
+}
+
+.dropdown-item.danger i {
+  color: var(--cyberpunk-red) !important;
+}
+
+.dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #fff !important;
+}
+
+.dropdown-item.danger::before {
+  background: linear-gradient(90deg, 
+    var(--cyberpunk-red) 0%,
+    #dc2626 100%
+  ) !important;
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+  border: none !important;
+  border-top: 1px solid rgba(74, 222, 128, 0.3) !important;
+  margin: 0.5rem 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    var(--cyberpunk-green) 50%,
+    transparent 100%
+  ) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* HIDDEN STATE FOR DIVIDER */
+.dropdown-divider[style*="display: none"],
+.dropdown-divider[style*="visibility: hidden"] {
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Light theme dla user dropdown */
+[data-theme="light"] .user-dropdown {
+  background: #ffffff !important;
+  border-color: var(--cyberpunk-green) !important;
+  box-shadow: 
+    0 0 20px rgba(74, 222, 128, 0.3),
+    0 8px 32px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="light"] .user-dropdown::before {
+  background: linear-gradient(135deg, 
+    rgba(74, 222, 128, 0.1) 0%,
+    rgba(96, 165, 250, 0.1) 50%,
+    rgba(192, 132, 252, 0.1) 100%
+  ) !important;
+}
+
+[data-theme="light"] .dropdown-item {
+  color: #059669 !important;
+}
+
+[data-theme="light"] .dropdown-item:hover {
+  background: rgba(5, 150, 105, 0.1) !important;
+  color: #1f2937 !important;
+}
+
+[data-theme="light"] .dropdown-item i {
+  color: #1d4ed8 !important;
+}
+
+[data-theme="light"] .dropdown-item.danger {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .dropdown-item.danger i {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .dropdown-item.danger:hover {
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #1f2937 !important;
+}
+
+[data-theme="light"] .dropdown-divider {
+  border-top-color: rgba(5, 150, 105, 0.3) !important;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    #059669 50%,
+    transparent 100%
+  ) !important;
+}
+
+/* Light theme dla add button */
+[data-theme="light"] #header-add-device-btn,
+[data-theme="light"] .add-device-btn {
+  background: #ffffff !important;
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+  box-shadow: 0 0 18px 4px rgba(16, 185, 129, 0.5) !important;
+}
+
+[data-theme="light"] #header-add-device-btn:hover,
+[data-theme="light"] .add-device-btn:hover {
+  border-color: #059669 !important;
+  color: #059669 !important;
+  box-shadow: 0 0 18px 6px rgba(5, 150, 105, 0.8) !important;
+}
+
+[data-theme="light"] #header-add-device-btn:disabled,
+[data-theme="light"] .add-device-btn:disabled {
+  box-shadow: 0 0 18px 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Animacje */
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsywność dla menu */
+@media (max-width: 768px) {
+  .user-dropdown {
+    right: 10px !important;
+    min-width: 180px !important;
+    top: 60px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-dropdown {
+    right: 5px !important;
+    min-width: 160px !important;
+    top: 50px !important;
+  }
+  
+  .dropdown-item {
+    padding: 0.6rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+  }
+}

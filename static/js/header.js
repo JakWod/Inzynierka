@@ -1,6 +1,9 @@
 /**
  * Header Functionality for Bluetooth Manager
  * Handles header interactions, authentication modals, and user management
+ * UPDATED: Enhanced ADD button functionality and improved user menu with dropdown
+ * FIXED: Better error handling and debugging for ADD button
+ * FIXED: Proper user menu visibility logic for login/logout states
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -19,9 +22,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const gridView = document.getElementById('grid-view');
   const listView = document.getElementById('list-view');
   
+  // User menu elements - UPDATED
+  const userMenuBtn = document.getElementById('user-menu-btn');
+  const userDropdown = document.getElementById('userDropdown');
+  const profileBtn = document.getElementById('profile-btn');
+  const loginDropdownBtn = document.getElementById('login-dropdown-btn');
+  const registerDropdownBtn = document.getElementById('register-dropdown-btn');
+  const logoutDropdownBtn = document.getElementById('logout-dropdown-btn');
+  
   // Auth elements
-  const loginBtn = document.getElementById('login-btn');
-  const registerBtn = document.getElementById('register-btn');
   const loginModal = document.getElementById('login-modal');
   const registerModal = document.getElementById('register-modal');
   const loginForm = document.getElementById('login-form');
@@ -45,10 +54,25 @@ document.addEventListener('DOMContentLoaded', function() {
   
   initHeaderFunctionality();
   initAuthSystem();
+  initUserMenu();
   loadUserState();
   
   /**
-   * Initialize header functionality
+   * Initialize the main application
+   */
+  function initHeaderFunctionality() {
+    console.log('Inicjalizacja funkcjonalności headera...');
+    
+    setupScanningFunctionality();
+    setupManualDeviceModal();
+    setupToastSystem();
+    updateScanButtonText();
+    
+    console.log('Główna aplikacja zainicjalizowana pomyślnie');
+  }
+  
+  /**
+   * Initialize header functionality - ENHANCED WITH BETTER ADD BUTTON HANDLING
    */
   function initHeaderFunctionality() {
     console.log('Inicjalizacja funkcjonalności headera...');
@@ -136,13 +160,84 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Header add device button
+    // Header add device button - COMPLETELY REWRITTEN WITH BETTER ERROR HANDLING
     if (headerAddDeviceBtn) {
-      headerAddDeviceBtn.addEventListener('click', function() {
+      console.log('ADD button found, attaching event listener...');
+      
+      headerAddDeviceBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('ADD button clicked - starting process...');
+        
+        // Check if modal exists first
         const manualDeviceModal = document.getElementById('add-manual-device-modal');
-        if (manualDeviceModal) {
-          manualDeviceModal.style.display = 'block';
+        if (!manualDeviceModal) {
+          console.error('Manual device modal not found in DOM!');
+          showToast('Błąd: Formularz dodawania urządzenia nie został znaleziony', 'error', 5000);
+          return;
         }
+        
+        console.log('Manual device modal found:', manualDeviceModal);
+        
+        // Prevent double clicks
+        if (headerAddDeviceBtn.disabled) {
+          console.log('Button already disabled, ignoring click');
+          return;
+        }
+        
+        // Add visual feedback
+        const originalContent = headerAddDeviceBtn.innerHTML;
+        headerAddDeviceBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading...</span>';
+        headerAddDeviceBtn.disabled = true;
+        headerAddDeviceBtn.style.opacity = "0.7";
+        
+        console.log('Button state changed, opening modal...');
+        
+        // Open the modal immediately - no delay needed
+        try {
+          // Make sure modal is not already visible
+          if (manualDeviceModal.style.display === 'block') {
+            console.log('Modal is already open');
+          } else {
+            manualDeviceModal.style.display = 'block';
+            console.log('Manual device modal opened successfully');
+            showToast('Otwarto formularz ręcznego dodawania urządzenia', 'success', 3000);
+            
+            // Focus on first input field
+            const firstInput = manualDeviceModal.querySelector('input[type="text"]');
+            if (firstInput) {
+              setTimeout(() => firstInput.focus(), 100);
+            }
+          }
+          
+          // Restore button after short delay
+          setTimeout(() => {
+            headerAddDeviceBtn.innerHTML = originalContent;
+            headerAddDeviceBtn.disabled = false;
+            headerAddDeviceBtn.style.opacity = "1";
+            console.log('Button state restored');
+          }, 500);
+          
+        } catch (error) {
+          console.error('Error opening manual device modal:', error);
+          showToast('Błąd podczas otwierania formularza: ' + error.message, 'error', 5000);
+          
+          // Restore button in case of error
+          headerAddDeviceBtn.innerHTML = originalContent;
+          headerAddDeviceBtn.disabled = false;
+          headerAddDeviceBtn.style.opacity = "1";
+        }
+      });
+      
+      console.log('ADD button event listener attached successfully');
+    } else {
+      console.error('Header ADD device button not found! ID: header-add-device-btn');
+      
+      // Debug: List all buttons in header
+      const allButtons = document.querySelectorAll('.header button');
+      console.log('All buttons in header:', allButtons);
+      allButtons.forEach((btn, index) => {
+        console.log(`Button ${index}:`, btn.id, btn.className, btn.textContent);
       });
     }
     
@@ -206,8 +301,262 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
+    // Debug: Check if manual device modal exists after DOM load
+    setTimeout(() => {
+      const modal = document.getElementById('add-manual-device-modal');
+      console.log('Manual device modal check after DOM load:', modal ? 'Found' : 'NOT FOUND');
+      if (modal) {
+        console.log('Modal display style:', modal.style.display);
+        console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
+        console.log('Modal z-index:', window.getComputedStyle(modal).zIndex);
+      }
+    }, 1000);
+    
     // Udostępnij funkcję globalnie
     window.applyTheme = applyTheme;
+  }
+  
+  /**
+   * Initialize user menu functionality - COMPLETELY REWRITTEN WITH PROPER LOGIN STATE MANAGEMENT
+   */
+  function initUserMenu() {
+    console.log('Inicjalizacja menu użytkownika...');
+    
+    // Debug: Check if all user menu elements exist
+    console.log('User menu elements check:');
+    console.log('- userMenuBtn:', userMenuBtn ? 'Found' : 'NOT FOUND');
+    console.log('- userDropdown:', userDropdown ? 'Found' : 'NOT FOUND');
+    console.log('- profileBtn:', profileBtn ? 'Found' : 'NOT FOUND');
+    console.log('- loginDropdownBtn:', loginDropdownBtn ? 'Found' : 'NOT FOUND');
+    console.log('- registerDropdownBtn:', registerDropdownBtn ? 'Found' : 'NOT FOUND');
+    console.log('- logoutDropdownBtn:', logoutDropdownBtn ? 'Found' : 'NOT FOUND');
+    
+    // User menu button click - always show dropdown
+    if (userMenuBtn && userDropdown) {
+      userMenuBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('User menu button clicked');
+        
+        // Toggle dropdown visibility
+        const isVisible = userDropdown.classList.contains('show');
+        console.log('Dropdown currently visible:', isVisible);
+        
+        // Hide all other dropdowns first
+        document.querySelectorAll('.user-dropdown.show').forEach(dropdown => {
+          if (dropdown !== userDropdown) {
+            dropdown.classList.remove('show');
+          }
+        });
+        
+        // Toggle current dropdown
+        if (isVisible) {
+          userDropdown.classList.remove('show');
+          console.log('Dropdown hidden');
+        } else {
+          userDropdown.classList.add('show');
+          updateUserMenuItems(); // WYWOŁAJ AKTUALIZACJĘ PRZY KAŻDYM OTWORZENIU
+          console.log('Dropdown shown and menu items updated');
+          
+          // Debug: Check dropdown styles after showing
+          setTimeout(() => {
+            const styles = window.getComputedStyle(userDropdown);
+            console.log('Dropdown styles after show:');
+            console.log('- display:', styles.display);
+            console.log('- opacity:', styles.opacity);
+            console.log('- transform:', styles.transform);
+            console.log('- z-index:', styles.zIndex);
+            console.log('- position:', styles.position);
+            console.log('- top:', styles.top);
+            console.log('- right:', styles.right);
+          }, 100);
+        }
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+          if (userDropdown.classList.contains('show')) {
+            userDropdown.classList.remove('show');
+            console.log('User dropdown closed by outside click');
+          }
+        }
+      });
+      
+      // Profile button
+      if (profileBtn) {
+        profileBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Profile button clicked');
+          userDropdown.classList.remove('show');
+          showProfile();
+        });
+      }
+      
+      // Login dropdown button
+      if (loginDropdownBtn) {
+        loginDropdownBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Login dropdown button clicked');
+          userDropdown.classList.remove('show');
+          if (isLoggedIn) {
+            showToast('Jesteś już zalogowany', 'info', 3000);
+          } else {
+            showModal(loginModal);
+          }
+        });
+      }
+      
+      // Register dropdown button
+      if (registerDropdownBtn) {
+        registerDropdownBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Register dropdown button clicked');
+          userDropdown.classList.remove('show');
+          if (isLoggedIn) {
+            showToast('Jesteś już zalogowany', 'info', 3000);
+          } else {
+            showModal(registerModal);
+          }
+        });
+      }
+      
+      // Logout dropdown button
+      if (logoutDropdownBtn) {
+        logoutDropdownBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Logout dropdown button clicked');
+          userDropdown.classList.remove('show');
+          if (isLoggedIn) {
+            handleLogout();
+          } else {
+            showToast('Nie jesteś zalogowany', 'warning', 3000);
+          }
+        });
+      }
+      
+      console.log('User menu initialized successfully');
+    } else {
+      console.error('User menu elements not found!');
+      console.error('userMenuBtn:', userMenuBtn);
+      console.error('userDropdown:', userDropdown);
+    }
+  }
+  
+  /**
+   * Update user menu items based on login state - COMPLETELY REWRITTEN FOR BETTER RELIABILITY
+   */
+  function updateUserMenuItems() {
+    console.log('=== UPDATING USER MENU ITEMS ===');
+    console.log('Current isLoggedIn state:', isLoggedIn);
+    console.log('Current user:', currentUser);
+    
+    // Sprawdź czy wszystkie elementy istnieją
+    const elements = {
+      profileBtn,
+      loginDropdownBtn,
+      registerDropdownBtn,
+      logoutDropdownBtn
+    };
+    
+    const missingElements = Object.keys(elements).filter(key => !elements[key]);
+    if (missingElements.length > 0) {
+      console.error('Missing user menu elements:', missingElements);
+      return;
+    }
+    
+    if (isLoggedIn && currentUser) {
+      console.log('--- SETTING UP FOR LOGGED IN USER ---');
+      
+      // SHOW: Profile and Logout
+      profileBtn.style.display = 'block';
+      profileBtn.style.opacity = '1';
+      profileBtn.style.visibility = 'visible';
+      
+      logoutDropdownBtn.style.display = 'block';
+      logoutDropdownBtn.style.opacity = '1';
+      logoutDropdownBtn.style.visibility = 'visible';
+      
+      // HIDE: Login and Register
+      loginDropdownBtn.style.display = 'none';
+      loginDropdownBtn.style.opacity = '0';
+      loginDropdownBtn.style.visibility = 'hidden';
+      
+      registerDropdownBtn.style.display = 'none';
+      registerDropdownBtn.style.opacity = '0';
+      registerDropdownBtn.style.visibility = 'hidden';
+      
+      // Update profile button text with user name
+      if (currentUser.name) {
+        const profileSpan = profileBtn.querySelector('span');
+        if (profileSpan) {
+          profileSpan.textContent = `> ${currentUser.name}.profile`;
+        }
+      }
+      
+      console.log('✓ Profile and Logout buttons shown');
+      console.log('✓ Login and Register buttons hidden');
+      console.log('✓ Profile text updated to:', currentUser.name);
+      
+    } else {
+      console.log('--- SETTING UP FOR LOGGED OUT USER ---');
+      
+      // HIDE: Profile and Logout
+      profileBtn.style.display = 'none';
+      profileBtn.style.opacity = '0';
+      profileBtn.style.visibility = 'hidden';
+      
+      logoutDropdownBtn.style.display = 'none';
+      logoutDropdownBtn.style.opacity = '0';
+      logoutDropdownBtn.style.visibility = 'hidden';
+      
+      // SHOW: Login and Register
+      loginDropdownBtn.style.display = 'block';
+      loginDropdownBtn.style.opacity = '1';
+      loginDropdownBtn.style.visibility = 'visible';
+      
+      registerDropdownBtn.style.display = 'block';
+      registerDropdownBtn.style.opacity = '1';
+      registerDropdownBtn.style.visibility = 'visible';
+      
+      console.log('✓ Login and Register buttons shown');
+      console.log('✓ Profile and Logout buttons hidden');
+    }
+    
+    console.log('=== USER MENU UPDATE COMPLETE ===');
+    setTimeout(() => {
+      adjustDropdownHeight();
+    }, 50);
+    // Debug: Log final states
+    setTimeout(() => {
+      console.log('Final menu item states:');
+      console.log('- Profile display:', profileBtn.style.display, 'opacity:', profileBtn.style.opacity);
+      console.log('- Login display:', loginDropdownBtn.style.display, 'opacity:', loginDropdownBtn.style.opacity);
+      console.log('- Register display:', registerDropdownBtn.style.display, 'opacity:', registerDropdownBtn.style.opacity);
+      console.log('- Logout display:', logoutDropdownBtn.style.display, 'opacity:', logoutDropdownBtn.style.opacity);
+    }, 100);
+  }
+  
+  /**
+   * Show profile information - NEW
+   */
+  function showProfile() {
+    if (!isLoggedIn || !currentUser) {
+      showToast('Musisz być zalogowany, aby zobaczyć profil', 'warning', 3000);
+      return;
+    }
+    
+    // Create a simple profile modal or use toast for now
+    const profileInfo = `
+      <strong>Profil użytkownika:</strong><br>
+      Nazwa: ${currentUser.name}<br>
+      Email: ${currentUser.email}<br>
+      ID: ${currentUser.id}
+    `;
+    
+    // For now, show as toast - later can be replaced with proper modal
+    showToast('Funkcja profilu w przygotowaniu. ' + profileInfo.replace(/<[^>]*>/g, ' '), 'info', 6000);
+    console.log('Profile requested:', currentUser);
   }
   
   /**
@@ -215,32 +564,6 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function initAuthSystem() {
     console.log('Inicjalizacja systemu autoryzacji...');
-    
-    // Login button click
-    if (loginBtn) {
-      loginBtn.addEventListener('click', function() {
-        if (isLoggedIn) {
-          // If logged in, show user menu or logout
-          showUserMenu();
-        } else {
-          // If not logged in, show login modal
-          showModal(loginModal);
-        }
-      });
-    }
-    
-    // Register button click
-    if (registerBtn) {
-      registerBtn.addEventListener('click', function() {
-        if (isLoggedIn) {
-          // Hide register button when logged in
-          return;
-        } else {
-          // Show register modal
-          showModal(registerModal);
-        }
-      });
-    }
     
     // Modal switches
     if (switchToRegister) {
@@ -605,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // ========================================
-  // AUTHENTICATION FUNCTIONS
+  // AUTHENTICATION FUNCTIONS - ENHANCED WITH PROPER MENU UPDATES
   // ========================================
   
   /**
@@ -732,11 +1055,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Handle successful login
+   * Handle successful login - UPDATED WITH IMMEDIATE MENU UPDATE
    * @param {Object} user - User object
    * @param {boolean} rememberMe - Whether to remember the user
    */
   function loginSuccess(user, rememberMe) {
+    console.log('=== LOGIN SUCCESS ===');
+    console.log('User:', user);
+    console.log('Remember me:', rememberMe);
+    
     currentUser = user;
     isLoggedIn = true;
     
@@ -748,14 +1075,22 @@ document.addEventListener('DOMContentLoaded', function() {
       sessionStorage.setItem('btm_current_user', JSON.stringify(user));
     }
     
+    // IMMEDIATE MENU UPDATE
     updateAuthUI();
+    updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE
     resetAuthForms();
+    
+    console.log('Login success completed, menu should be updated');
   }
   
   /**
-   * Handle logout
+   * Handle logout - UPDATED WITH IMMEDIATE MENU UPDATE
    */
   function handleLogout() {
+    console.log('=== LOGOUT INITIATED ===');
+    
+    const userName = currentUser ? currentUser.name : 'Użytkownik';
+    
     currentUser = null;
     isLoggedIn = false;
     
@@ -764,14 +1099,20 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.removeItem('btm_remember_me');
     sessionStorage.removeItem('btm_current_user');
     
+    // IMMEDIATE MENU UPDATE
     updateAuthUI();
-    showToast('Wylogowano pomyślnie', 'info', 2000);
+    updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE
+    
+    showToast(`${userName} został wylogowany`, 'info', 2000);
+    console.log('Logout completed, menu should be updated');
   }
   
   /**
-   * Load user state from storage
+   * Load user state from storage - ENHANCED WITH IMMEDIATE MENU UPDATE
    */
   function loadUserState() {
+    console.log('=== LOADING USER STATE ===');
+    
     // Check localStorage first (remember me)
     let userData = localStorage.getItem('btm_current_user');
     if (!userData) {
@@ -783,10 +1124,33 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         currentUser = JSON.parse(userData);
         isLoggedIn = true;
-        updateAuthUI();
+        console.log('User loaded from storage:', currentUser);
+        
+        // WAIT FOR DOM TO BE READY, THEN UPDATE
+        setTimeout(() => {
+          updateAuthUI();
+          updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE PO ZAŁADOWANIU
+        }, 500); // Krótkie opóźnienie dla pewności że DOM jest gotowy
+        
       } catch (e) {
         console.error('Error loading user state:', e);
+        // Reset to logged out state on error
+        currentUser = null;
+        isLoggedIn = false;
+        updateAuthUI();
+        updateUserMenuItems();
       }
+    } else {
+      console.log('No user data found in storage');
+      // Ensure logged out state
+      currentUser = null;
+      isLoggedIn = false;
+      
+      // WAIT FOR DOM TO BE READY, THEN UPDATE
+      setTimeout(() => {
+        updateAuthUI();
+        updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE
+      }, 500);
     }
   }
   
@@ -806,123 +1170,25 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Update authentication UI based on login state
+   * Update authentication UI based on login state - ENHANCED
    */
   function updateAuthUI() {
-    if (isLoggedIn && currentUser) {
-      // Update login button to show user info
-      if (loginBtn) {
-        loginBtn.innerHTML = `
-          <i class="fas fa-user"></i>
-          <span>${currentUser.name}</span>
-        `;
-        loginBtn.title = 'Kliknij aby otworzyć menu użytkownika';
-      }
-      
-      // Hide register button or change to logout
-      if (registerBtn) {
-        registerBtn.innerHTML = `
-          <i class="fas fa-sign-out-alt"></i>
-          <span>Logout</span>
-        `;
-        registerBtn.title = 'Wyloguj się';
-        registerBtn.removeEventListener('click', registerBtn._originalHandler);
-        registerBtn.addEventListener('click', handleLogout);
-      }
-    } else {
-      // Reset to original state
-      if (loginBtn) {
-        loginBtn.innerHTML = `
-          <i class="fas fa-sign-in-alt"></i>
-          <span>Login</span>
-        `;
-        loginBtn.title = 'Zaloguj się';
-      }
-      
-      if (registerBtn) {
-        registerBtn.innerHTML = `
-          <i class="fas fa-user-plus"></i>
-          <span>Register</span>
-        `;
-        registerBtn.title = 'Zarejestruj się';
+    console.log('=== UPDATING AUTH UI ===');
+    console.log('isLoggedIn:', isLoggedIn);
+    console.log('currentUser:', currentUser);
+    
+    // Update user menu button appearance
+    if (userMenuBtn) {
+      if (isLoggedIn && currentUser) {
+        userMenuBtn.title = `Zalogowany jako: ${currentUser.name}`;
+        userMenuBtn.style.color = 'var(--cyberpunk-green)';
+      } else {
+        userMenuBtn.title = 'Menu użytkownika';
+        userMenuBtn.style.color = '';
       }
     }
-  }
-  
-  /**
-   * Show user menu when logged in
-   */
-  function showUserMenu() {
-    // Create user menu dropdown
-    const existingMenu = document.getElementById('user-menu');
-    if (existingMenu) {
-      existingMenu.remove();
-    }
     
-    const userMenu = document.createElement('div');
-    userMenu.id = 'user-menu';
-    userMenu.className = 'dropdown-content show';
-    userMenu.style.cssText = `
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background-color: #2c2c2c;
-      border: 1px solid #444;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      min-width: 200px;
-      z-index: 1000;
-      margin-top: 4px;
-    `;
-    
-    userMenu.innerHTML = `
-      <div class="dropdown-item" style="border-bottom: 1px solid #444; padding: 12px;">
-        <strong>${currentUser.name}</strong><br>
-        <small style="color: #999;">${currentUser.email}</small>
-      </div>
-      <div class="dropdown-item user-menu-item" data-action="profile">
-        <i class="fas fa-user"></i> Profil
-      </div>
-      <div class="dropdown-item user-menu-item" data-action="settings">
-        <i class="fas fa-cog"></i> Ustawienia
-      </div>
-      <div class="dropdown-item user-menu-item" data-action="logout" style="border-top: 1px solid #444; color: #e74c3c;">
-        <i class="fas fa-sign-out-alt"></i> Wyloguj się
-      </div>
-    `;
-    
-    // Position menu relative to login button
-    loginBtn.style.position = 'relative';
-    loginBtn.appendChild(userMenu);
-    
-    // Handle menu clicks
-    userMenu.addEventListener('click', function(e) {
-      const action = e.target.closest('.user-menu-item')?.dataset.action;
-      
-      switch (action) {
-        case 'profile':
-          showToast('Funkcja profilu w przygotowaniu', 'info', 2000);
-          break;
-        case 'settings':
-          openSettingsModal();
-          break;
-        case 'logout':
-          handleLogout();
-          break;
-      }
-      
-      userMenu.remove();
-    });
-    
-    // Close menu when clicking outside
-    setTimeout(() => {
-      document.addEventListener('click', function closeUserMenu(e) {
-        if (!loginBtn.contains(e.target)) {
-          userMenu.remove();
-          document.removeEventListener('click', closeUserMenu);
-        }
-      });
-    }, 100);
+    console.log('Auth UI updated');
   }
   
   /**
@@ -1126,6 +1392,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 300);
   }
   
+  /**
+ * Adjust dropdown height based on visible items - NOWA FUNKCJA
+ */
+function adjustDropdownHeight() {
+  if (!userDropdown) return;
+  
+  // Get all dropdown items
+  const allItems = userDropdown.querySelectorAll('.dropdown-item, .dropdown-divider');
+  let visibleHeight = 0;
+  let visibleItemsCount = 0;
+  
+  allItems.forEach(item => {
+    const computedStyle = window.getComputedStyle(item);
+    if (computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden') {
+      if (item.classList.contains('dropdown-divider')) {
+        visibleHeight += 17; // Height of divider
+      } else {
+        visibleHeight += 44; // Height of dropdown item
+        visibleItemsCount++;
+      }
+    }
+  });
+  
+  // Add padding (top + bottom)
+  visibleHeight += 24; // 0.75rem * 2 = 24px
+  
+  // Set min and max height
+  const minHeight = 80;
+  const maxHeight = 280;
+  const finalHeight = Math.max(minHeight, Math.min(maxHeight, visibleHeight));
+  
+  userDropdown.style.height = `${finalHeight}px`;
+  userDropdown.style.minHeight = `${finalHeight}px`;
+  
+  console.log(`Dropdown height adjusted to: ${finalHeight}px for ${visibleItemsCount} visible items`);
+}
+  
   // ========================================
   // THEME EVENT LISTENERS
   // ========================================
@@ -1149,6 +1452,64 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // ========================================
+  // GLOBAL FUNCTIONS FOR TESTING
+  // ========================================
+  
+  // Make manual device modal opening available globally for testing
+  window.testOpenManualDeviceModal = function() {
+    const modal = document.getElementById('add-manual-device-modal');
+    if (modal) {
+      modal.style.display = 'block';
+      console.log('Manual device modal opened via test function');
+      return true;
+    } else {
+      console.error('Manual device modal not found via test function');
+      return false;
+    }
+  };
+  
+  // Make user dropdown testing available globally
+  window.testUserDropdown = function() {
+    if (userDropdown) {
+      userDropdown.classList.toggle('show');
+      updateUserMenuItems();
+      console.log('User dropdown toggled via test function');
+      return true;
+    } else {
+      console.error('User dropdown not found via test function');
+      return false;
+    }
+  };
+  
+  // NOWE: Test logowania
+  window.testLogin = function() {
+    const testUser = {
+      id: 999,
+      name: 'Test User',
+      email: 'test@example.com',
+      avatar: null
+    };
+    
+    console.log('Testing login...');
+    loginSuccess(testUser, false);
+    showToast('Test login executed', 'info', 2000);
+  };
+  
+  // NOWE: Test wylogowania
+  window.testLogout = function() {
+    console.log('Testing logout...');
+    handleLogout();
+    showToast('Test logout executed', 'info', 2000);
+  };
+  
+  // NOWE: Force menu update
+  window.forceMenuUpdate = function() {
+    console.log('Forcing menu update...');
+    updateUserMenuItems();
+    showToast('Menu forcibly updated', 'info', 2000);
+  };
+  
+  // ========================================
   // GLOBAL EXPORTS
   // ========================================
   
@@ -1160,7 +1521,14 @@ document.addEventListener('DOMContentLoaded', function() {
     getCurrentUser: () => currentUser,
     isUserLoggedIn: () => isLoggedIn,
     logout: handleLogout,
-    applyTheme: applyTheme
+    login: loginSuccess,
+    applyTheme: applyTheme,
+    updateUserMenuItems,
+    testOpenManualDeviceModal: window.testOpenManualDeviceModal,
+    testUserDropdown: window.testUserDropdown,
+    testLogin: window.testLogin,
+    testLogout: window.testLogout,
+    forceMenuUpdate: window.forceMenuUpdate
   };
   
   console.log('Header functionality initialized successfully');
