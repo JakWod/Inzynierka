@@ -3,7 +3,6 @@
  * Handles header interactions, authentication modals, and user management
  * UPDATED: Enhanced ADD button functionality and improved user menu with dropdown
  * FIXED: Better error handling and debugging for ADD button
- * FIXED: Proper user menu visibility logic for login/logout states
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -56,20 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
   initAuthSystem();
   initUserMenu();
   loadUserState();
-  
-  /**
-   * Initialize the main application
-   */
-  function initHeaderFunctionality() {
-    console.log('Inicjalizacja funkcjonalności headera...');
-    
-    setupScanningFunctionality();
-    setupManualDeviceModal();
-    setupToastSystem();
-    updateScanButtonText();
-    
-    console.log('Główna aplikacja zainicjalizowana pomyślnie');
-  }
   
   /**
    * Initialize header functionality - ENHANCED WITH BETTER ADD BUTTON HANDLING
@@ -317,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Initialize user menu functionality - COMPLETELY REWRITTEN WITH PROPER LOGIN STATE MANAGEMENT
+   * Initialize user menu functionality - IMPROVED WITH BETTER DEBUGGING
    */
   function initUserMenu() {
     console.log('Inicjalizacja menu użytkownika...');
@@ -355,8 +340,8 @@ document.addEventListener('DOMContentLoaded', function() {
           console.log('Dropdown hidden');
         } else {
           userDropdown.classList.add('show');
-          updateUserMenuItems(); // WYWOŁAJ AKTUALIZACJĘ PRZY KAŻDYM OTWORZENIU
-          console.log('Dropdown shown and menu items updated');
+          updateUserMenuItems();
+          console.log('Dropdown shown');
           
           // Debug: Check dropdown styles after showing
           setTimeout(() => {
@@ -444,97 +429,52 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Update user menu items based on login state - COMPLETELY REWRITTEN FOR BETTER RELIABILITY
+   * Update user menu items based on login state - IMPROVED WITH DEBUGGING
    */
   function updateUserMenuItems() {
-    console.log('=== UPDATING USER MENU ITEMS ===');
-    console.log('Current isLoggedIn state:', isLoggedIn);
-    console.log('Current user:', currentUser);
+    console.log('Updating user menu items, isLoggedIn:', isLoggedIn);
     
-    // Sprawdź czy wszystkie elementy istnieją
-    const elements = {
-      profileBtn,
-      loginDropdownBtn,
-      registerDropdownBtn,
-      logoutDropdownBtn
-    };
-    
-    const missingElements = Object.keys(elements).filter(key => !elements[key]);
-    if (missingElements.length > 0) {
-      console.error('Missing user menu elements:', missingElements);
+    if (!profileBtn || !loginDropdownBtn || !registerDropdownBtn || !logoutDropdownBtn) {
+      console.error('Some user menu items not found for update');
       return;
     }
     
-    if (isLoggedIn && currentUser) {
-      console.log('--- SETTING UP FOR LOGGED IN USER ---');
-      
-      // SHOW: Profile and Logout
+    if (isLoggedIn) {
+      // User is logged in
       profileBtn.style.display = 'block';
       profileBtn.style.opacity = '1';
-      profileBtn.style.visibility = 'visible';
+      
+      loginDropdownBtn.style.display = 'none';
+      registerDropdownBtn.style.display = 'none';
       
       logoutDropdownBtn.style.display = 'block';
       logoutDropdownBtn.style.opacity = '1';
-      logoutDropdownBtn.style.visibility = 'visible';
-      
-      // HIDE: Login and Register
-      loginDropdownBtn.style.display = 'none';
-      loginDropdownBtn.style.opacity = '0';
-      loginDropdownBtn.style.visibility = 'hidden';
-      
-      registerDropdownBtn.style.display = 'none';
-      registerDropdownBtn.style.opacity = '0';
-      registerDropdownBtn.style.visibility = 'hidden';
       
       // Update profile button text with user name
-      if (currentUser.name) {
+      if (currentUser && currentUser.name) {
         const profileSpan = profileBtn.querySelector('span');
         if (profileSpan) {
           profileSpan.textContent = `> ${currentUser.name}.profile`;
         }
       }
       
-      console.log('✓ Profile and Logout buttons shown');
-      console.log('✓ Login and Register buttons hidden');
-      console.log('✓ Profile text updated to:', currentUser.name);
-      
+      console.log('User menu updated for logged in user:', currentUser?.name);
     } else {
-      console.log('--- SETTING UP FOR LOGGED OUT USER ---');
-      
-      // HIDE: Profile and Logout
+      // User is not logged in
       profileBtn.style.display = 'none';
-      profileBtn.style.opacity = '0';
-      profileBtn.style.visibility = 'hidden';
       
-      logoutDropdownBtn.style.display = 'none';
-      logoutDropdownBtn.style.opacity = '0';
-      logoutDropdownBtn.style.visibility = 'hidden';
-      
-      // SHOW: Login and Register
       loginDropdownBtn.style.display = 'block';
       loginDropdownBtn.style.opacity = '1';
-      loginDropdownBtn.style.visibility = 'visible';
       
       registerDropdownBtn.style.display = 'block';
       registerDropdownBtn.style.opacity = '1';
-      registerDropdownBtn.style.visibility = 'visible';
       
-      console.log('✓ Login and Register buttons shown');
-      console.log('✓ Profile and Logout buttons hidden');
+      logoutDropdownBtn.style.display = 'none';
+      
+      console.log('User menu updated for logged out state');
     }
     
-    console.log('=== USER MENU UPDATE COMPLETE ===');
-    setTimeout(() => {
-      adjustDropdownHeight();
-    }, 50);
-    // Debug: Log final states
-    setTimeout(() => {
-      console.log('Final menu item states:');
-      console.log('- Profile display:', profileBtn.style.display, 'opacity:', profileBtn.style.opacity);
-      console.log('- Login display:', loginDropdownBtn.style.display, 'opacity:', loginDropdownBtn.style.opacity);
-      console.log('- Register display:', registerDropdownBtn.style.display, 'opacity:', registerDropdownBtn.style.opacity);
-      console.log('- Logout display:', logoutDropdownBtn.style.display, 'opacity:', logoutDropdownBtn.style.opacity);
-    }, 100);
+    console.log(`User menu updated for ${isLoggedIn ? 'logged in' : 'logged out'} state`);
   }
   
   /**
@@ -928,7 +868,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // ========================================
-  // AUTHENTICATION FUNCTIONS - ENHANCED WITH PROPER MENU UPDATES
+  // AUTHENTICATION FUNCTIONS
   // ========================================
   
   /**
@@ -1055,15 +995,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Handle successful login - UPDATED WITH IMMEDIATE MENU UPDATE
+   * Handle successful login - UPDATED
    * @param {Object} user - User object
    * @param {boolean} rememberMe - Whether to remember the user
    */
   function loginSuccess(user, rememberMe) {
-    console.log('=== LOGIN SUCCESS ===');
-    console.log('User:', user);
-    console.log('Remember me:', rememberMe);
-    
     currentUser = user;
     isLoggedIn = true;
     
@@ -1075,20 +1011,16 @@ document.addEventListener('DOMContentLoaded', function() {
       sessionStorage.setItem('btm_current_user', JSON.stringify(user));
     }
     
-    // IMMEDIATE MENU UPDATE
     updateAuthUI();
-    updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE
     resetAuthForms();
     
-    console.log('Login success completed, menu should be updated');
+    console.log('User logged in successfully:', user);
   }
   
   /**
-   * Handle logout - UPDATED WITH IMMEDIATE MENU UPDATE
+   * Handle logout - UPDATED
    */
   function handleLogout() {
-    console.log('=== LOGOUT INITIATED ===');
-    
     const userName = currentUser ? currentUser.name : 'Użytkownik';
     
     currentUser = null;
@@ -1099,20 +1031,16 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.removeItem('btm_remember_me');
     sessionStorage.removeItem('btm_current_user');
     
-    // IMMEDIATE MENU UPDATE
     updateAuthUI();
-    updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE
-    
     showToast(`${userName} został wylogowany`, 'info', 2000);
-    console.log('Logout completed, menu should be updated');
+    
+    console.log('User logged out successfully');
   }
   
   /**
-   * Load user state from storage - ENHANCED WITH IMMEDIATE MENU UPDATE
+   * Load user state from storage
    */
   function loadUserState() {
-    console.log('=== LOADING USER STATE ===');
-    
     // Check localStorage first (remember me)
     let userData = localStorage.getItem('btm_current_user');
     if (!userData) {
@@ -1124,33 +1052,11 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         currentUser = JSON.parse(userData);
         isLoggedIn = true;
-        console.log('User loaded from storage:', currentUser);
-        
-        // WAIT FOR DOM TO BE READY, THEN UPDATE
-        setTimeout(() => {
-          updateAuthUI();
-          updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE PO ZAŁADOWANIU
-        }, 500); // Krótkie opóźnienie dla pewności że DOM jest gotowy
-        
+        updateAuthUI();
+        console.log('User state loaded:', currentUser);
       } catch (e) {
         console.error('Error loading user state:', e);
-        // Reset to logged out state on error
-        currentUser = null;
-        isLoggedIn = false;
-        updateAuthUI();
-        updateUserMenuItems();
       }
-    } else {
-      console.log('No user data found in storage');
-      // Ensure logged out state
-      currentUser = null;
-      isLoggedIn = false;
-      
-      // WAIT FOR DOM TO BE READY, THEN UPDATE
-      setTimeout(() => {
-        updateAuthUI();
-        updateUserMenuItems(); // BEZPOŚREDNIE WYWOŁANIE
-      }, 500);
     }
   }
   
@@ -1170,12 +1076,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Update authentication UI based on login state - ENHANCED
+   * Update authentication UI based on login state - UPDATED
    */
   function updateAuthUI() {
-    console.log('=== UPDATING AUTH UI ===');
-    console.log('isLoggedIn:', isLoggedIn);
-    console.log('currentUser:', currentUser);
+    // Update user menu items
+    updateUserMenuItems();
     
     // Update user menu button appearance
     if (userMenuBtn) {
@@ -1188,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    console.log('Auth UI updated');
+    console.log(`Auth UI updated for ${isLoggedIn ? 'logged in' : 'logged out'} state`);
   }
   
   /**
@@ -1392,43 +1297,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 300);
   }
   
-  /**
- * Adjust dropdown height based on visible items - NOWA FUNKCJA
- */
-function adjustDropdownHeight() {
-  if (!userDropdown) return;
-  
-  // Get all dropdown items
-  const allItems = userDropdown.querySelectorAll('.dropdown-item, .dropdown-divider');
-  let visibleHeight = 0;
-  let visibleItemsCount = 0;
-  
-  allItems.forEach(item => {
-    const computedStyle = window.getComputedStyle(item);
-    if (computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden') {
-      if (item.classList.contains('dropdown-divider')) {
-        visibleHeight += 17; // Height of divider
-      } else {
-        visibleHeight += 44; // Height of dropdown item
-        visibleItemsCount++;
-      }
-    }
-  });
-  
-  // Add padding (top + bottom)
-  visibleHeight += 24; // 0.75rem * 2 = 24px
-  
-  // Set min and max height
-  const minHeight = 80;
-  const maxHeight = 280;
-  const finalHeight = Math.max(minHeight, Math.min(maxHeight, visibleHeight));
-  
-  userDropdown.style.height = `${finalHeight}px`;
-  userDropdown.style.minHeight = `${finalHeight}px`;
-  
-  console.log(`Dropdown height adjusted to: ${finalHeight}px for ${visibleItemsCount} visible items`);
-}
-  
   // ========================================
   // THEME EVENT LISTENERS
   // ========================================
@@ -1481,34 +1349,6 @@ function adjustDropdownHeight() {
     }
   };
   
-  // NOWE: Test logowania
-  window.testLogin = function() {
-    const testUser = {
-      id: 999,
-      name: 'Test User',
-      email: 'test@example.com',
-      avatar: null
-    };
-    
-    console.log('Testing login...');
-    loginSuccess(testUser, false);
-    showToast('Test login executed', 'info', 2000);
-  };
-  
-  // NOWE: Test wylogowania
-  window.testLogout = function() {
-    console.log('Testing logout...');
-    handleLogout();
-    showToast('Test logout executed', 'info', 2000);
-  };
-  
-  // NOWE: Force menu update
-  window.forceMenuUpdate = function() {
-    console.log('Forcing menu update...');
-    updateUserMenuItems();
-    showToast('Menu forcibly updated', 'info', 2000);
-  };
-  
   // ========================================
   // GLOBAL EXPORTS
   // ========================================
@@ -1521,14 +1361,10 @@ function adjustDropdownHeight() {
     getCurrentUser: () => currentUser,
     isUserLoggedIn: () => isLoggedIn,
     logout: handleLogout,
-    login: loginSuccess,
     applyTheme: applyTheme,
     updateUserMenuItems,
     testOpenManualDeviceModal: window.testOpenManualDeviceModal,
-    testUserDropdown: window.testUserDropdown,
-    testLogin: window.testLogin,
-    testLogout: window.testLogout,
-    forceMenuUpdate: window.forceMenuUpdate
+    testUserDropdown: window.testUserDropdown
   };
   
   console.log('Header functionality initialized successfully');
