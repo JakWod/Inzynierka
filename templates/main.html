@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/device-modal.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/debug-modal.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/header.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/add-modal.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Cyberpunk Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -747,38 +748,92 @@
   </div>
   
   <!-- Modal ręcznego dodawania urządzenia -->
-  <div id="add-manual-device-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" id="close-manual-device-modal">&times;</span>
-      <h2>Dodaj urządzenie ręcznie</h2>
-      <form id="add-manual-device-form">
-        <div class="form-group">
-          <label for="manual-device-name">Nazwa urządzenia:</label>
-          <input type="text" id="manual-device-name" placeholder="np. Moje Słuchawki" required>
-        </div>
-        <div class="form-group">
-          <label for="manual-device-address">Adres MAC:</label>
-          <input type="text" id="manual-device-address" placeholder="Format: 00:11:22:33:44:55" required pattern="([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})">
-          <div class="hint">Format adresu MAC: 00:11:22:33:44:55</div>
-        </div>
-        <div class="form-group">
-          <label for="manual-device-type">Typ urządzenia:</label>
-          <select id="manual-device-type" required>
-            <option value="headphones">Słuchawki</option>
-            <option value="speaker">Głośnik</option>
-            <option value="keyboard">Klawiatura</option>
-            <option value="mouse">Mysz</option>
-            <option value="gamepad">Kontroler</option>
-            <option value="other" selected>Inne</option>
+  <!-- Modal ręcznego dodawania urządzenia - CYBERPUNK STYLE -->
+<div id="add-manual-device-modal" class="modal cyberpunk-modal">
+  <div class="modal-content cyberpunk-modal-content">
+    <span class="close-modal cyberpunk-close" id="close-manual-device-modal">&times;</span>
+    
+    <!-- Cyberpunk Header -->
+    <div class="cyberpunk-header">
+      <div class="header-icon">
+        <i class="fas fa-plus"></i>
+      </div>
+      <h2>MANUAL_DEVICE_ADD</h2>
+    </div>
+    
+    <form id="add-manual-device-form" class="cyberpunk-form">
+      <!-- Device Name Field -->
+      <div class="cyberpunk-form-group">
+        <label for="manual-device-name" class="cyberpunk-label">
+          DEVICE_NAME: <span class="required-star">*</span>
+        </label>
+        <input type="text" id="manual-device-name" class="cyberpunk-input" 
+               placeholder="Enter device name..." required>
+      </div>
+      
+      <!-- MAC Address Field -->
+      <div class="cyberpunk-form-group">
+        <label for="manual-device-address" class="cyberpunk-label">
+          MAC_ADDRESS: <span class="required-star">*</span>
+        </label>
+        <input type="text" id="manual-device-address" class="cyberpunk-input" 
+               placeholder="XX:XX:XX:XX:XX:XX" required 
+               pattern="([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})">
+        <div class="cyberpunk-hint">Format: XX:XX:XX:XX:XX:XX or XX-XX-XX-XX-XX-XX</div>
+      </div>
+      
+      <!-- Device Type Field -->
+      <div class="cyberpunk-form-group">
+        <label for="manual-device-type" class="cyberpunk-label">DEVICE_TYPE:</label>
+        <div class="cyberpunk-select-wrapper">
+          <select id="manual-device-type" class="cyberpunk-select" required>
+            <option value="headphones">🎧 HEADPHONES</option>
+            <option value="speaker">🔊 SPEAKER</option>
+            <option value="keyboard">⌨️ KEYBOARD</option>
+            <option value="mouse">🖱️ MOUSE</option>
+            <option value="gamepad">🎮 GAMEPAD</option>
+            <option value="phone">📱 PHONE</option>
+            <option value="tablet">📱 TABLET</option>
+            <option value="laptop">💻 LAPTOP</option>
+            <option value="desktop">🖥️ DESKTOP</option>
+            <option value="other" selected>📱 OTHER</option>
           </select>
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Dodaj urządzenie</button>
-          <button type="button" id="cancel-manual-device" class="btn btn-outline">Anuluj</button>
+      </div>
+      
+      <!-- Custom Notes Field -->
+      <div class="cyberpunk-form-group">
+        <label for="manual-device-notes" class="cyberpunk-label">CUSTOM_NOTES:</label>
+        <textarea id="manual-device-notes" class="cyberpunk-textarea" 
+                  placeholder="Add custom notes about this device..." rows="3"></textarea>
+      </div>
+      
+      <!-- Info Section -->
+      <div class="cyberpunk-info-section">
+        <div class="info-header">
+          <i class="fas fa-wifi"></i>
+          <span>MANUAL_DEVICE_INFO:</span>
         </div>
-      </form>
-    </div>
+        <ul class="info-list">
+          <li>Device will be added to your device list</li>
+          <li>You can configure custom buttons after adding</li>
+          <li>Connection attempts will use standard protocols</li>
+        </ul>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="cyberpunk-actions">
+        <button type="submit" class="cyberpunk-btn cyberpunk-btn-primary">
+          <i class="fas fa-plus"></i>
+          ADD_DEVICE
+        </button>
+        <button type="button" id="cancel-manual-device" class="cyberpunk-btn cyberpunk-btn-secondary">
+          CANCEL
+        </button>
+      </div>
+    </form>
   </div>
+</div>
   
   <!-- Przycisk debugowania -->
   <div id="debug-trigger" title="Otwórz narzędzia debugowania" style="bottom: 80px;">
