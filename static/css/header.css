@@ -248,7 +248,7 @@
 }
 
 #statusText {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: rgba(234, 237, 241, 0.6);
   font-family: "JetBrains Mono", monospace;
@@ -394,7 +394,7 @@
   background: #000;
   border: 1px solid #eab308;
   border-radius: 6px;
-  padding: 0.4rem 0.6rem;
+  padding: 0.6rem 0.6rem;
   color: #eab308;
   font-size: 0.7rem;
   font-weight: 500;
@@ -414,8 +414,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -63,11 +63,11 @@
 /* Close Button */
 .cyberpunk-close {
   position: absolute;
-  top: 15px;
+  top: 25px;
   right: 20px;
-  color: #ef4444;
+  color: #ef4444d0;
   font-size: 28px;
-  font-weight: bold;
+  /* font-weight: bold; */
   cursor: pointer;
   z-index: 20;
   transition: all 0.3s ease;
@@ -76,13 +76,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444d0;
+  /* background: rgba(239, 68, 68, 0.1); */
 }
 
 .cyberpunk-close:hover {
   color: #ffffff;
-  background: #ef4444;
+  background: #ef4444d0;
   box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
   transform: scale(1.1);
 }
@@ -98,7 +98,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 0px;
 }
 
 .cyberpunk-header::after {
@@ -119,20 +119,20 @@
 .header-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--cyberpunk-green), #10b981);
+  /* background: linear-gradient(135deg, var(--cyberpunk-green), #10b981); */
   border-radius: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #000;
+  /* justify-content: center; */
+  color: var(--cyberpunk-green);
   font-size: 20px;
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+  /* box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); */
   animation: cyberpunk-pulse 2s ease-in-out infinite;
 }
 
 .cyberpunk-header h2 {
   color: var(--cyberpunk-green);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
