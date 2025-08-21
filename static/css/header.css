@@ -1,5 +1,5 @@
 /* ========================================
-   CYBERPUNK HEADER STYLES - FIXED ADD BUTTON AND USER MENU
+   CYBERPUNK HEADER STYLES - UPDATED TO 90PX HEIGHT
    ======================================== */
 
 :root {
@@ -19,15 +19,14 @@
   display: none !important;
 }
 
-/* CYBERPUNK HEADER */
+/* CYBERPUNK HEADER - UPDATED TO 90PX */
 .header {
   background: #000;
   border-bottom: 2px solid var(--cyberpunk-green);
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem; /* Minimal vertical padding to prevent text clipping */
   position: relative;
   font-family: "JetBrains Mono", monospace;
-  height: auto;
-  min-height: 70px;
+  height: 90px; /* Fixed height for consistent 90px header */
   box-sizing: border-box;
   position: sticky;
   top: 0;
@@ -54,6 +53,7 @@
   width: 100%;
   max-width: 100%;
   overflow: hidden;
+  height: 100%; /* Take full height of parent */
 }
 
 /* Logo Section */
@@ -100,6 +100,7 @@
   margin: 0;
   font-family: "JetBrains Mono", monospace;
   white-space: nowrap;
+  line-height: 1.2; /* Tighter line height to fit better */
 }
 
 .logo-cyber {
@@ -113,6 +114,7 @@
   margin: 0;
   font-family: "JetBrains Mono", monospace;
   white-space: nowrap;
+  line-height: 1.1; /* Tighter line height for subtitle */
 }
 
 /* Search Terminal */
@@ -476,7 +478,7 @@
 
 .user-dropdown {
   position: fixed !important;
-  top: 70px !important;
+  top: 90px !important; /* Updated from 70px to 90px */
   right: 20px !important;
   background: #000 !important;
   border: 2px solid var(--cyberpunk-green) !important;
@@ -800,13 +802,13 @@
 }
 
 /* ========================================
-   RESPONSIVE DESIGN - ZNACZNIE POPRAWIONY Z ZABEZPIECZENIEM PRZYCISKÓW
+   RESPONSIVE DESIGN - UPDATED FOR 90PX HEADER
    ======================================== */
 
 /* Bardzo duże ekrany (1400px+) */
 @media (min-width: 1400px) {
   .header {
-    padding: 1rem 2rem;
+    padding: 1.25rem 2rem; /* Increased for 90px header */
   }
   
   .search-terminal {
@@ -826,7 +828,7 @@
 /* Duże ekrany (1200px - 1399px) */
 @media (max-width: 1399px) {
   .header {
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 1.5rem; /* Increased for 90px header */
   }
   
   .search-terminal {
@@ -841,7 +843,7 @@
 /* Średnie ekrany (992px - 1199px) */
 @media (max-width: 1199px) {
   .header {
-    padding: 0.75rem 1rem;
+    padding: 1rem 1rem; /* Increased for 90px header */
   }
   
   .search-terminal {
@@ -870,8 +872,8 @@
 /* Średnie ekrany (768px - 991px) */
 @media (max-width: 991px) {
   .header {
-    padding: 0.5rem 1rem;
-    min-height: 60px;
+    padding: 0.75rem 1rem; /* Increased for 90px header */
+    min-height: 80px; /* Slightly reduced but still taller than original 60px */
   }
   
   .header-content {
@@ -958,15 +960,15 @@
   .user-dropdown {
     right: 10px !important;
     min-width: 180px !important;
-    top: 60px !important;
+    top: 80px !important; /* Updated for 80px header on mobile */
   }
 }
 
 /* Małe ekrany (576px - 767px) */
 @media (max-width: 767px) {
   .header {
-    padding: 0.5rem 0.75rem;
-    min-height: auto;
+    padding: 0.6rem 0.75rem; /* Increased for 90px header */
+    min-height: 75px; /* Increased from auto */
   }
   
   .header-content {
@@ -1013,7 +1015,7 @@
     right: 5px !important;
     min-width: 160px !important;
     max-width: 200px !important;
-    top: 55px !important;
+    top: 75px !important; /* Updated for 75px header */
   }
   
   .dropdown-item {
@@ -1031,7 +1033,8 @@
 /* Bardzo małe ekrany (481px - 575px) */
 @media (max-width: 575px) {
   .header {
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem 0.5rem; /* Increased for 90px header */
+    min-height: 70px; /* Increased */
   }
   
   .header-content {
@@ -1117,7 +1120,7 @@
     right: 5px !important;
     min-width: 140px !important;
     max-width: 180px !important;
-    top: 50px !important;
+    top: 70px !important; /* Updated for 70px header */
   }
   
   .dropdown-item {
@@ -1140,7 +1143,8 @@
 /* Ultra małe ekrany (320px - 480px) */
 @media (max-width: 480px) {
   .header {
-    padding: 0.3rem 0.4rem;
+    padding: 0.4rem 0.4rem; /* Increased for 90px header */
+    min-height: 65px; /* Increased */
   }
   
   .header-content {
@@ -1220,7 +1224,7 @@
     right: 2px !important;
     min-width: 120px !important;
     max-width: 160px !important;
-    top: 45px !important;
+    top: 65px !important; /* Updated for 65px header */
   }
   
   .dropdown-item {
@@ -1262,8 +1266,8 @@
 /* Ekrany telefonów w orientacji poziomej */
 @media (max-width: 896px) and (max-height: 414px) and (orientation: landscape) {
   .header {
-    min-height: 50px;
-    padding: 0.25rem 0.5rem;
+    min-height: 60px; /* Slightly increased from 50px */
+    padding: 0.4rem 0.5rem;
   }
   
   .header-content {
@@ -1299,14 +1303,15 @@
   .user-dropdown {
     right: -30px;
     min-width: 160px;
+    top: 60px !important; /* Updated */
   }
 }
 
 /* Wysokie ekrany (wysokość > 1000px) */
 @media (min-height: 1000px) {
   .header {
-    min-height: 80px;
-    padding: 1rem 1.5rem;
+    min-height: 100px; /* Increased from 80px */
+    padding: 1.5rem 1.5rem; /* Increased padding */
   }
   
   .logo-icon {
@@ -1330,8 +1335,8 @@
 /* Niskie ekrany (wysokość < 600px) */
 @media (max-height: 599px) {
   .header {
-    min-height: 50px;
-    padding: 0.4rem 0.75rem;
+    min-height: 60px; /* Increased from 50px */
+    padding: 0.6rem 0.75rem; /* Increased */
   }
   
   .logo-icon {
@@ -1355,7 +1360,8 @@
 /* Zapewnienie że wszystkie elementy się mieszczą - KRYTYCZNE ZABEZPIECZENIE */
 @media (max-width: 320px) {
   .header {
-    padding: 0.2rem 0.3rem;
+    padding: 0.3rem 0.3rem; /* Increased */
+    min-height: 60px; /* Increased from auto */
   }
   
   .header-content {
@@ -1415,6 +1421,7 @@
     right: -80px;
     min-width: 100px;
     max-width: 140px;
+    top: 60px !important; /* Updated */
   }
   
   .dropdown-item {
@@ -1436,14 +1443,12 @@
 }
 
 /* ========================================
-   POZOSTAŁE STYLE Z POPRZEDNIEJ WERSJI
-   (Dla kompatybilności z resztą aplikacji)
+   TOAST NOTIFICATIONS - UPDATED POSITION
    ======================================== */
 
-/* Toast Notifications pozostają bez zmian */
 .toast-container {
   position: fixed !important;
-  top: 80px !important;
+  top: 100px !important; /* Updated from 80px to account for 90px header */
   right: 20px !important;
   z-index: 10000 !important;
   display: flex;
@@ -1541,7 +1546,10 @@
   border-color: rgba(41, 128, 185, 0.5);
 }
 
-/* Modals pozostają bez zmian */
+/* ========================================
+   AUTHENTICATION MODAL STYLES (Unchanged)
+   ======================================== */
+
 .auth-modal {
   display: none;
   position: fixed;

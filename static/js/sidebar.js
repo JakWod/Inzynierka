@@ -1,4 +1,4 @@
-// Cyberpunk Sidebar functionality - FINALNA WERSJA Z INTEGRACJĄ NOWEGO MODALA
+// Cyberpunk Sidebar functionality - NAPRAWIONA WERSJA Z CUSTOM NOTES
 // Features: 
 // - Gradient scrollbar working properly
 // - Devices save to localStorage properly (favorites + discovered)
@@ -18,6 +18,7 @@
 // - Red wifi icon for disconnection instead of X button
 // - ADDED: Device name truncation for better UI (25 chars + "..." for cards, max 7 chars for header)
 // - INTEGRACJA: Nowy modal z zakładkami (podstawowe info + kontrola urządzenia)
+// - NAPRAWKA: Custom notes support - PRAWIDŁOWE zapisywanie i wczytywanie notatek
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -292,6 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem(buttonKey);
             addToLog(`Deleted device buttons for: ${address}`, 'INFO');
             
+            // NAPRAWKA: Usuń custom notes
+            const notesKey = `device_notes_${address}`;
+            localStorage.removeItem(notesKey);
+            addToLog(`Deleted custom notes for: ${address}`, 'INFO');
+            
             if (deviceDeleted) {
                 // Odśwież wyświetlanie
                 displayPairedDevices();
@@ -366,7 +372,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Ładuje urządzenia z API i localStorage - POPRAWIONA WERSJA
+     * NAPRAWKA: Funkcje obsługi custom notes - POPRAWIONE IMPLEMENTACJE
+     */
+    
+    /**
+     * Zapisuje custom notes dla urządzenia
+     * @param {string} address - Adres MAC urządzenia
+     * @param {string} notes - Notatki do zapisania
+     */
+    function saveDeviceNotes(address, notes) {
+        try {
+            const notesKey = `device_notes_${address}`;
+            if (notes && notes.trim()) {
+                localStorage.setItem(notesKey, notes.trim());
+                addToLog(`Saved custom notes for device: ${address}`, 'INFO');
+                console.log(`NOTES SAVED: "${notes.trim()}" for ${address}`);
+            } else {
+                localStorage.removeItem(notesKey);
+                addToLog(`Removed custom notes for device: ${address}`, 'INFO');
+                console.log(`NOTES REMOVED for ${address}`);
+            }
+        } catch (error) {
+            addToLog(`Error saving notes for device ${address}: ${error.message}`, 'ERROR');
+            console.error(`NOTES SAVE ERROR:`, error);
+        }
+    }
+    
+    /**
+     * Wczytuje custom notes dla urządzenia
+     * @param {string} address - Adres MAC urządzenia
+     * @returns {string} - Zapisane notatki lub pusty string
+     */
+    function loadDeviceNotes(address) {
+        try {
+            const notesKey = `device_notes_${address}`;
+            const notes = localStorage.getItem(notesKey) || '';
+            console.log(`NOTES LOADED: "${notes}" for ${address}`);
+            return notes;
+        } catch (error) {
+            addToLog(`Error loading notes for device ${address}: ${error.message}`, 'ERROR');
+            console.error(`NOTES LOAD ERROR:`, error);
+            return '';
+        }
+    }
+    
+    /**
+     * Ładuje urządzenia z API i localStorage - POPRAWIONA WERSJA Z CUSTOM NOTES
      */
     async function loadPairedDevices() {
         try {
@@ -375,6 +426,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Pobierz discovered devices z localStorage
             discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
+            
+            // NAPRAWKA: Wczytaj custom notes dla wszystkich urządzeń
+            pairedDevices.forEach(device => {
+                device.customNotes = loadDeviceNotes(device.address);
+            });
+            
+            discoveredDevices.forEach(device => {
+                device.customNotes = loadDeviceNotes(device.address);
+            });
             
             addToLog(`Loaded from localStorage: ${pairedDevices.length} favorite devices and ${discoveredDevices.length} discovered devices`, 'INFO');
             
@@ -392,7 +452,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             id: apiDevice.address,
                             type: getDeviceTypeFromName(apiDevice.name),
                             connected: false,
-                            favorite: false
+                            favorite: false,
+                            customNotes: loadDeviceNotes(apiDevice.address) // NAPRAWKA: Wczytaj notes
                         };
                         
                         // Sprawdź czy urządzenie nie istnieje już w favorites lub discovered
@@ -417,6 +478,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Fallback do localStorage
             pairedDevices = JSON.parse(localStorage.getItem('favoriteDevices') || '[]');
             discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
+            
+            // NAPRAWKA: Wczytaj notes w fallback
+            pairedDevices.forEach(device => {
+                device.customNotes = loadDeviceNotes(device.address);
+            });
+            
+            discoveredDevices.forEach(device => {
+                device.customNotes = loadDeviceNotes(device.address);
+            });
         }
         
         // Sprawdź status połączenia
@@ -459,7 +529,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             connected: true,
                             battery: getBatteryLevel(),
                             signal: getSignalStrength(),
-                            security: 'AES-256'
+                            security: 'AES-256',
+                            customNotes: loadDeviceNotes(result.address) // NAPRAWKA: Wczytaj notes
                         };
                     }
                     
@@ -992,23 +1063,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Dodaje urządzenie do discovered devices (nie favorites!) - POPRAWIONA WERSJA
+     * Dodaje urządzenie do discovered devices (nie favorites!) - POPRAWIONA WERSJA Z CUSTOM NOTES
      */
     function addPairedDevice(device) {
-        // Sprawdź czy urządzenie już istnieje w którrejś z list
+        // Sprawdź czy urządzenie już istnieje w którejś z list
         const existsInFavorites = pairedDevices.find(d => d.address === device.address);
         const existsInDiscovered = discoveredDevices.find(d => d.address === device.address);
         
         if (existsInFavorites) {
             // Zaktualizuj istniejące urządzenie w favorites
             const deviceIndex = pairedDevices.findIndex(d => d.address === device.address);
-            pairedDevices[deviceIndex] = { ...pairedDevices[deviceIndex], ...device };
+            pairedDevices[deviceIndex] = { 
+                ...pairedDevices[deviceIndex], 
+                ...device,
+                customNotes: device.customNotes || loadDeviceNotes(device.address) // NAPRAWKA: Zachowaj notes
+            };
             localStorage.setItem('favoriteDevices', JSON.stringify(pairedDevices));
             addToLog(`Updated existing favorite device: ${device.name || 'Unknown Device'}`, 'INFO');
         } else if (existsInDiscovered) {
             // Zaktualizuj istniejące urządzenie w discovered
             const deviceIndex = discoveredDevices.findIndex(d => d.address === device.address);
-            discoveredDevices[deviceIndex] = { ...discoveredDevices[deviceIndex], ...device };
+            discoveredDevices[deviceIndex] = { 
+                ...discoveredDevices[deviceIndex], 
+                ...device,
+                customNotes: device.customNotes || loadDeviceNotes(device.address) // NAPRAWKA: Zachowaj notes
+            };
             localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
             addToLog(`Updated existing discovered device: ${device.name || 'Unknown Device'}`, 'INFO');
         } else {
@@ -1018,7 +1097,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 address: device.address,
                 type: device.type || getDeviceTypeFromName(device.name || ''),
                 connected: device.connected || false,
-                favorite: false // Domyślnie nie jest ulubione
+                favorite: false, // Domyślnie nie jest ulubione
+                customNotes: device.customNotes || '' // NAPRAWKA: Custom notes
             };
             
             discoveredDevices.push(newDevice);
@@ -1033,14 +1113,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Dodaje urządzenie bezpośrednio do ulubionych
+     * Dodaje urządzenie bezpośrednio do ulubionych - Z CUSTOM NOTES
      */
     function addDeviceToFavorites(device) {
         const existingDeviceIndex = pairedDevices.findIndex(d => d.address === device.address);
         
         if (existingDeviceIndex !== -1) {
             // Zaktualizuj istniejące urządzenie
-            pairedDevices[existingDeviceIndex] = { ...pairedDevices[existingDeviceIndex], ...device, favorite: true };
+            pairedDevices[existingDeviceIndex] = { 
+                ...pairedDevices[existingDeviceIndex], 
+                ...device, 
+                favorite: true,
+                customNotes: device.customNotes || loadDeviceNotes(device.address) // NAPRAWKA: Zachowaj notes
+            };
         } else {
             // Dodaj nowe urządzenie do ulubionych
             pairedDevices.push({
@@ -1048,7 +1133,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 address: device.address,
                 type: device.type || getDeviceTypeFromName(device.name || ''),
                 connected: device.connected || false,
-                favorite: true
+                favorite: true,
+                customNotes: device.customNotes || '' // NAPRAWKA: Custom notes
             });
         }
         
@@ -1114,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Otwiera modal edycji urządzenia - ZINTEGROWANA Z NOWYM MODALEM
+     * Otwiera modal edycji urządzenia - ZINTEGROWANA Z NOWYM MODALEM + CUSTOM NOTES
      */
     function openEditDeviceModal(device) {
         // Użyj nowej funkcji z device-modal.js jeśli dostępna
@@ -1123,18 +1209,26 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (typeof window.deviceModalFunctions !== 'undefined' && window.deviceModalFunctions.openDeviceEditModal) {
             window.deviceModalFunctions.openDeviceEditModal(device);
         } else {
-            // Fallback - basic modal
+            // Fallback - basic modal z obsługą custom notes
             const modal = document.getElementById('device-edit-modal');
             if (modal) {
                 const nameInput = document.getElementById('edit-device-name');
                 const typeSelect = document.getElementById('edit-device-type');
                 const addressDisplay = document.getElementById('edit-device-address-display');
                 const addressHidden = document.getElementById('edit-device-address-hidden');
+                const notesTextarea = document.getElementById('edit-device-notes'); // NAPRAWKA: Pole notes
                 
                 if (nameInput) nameInput.value = device.name || '';
                 if (typeSelect) typeSelect.value = device.type || 'other';
                 if (addressDisplay) addressDisplay.value = device.address;
                 if (addressHidden) addressHidden.value = device.address;
+                
+                // NAPRAWKA: Wczytaj custom notes
+                if (notesTextarea) {
+                    const customNotes = device.customNotes || loadDeviceNotes(device.address);
+                    notesTextarea.value = customNotes;
+                    console.log(`FALLBACK: Loaded notes for ${device.address}: "${customNotes}"`);
+                }
                 
                 modal.style.display = 'block';
                 
@@ -1144,9 +1238,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Zapisuje zmiany w edytowanym urządzeniu
+     * NAPRAWKA: Zapisuje zmiany w edytowanym urządzeniu z custom notes
      */
-    function saveDeviceChanges(address, newName, newType) {
+    function saveDeviceChangesWithNotes(address, newName, newType, customNotes) {
+        console.log(`SIDEBAR: Saving device changes with notes: ${address}, "${newName}", ${newType}, "${customNotes}"`);
+        
         let deviceUpdated = false;
         let deviceLocation = '';
         
@@ -1156,10 +1252,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const oldName = pairedDevices[pairedIndex].name;
             pairedDevices[pairedIndex].name = newName;
             pairedDevices[pairedIndex].type = newType;
+            pairedDevices[pairedIndex].customNotes = customNotes || ''; // NAPRAWKA: Custom notes
             localStorage.setItem('favoriteDevices', JSON.stringify(pairedDevices));
             deviceUpdated = true;
             deviceLocation = 'favorites';
             addToLog(`Updated device in favorites: ${oldName} -> ${newName} (${newType})`, 'INFO');
+            console.log(`SIDEBAR: Updated in favorites with notes: "${customNotes}"`);
         }
         
         // Znajdź i zaktualizuj urządzenie w discoveredDevices
@@ -1168,18 +1266,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const oldName = discoveredDevices[discoveredIndex].name;
             discoveredDevices[discoveredIndex].name = newName;
             discoveredDevices[discoveredIndex].type = newType;
+            discoveredDevices[discoveredIndex].customNotes = customNotes || ''; // NAPRAWKA: Custom notes
             localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
             deviceUpdated = true;
             deviceLocation = deviceLocation ? 'both' : 'discovered';
             addToLog(`Updated device in discovered: ${oldName} -> ${newName} (${newType})`, 'INFO');
+            console.log(`SIDEBAR: Updated in discovered with notes: "${customNotes}"`);
         }
+        
+        // NAPRAWKA: Zapisz custom notes osobno w localStorage
+        saveDeviceNotes(address, customNotes);
         
         // Zaktualizuj połączone urządzenie jeśli to ono było edytowane
         if (connectedDevice && connectedDevice.address === address) {
             connectedDevice.name = newName;
             connectedDevice.type = newType;
+            connectedDevice.customNotes = customNotes || ''; // NAPRAWKA: Custom notes
             updateHeaderConnectionStatus(); // Aktualizuj header z nową nazwą
             addToLog(`Updated connected device: ${newName} (${newType})`, 'INFO');
+            console.log(`SIDEBAR: Updated connected device with notes: "${customNotes}"`);
         }
         
         if (deviceUpdated) {
@@ -1188,14 +1293,25 @@ document.addEventListener('DOMContentLoaded', function() {
             displayDiscoveredDevices();
             updateConnectionDisplay();
             
+            closeEditDeviceModal();
+            
             showToast(`Urządzenie "${truncateDeviceName(newName)}" zostało zaktualizowane`, 'success');
             addToLog(`Device successfully updated in ${deviceLocation}`, 'SUCCESS');
+            console.log(`SIDEBAR: Device update completed successfully with notes: "${customNotes}"`);
             return true;
         } else {
             showToast('Nie znaleziono urządzenia do edycji', 'error');
             addToLog(`Device with address ${address} not found for editing`, 'ERROR');
+            console.error(`SIDEBAR: Device not found for update: ${address}`);
             return false;
         }
+    }
+    
+    /**
+     * ZACHOWANA FUNKCJA: Zapisuje zmiany w edytowanym urządzeniu (bez custom notes) - dla backward compatibility
+     */
+    function saveDeviceChanges(address, newName, newType) {
+        return saveDeviceChangesWithNotes(address, newName, newType, '');
     }
     
     /**
@@ -1237,11 +1353,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (key.startsWith('device_buttons_')) {
                 localStorage.removeItem(key);
             }
+            // NAPRAWKA: Usuń custom notes
+            if (key.startsWith('device_notes_')) {
+                localStorage.removeItem(key);
+            }
         });
         
         displayPairedDevices();
         displayDiscoveredDevices();
-        addToLog('All devices and buttons cleared', 'INFO');
+        addToLog('All devices, buttons and notes cleared', 'INFO');
     }
     
     function getDeviceStats() {
@@ -1272,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Udostępnij funkcje globalnie - ZAKTUALIZOWANE
+    // Udostępnij funkcje globalnie - ZAKTUALIZOWANE Z CUSTOM NOTES
     window.toggleFavorite = toggleFavorite;
     window.addPairedDevice = addPairedDevice;
     window.addDeviceToFavorites = addDeviceToFavorites;
@@ -1282,6 +1402,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openEditDeviceModal = openEditDeviceModal;
     window.closeEditDeviceModal = closeEditDeviceModal;
     window.saveDeviceChanges = saveDeviceChanges;
+    window.saveDeviceChangesWithNotes = saveDeviceChangesWithNotes; // NAPRAWKA: Funkcja z notes
     window.deleteDevice = deleteDevice;
     window.clearAllDevices = clearAllDevices;
     window.getDeviceStats = getDeviceStats;
@@ -1291,4 +1412,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.truncateDeviceName = truncateDeviceName;
     window.truncateDeviceNameForHeader = truncateDeviceNameForHeader;
     window.truncateDeviceNameResponsive = truncateDeviceNameResponsive;
+    
+    // NAPRAWKA: Funkcje obsługi custom notes
+    window.saveDeviceNotes = saveDeviceNotes;
+    window.loadDeviceNotes = loadDeviceNotes;
 });

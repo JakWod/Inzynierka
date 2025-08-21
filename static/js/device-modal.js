@@ -1,8 +1,9 @@
 /**
- * Device Modal Management - ROZSZERZONA WERSJA Z ZAKŁADKAMI
+ * Device Modal Management - NAPRAWIONA WERSJA Z DZIAŁAJĄCYMI CUSTOM NOTES
  * Obsługuje modal edycji urządzenia z dwoma zakładkami:
  * 1. Podstawowe informacje
  * 2. Kontrola urządzenia (przyciski i komendy)
+ * FIXED: Custom notes właściwie zapisują się i wczytują
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const deviceTypeSelect = document.getElementById('edit-device-type');
     const deviceAddressDisplay = document.getElementById('edit-device-address-display');
     const deviceAddressHidden = document.getElementById('edit-device-address-hidden');
+    const deviceNotesInput = document.getElementById('edit-device-notes'); // NAPRAWKA: Dodano referencję
     
     // Control elements (kontrola urządzenia)
     const deviceButtonsList = document.getElementById('device-buttons-list');
@@ -134,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Obsługuje zapisywanie podstawowych informacji o urządzeniu
+     * NAPRAWKA: Dodano obsługę custom notes
      * @param {Event} e - Event formularza
      */
     function handleBasicInfoSubmit(e) {
@@ -144,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const newName = deviceNameInput.value.trim();
         const newType = deviceTypeSelect.value;
         const address = deviceAddressHidden.value;
+        const customNotes = deviceNotesInput ? deviceNotesInput.value.trim() : ''; // NAPRAWKA: Pobierz custom notes
         
         // Walidacja
         if (!newName || !newType) {
@@ -162,14 +166,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Zapisz zmiany
-        const success = saveDeviceChanges(address, newName, newType);
+        // NAPRAWKA: Użyj funkcji z custom notes
+        const success = saveDeviceChangesWithNotes(address, newName, newType, customNotes);
         
         if (success) {
             showToast('Podstawowe informacje zostały zaktualizowane', 'success');
             // Zaktualizuj bieżące dane urządzenia
             currentDevice.name = newName;
             currentDevice.type = newType;
+            currentDevice.customNotes = customNotes; // NAPRAWKA: Zaktualizuj notes w currentDevice
+            
+            console.log(`Custom notes saved: "${customNotes}" for device ${address}`);
         }
     }
     
@@ -579,6 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Otwiera modal edycji urządzenia
+     * NAPRAWKA: Dodano wczytywanie custom notes przy otwieraniu
      * @param {Object} device - Dane urządzenia
      */
     function openDeviceEditModal(device) {
@@ -591,6 +599,13 @@ document.addEventListener('DOMContentLoaded', function() {
         deviceTypeSelect.value = device.type || 'other';
         deviceAddressDisplay.value = device.address || '';
         deviceAddressHidden.value = device.address || '';
+        
+        // NAPRAWKA: Wczytaj custom notes
+        if (deviceNotesInput) {
+            const customNotes = device.customNotes || loadDeviceNotes(device.address);
+            deviceNotesInput.value = customNotes;
+            console.log(`Loaded custom notes for ${device.address}: "${customNotes}"`);
+        }
         
         // Sprawdź status połączenia i zaktualizuj UI
         updateModalForConnectionStatus(device.connected);
@@ -650,6 +665,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Wyłącz elementy formularza podstawowych informacji
             deviceNameInput.disabled = true;
             deviceTypeSelect.disabled = true;
+            if (deviceNotesInput) deviceNotesInput.disabled = true; // NAPRAWKA: Wyłącz notes dla połączonych
             if (deleteDeviceBtn) deleteDeviceBtn.disabled = true;
             
             // Wyłącz niektóre akcje w kontroli urządzenia
@@ -661,6 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Włącz elementy formularza
             deviceNameInput.disabled = false;
             deviceTypeSelect.disabled = false;
+            if (deviceNotesInput) deviceNotesInput.disabled = false; // NAPRAWKA: Włącz notes dla niepołączonych
             if (deleteDeviceBtn) deleteDeviceBtn.disabled = false;
             if (unpairDeviceBtn) unpairDeviceBtn.disabled = false;
         }
@@ -815,15 +832,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     
     /**
-     * Zapisuje zmiany urządzenia (integracja z sidebar.js)
+     * NAPRAWKA: Zapisuje zmiany urządzenia z custom notes (integracja z sidebar.js)
      * @param {string} address - Adres MAC
      * @param {string} newName - Nowa nazwa
      * @param {string} newType - Nowy typ
+     * @param {string} customNotes - Custom notes
      * @returns {boolean} - Czy operacja się powiodła
      */
-    function saveDeviceChanges(address, newName, newType) {
+    function saveDeviceChangesWithNotes(address, newName, newType, customNotes) {
+        console.log(`Attempting to save device changes with notes: ${address}, "${newName}", ${newType}, "${customNotes}"`);
+        
+        // Spróbuj użyć funkcji z sidebar.js z custom notes
+        if (typeof window.saveDeviceChangesWithNotes === 'function') {
+            const result = window.saveDeviceChangesWithNotes(address, newName, newType, customNotes);
+            console.log(`saveDeviceChangesWithNotes result: ${result}`);
+            return result;
+        }
+        
+        // Fallback - użyj standardowej funkcji i zapisz notes osobno
         if (typeof window.saveDeviceChanges === 'function') {
-            return window.saveDeviceChanges(address, newName, newType);
+            console.log('Using fallback saveDeviceChanges + separate notes saving');
+            const result = window.saveDeviceChanges(address, newName, newType);
+            
+            // Zapisz notes osobno
+            if (result && typeof window.saveDeviceNotes === 'function') {
+                window.saveDeviceNotes(address, customNotes);
+                console.log(`Saved custom notes separately: "${customNotes}"`);
+            }
+            
+            return result;
         }
         
         console.error('saveDeviceChanges function not available');
@@ -843,6 +880,30 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.error('deleteDevice function not available');
         return false;
+    }
+    
+    /**
+     * NAPRAWKA: Wczytuje custom notes dla urządzenia
+     * @param {string} address - Adres MAC urządzenia
+     * @returns {string} - Zapisane notatki lub pusty string
+     */
+    function loadDeviceNotes(address) {
+        if (typeof window.loadDeviceNotes === 'function') {
+            const notes = window.loadDeviceNotes(address);
+            console.log(`Loaded notes for ${address}: "${notes}"`);
+            return notes;
+        }
+        
+        // Fallback - bezpośrednie wczytanie z localStorage
+        try {
+            const notesKey = `device_notes_${address}`;
+            const notes = localStorage.getItem(notesKey) || '';
+            console.log(`Loaded notes (fallback) for ${address}: "${notes}"`);
+            return notes;
+        } catch (error) {
+            console.error(`Error loading notes for device ${address}:`, error);
+            return '';
+        }
     }
     
     /**
@@ -870,7 +931,8 @@ document.addEventListener('DOMContentLoaded', function() {
         closeDeviceEditModal,
         switchToTab,
         getDeviceButtons,
-        saveDeviceButtons
+        saveDeviceButtons,
+        loadDeviceNotes // NAPRAWKA: Dodano do eksportu
     };
     
     // Dla zgodności z sidebar.js

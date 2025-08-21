@@ -2,6 +2,7 @@
  * Main JavaScript file for Bluetooth Manager
  * Contains core application functionality, scanning, and toast notifications
  * ADDED: Device name truncation support for scan results
+ * FIXED: Custom notes support dla ręcznego dodawania urządzeń
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -528,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
   /**
    * Add device to the paired devices list
    * UPDATED: Added device name truncation for toast messages
+   * FIXED: Dodano przekazywanie custom notes
    * @param {Object} device - Device data
    */
   function addDeviceToList(device) {
@@ -543,13 +545,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
+    // NAPRAWKA: Dodano custom notes (puste dla urządzeń ze skanowania)
     window.dispatchEvent(new CustomEvent('deviceConnected', {
       detail: {
         device: {
           name: deviceName,
           address: device.address,
           connected: false,
-          type: device.type || 'other'
+          type: device.type || 'other',
+          customNotes: '' // Puste dla urządzeń ze skanowania
         }
       }
     }));
@@ -674,6 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   /**
    * Setup manual device modal functionality
+   * FIXED: Dodano obsługę custom notes
    */
   function setupManualDeviceModal() {
     // Obsługa linku do ręcznego dodawania urządzenia
@@ -694,6 +699,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const name = document.getElementById('manual-device-name').value;
         const address = document.getElementById('manual-device-address').value;
         const type = document.getElementById('manual-device-type').value;
+        const customNotes = document.getElementById('manual-device-notes').value; // NAPRAWKA: Pobierz custom notes
         
         const macRegex = /([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})/;
         if (!macRegex.test(address)) {
@@ -710,21 +716,25 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         
+        // NAPRAWKA: Dodano custom notes do obiektu urządzenia
         const newDevice = {
           name: name,
           address: address,
           type: type,
-          connected: false
+          connected: false,
+          customNotes: customNotes || '' // NAPRAWKA: Przekaż custom notes
         };
+        
+        console.log(`MAIN.JS: Adding device with custom notes: "${customNotes}"`);
         
         window.dispatchEvent(new CustomEvent('deviceConnected', {
           detail: {
-            device: newDevice
+            device: newDevice // NAPRAWKA: Przekaż cały obiekt z custom notes
           }
         }));
         
         const truncatedDeviceName = truncateDeviceName(name);
-        addToMainLog(`[MANUAL] Dodano urządzenie ręcznie: ${name} (${address})`);
+        addToMainLog(`[MANUAL] Dodano urządzenie ręcznie: ${name} (${address}) z notatkami: "${customNotes}"`);
         showToast(`Urządzenie "${truncatedDeviceName}" zostało dodane ręcznie do listy`, 'success', 5000);
         
         manualDeviceModal.style.display = 'none';

@@ -1606,7 +1606,8 @@ body:has(.toast-container) {
 
 /* Input Styling */
 #device-edit-modal .form-group input,
-#device-edit-modal .form-group select {
+#device-edit-modal .form-group select,
+#device-edit-modal .form-group textarea {
   width: 100%;
   padding: 12px 15px;
   background: #000;
@@ -1618,10 +1619,18 @@ body:has(.toast-container) {
   transition: all 0.3s ease;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
+  resize: vertical;
+}
+
+#device-edit-modal .form-group textarea {
+  min-height: 100px;
+  line-height: 1.4;
+  font-family: "JetBrains Mono", monospace;
 }
 
 #device-edit-modal .form-group input:focus,
-#device-edit-modal .form-group select:focus {
+#device-edit-modal .form-group select:focus,
+#device-edit-modal .form-group textarea:focus {
   outline: none;
   border-color: var(--cyberpunk-green);
   box-shadow: 
@@ -1638,7 +1647,8 @@ body:has(.toast-container) {
   cursor: not-allowed;
 }
 
-#device-edit-modal .form-group input::placeholder {
+#device-edit-modal .form-group input::placeholder,
+#device-edit-modal .form-group textarea::placeholder {
   color: rgba(156, 163, 175, 0.5);
 }
 
@@ -2071,7 +2081,8 @@ body:has(.toast-container) {
 
 /* Animation for form validation */
 #device-edit-modal .form-group.error input,
-#device-edit-modal .form-group.error select {
+#device-edit-modal .form-group.error select,
+#device-edit-modal .form-group.error textarea {
   border-color: rgb(248, 113, 113);
   box-shadow: 
     inset 0 0 10px rgba(0, 0, 0, 0.5),
@@ -2087,7 +2098,8 @@ body:has(.toast-container) {
 
 /* Success animation */
 #device-edit-modal .form-group.success input,
-#device-edit-modal .form-group.success select {
+#device-edit-modal .form-group.success select,
+#device-edit-modal .form-group.success textarea {
   border-color: var(--cyberpunk-green);
   box-shadow: 
     inset 0 0 10px rgba(0, 0, 0, 0.5),
@@ -2202,7 +2214,8 @@ body:has(.toast-container) {
   }
   
   #device-edit-modal .form-group input,
-  #device-edit-modal .form-group select {
+  #device-edit-modal .form-group select,
+  #device-edit-modal .form-group textarea {
     padding: 10px 12px;
     font-size: 0.85rem;
   }
@@ -2356,7 +2369,8 @@ body:has(.toast-container) {
 }
 
 [data-theme="light"] #device-edit-modal .form-group input,
-[data-theme="light"] #device-edit-modal .form-group select {
+[data-theme="light"] #device-edit-modal .form-group select,
+[data-theme="light"] #device-edit-modal .form-group textarea {
   background: #ffffff;
   border-color: rgba(74, 222, 128, 0.3);
   color: #212529;
@@ -2364,7 +2378,8 @@ body:has(.toast-container) {
 }
 
 [data-theme="light"] #device-edit-modal .form-group input:focus,
-[data-theme="light"] #device-edit-modal .form-group select:focus {
+[data-theme="light"] #device-edit-modal .form-group select:focus,
+[data-theme="light"] #device-edit-modal .form-group textarea:focus {
   border-color: var(--cyberpunk-green);
   box-shadow: 
     inset 0 0 10px rgba(0, 0, 0, 0.02),
@@ -2379,7 +2394,8 @@ body:has(.toast-container) {
   border-color: rgba(209, 213, 219, 0.5);
 }
 
-[data-theme="light"] #device-edit-modal .form-group input::placeholder {
+[data-theme="light"] #device-edit-modal .form-group input::placeholder,
+[data-theme="light"] #device-edit-modal .form-group textarea::placeholder {
   color: rgba(107, 114, 128, 0.5);
 }
 
@@ -2613,7 +2629,8 @@ body:has(.toast-container) {
 
 /* Validation states */
 .form-group.validating input,
-.form-group.validating select {
+.form-group.validating select,
+.form-group.validating textarea {
   border-color: var(--cyberpunk-yellow);
   box-shadow: 
     inset 0 0 10px rgba(0, 0, 0, 0.5),
@@ -2621,7 +2638,8 @@ body:has(.toast-container) {
 }
 
 .form-group.valid input,
-.form-group.valid select {
+.form-group.valid select,
+.form-group.valid textarea {
   border-color: var(--cyberpunk-green);
   box-shadow: 
     inset 0 0 10px rgba(0, 0, 0, 0.5),
@@ -2629,7 +2647,8 @@ body:has(.toast-container) {
 }
 
 .form-group.invalid input,
-.form-group.invalid select {
+.form-group.invalid select,
+.form-group.invalid textarea {
   border-color: var(--cyberpunk-red);
   box-shadow: 
     inset 0 0 10px rgba(0, 0, 0, 0.5),
@@ -2755,7 +2774,8 @@ body:has(.toast-container) {
 .device-tab-btn:focus,
 .btn:focus,
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: 2px solid var(--cyberpunk-blue);
   outline-offset: 2px;
 }
@@ -2763,7 +2783,8 @@ select:focus {
 [data-theme="light"] .device-tab-btn:focus,
 [data-theme="light"] .btn:focus,
 [data-theme="light"] input:focus,
-[data-theme="light"] select:focus {
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
   outline-color: #1d4ed8;
 }
 
@@ -2839,7 +2860,7 @@ select:focus {
 /* Ensure proper box-sizing for all modal elements */
 #device-edit-modal *,
 #device-edit-modal *::before,
-#device-edit-modal *::after {
+#device-edit-modal *::after{
   box-sizing: border-box;
 }
 

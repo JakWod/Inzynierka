@@ -462,11 +462,21 @@
               
               <div class="form-group mac-address-display">
                 <label for="edit-device-address-display">
-                  <i class="fas fa-wifi", fill = var(--cyberpunk-blue)></i>
+                  <i class="fas fa-wifi"></i>
                   Adres MAC:
                 </label>
                 <input type="text" id="edit-device-address-display" disabled readonly>
                 <div class="input-hint">Adres MAC nie może być zmieniony</div>
+              </div>
+              
+              <!-- NOWE POLE: Custom Notes -->
+              <div class="form-group">
+                <label for="edit-device-notes">
+                  <i class="fas fa-sticky-note"></i>
+                  Notatki niestandardowe:
+                </label>
+                <textarea id="edit-device-notes" rows="4" placeholder="Dodaj niestandardowe notatki o tym urządzeniu..."></textarea>
+                <div class="input-hint">Osobiste notatki i informacje o urządzeniu</div>
               </div>
             </div>
             
@@ -543,8 +553,8 @@
                       <option value="volume-up">🔊 Głośność +</option>
                       <option value="volume-down">🔉 Głośność -</option>
                       <option value="play-pause">⏯️ Play/Pause</option>
-                      <option value="next">⏭️ Następny</option>
-                      <option value="previous">⏮️ Poprzedni</option>
+                      <option value="next">⭐ Następny</option>
+                      <option value="previous">⮐ Poprzedni</option>
                       <option value="light">💡 Światło/LED</option>
                       <option value="custom">🔧 Niestandardowa</option>
                     </select>
