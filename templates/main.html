@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/debug-modal.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/header.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/add-modal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/terminal-main.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Cyberpunk Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,6 +20,12 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Background Effects -->
+  <div class="background-effects">
+    <div class="gradient-bg"></div>
+    <div class="neon-grid"></div>
+  </div>
+
   <!-- Ukryte pole do przechowywania informacji o urządzeniach -->
   <input type="hidden" id="has-devices" value="{{ 'true' if devices else 'false' }}">
   
@@ -42,6 +49,12 @@
   
   <form action="/simulate_connection" method="post" style="display: none;" id="hidden-simulate-form">
     <input type="hidden" name="simulate" value="true">
+  </form>
+
+  <!-- DODANY FORMULARZ SKANOWANIA - OPCJA 1 -->
+  <form action="/scan" method="post" style="display: none;" id="scan-form">
+    <input type="hidden" name="scan" value="true">
+    <input type="hidden" name="show_results" value="true">
   </form>
 
   <!-- Kontener dla alertów w prawym dolnym rogu -->
@@ -274,43 +287,127 @@
         </div>
       </header>
 
-      <!-- Widok Minecraft z przyciskiem SKANUJ i sekcją wyników -->
-      <div class="minecraft-layout" id="minecraft-layout">
-        <div class="minecraft-content">
-          <div class="minecraft-content-overlay">
-            <!-- Główna sekcja z tytułem i przyciskiem -->
-            <div class="minecraft-main-section">
-              <div class="minecraft-title">
-                <h1>Bluetooth Manager</h1>
-                <p>Wyszukaj i zarządzaj urządzeniami Bluetooth</p>
-              </div>
-              <form action="/scan" method="post" id="scan-form">
-                <input type="hidden" name="show_results" value="true">
-                <button type="submit" class="minecraft-play-button">SKANUJ</button>
-              </form>
+      <!-- CYBERPUNK TERMINAL INTERFACE -->
+      <div class="terminal-interface">
+        <div class="terminal-header">
+          <div class="terminal-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="4,17 10,11 4,5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
+            </svg>
+            <h2>NEURAL_INTERFACE_TERMINAL</h2>
+          </div>
+          
+          <div class="terminal-controls">
+            <div class="terminal-lights">
+              <div class="light red"></div>
+              <div class="light yellow"></div>
+              <div class="light green"></div>
             </div>
             
-            <!-- Kontener dla wyników -->
-            <div class="minecraft-results-container">
-              <div id="scan-results-section" class="scan-results-section" style="display: none;">
-                <div class="scan-results-header">
-                  <h3>Znalezione urządzenia</h3>
-                  <div class="scan-results-filter">
-                    <input type="text" id="scan-results-filter-input" placeholder="Filtruj po nazwie lub adresie MAC...">
-                  </div>
+            <div class="terminal-tabs">
+              <button class="tab-btn active" data-tab="devices">DEVICES</button>
+              <button class="tab-btn" data-tab="logs">SYSTEM_LOGS</button>
+              <button class="tab-btn" data-tab="media">MEDIA_CONTROL</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="terminal-content">
+          <!-- Devices Tab -->
+          <div class="tab-content active" id="devicesTab">
+            <div class="devices-grid" id="devicesGrid">
+              <div class="empty-terminal-state">
+                <div class="empty-terminal-icon">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                  </svg>
                 </div>
-                <div class="scan-info-message">
-                  <p>Upewnij się, że urządzenie jest włączone i wykrywalne. Wybierz urządzenie poniżej, aby nawiązać połączenie.</p>
+                <h3>NO_DEVICES_DETECTED</h3>
+                <p>INITIATE_SCAN_PROTOCOL_TO_DISCOVER_TARGETS</p>
+                <div class="scan-tips">
+                  <h4>SCAN_OPTIMIZATION_TIPS:</h4>
+                  <ul>
+                    <li>• ENABLE_BLUETOOTH_PROTOCOL</li>
+                    <li>• ACTIVATE_DEVICE_PAIRING_MODE</li>
+                    <li>• MAINTAIN_PROXIMITY_<10M</li>
+                    <li>• CLEAR_INTERFERENCE_CHANNELS</li>
+                  </ul>
                 </div>
-                <div id="scan-results-container" class="scan-results-container"></div>
-                <div class="manual-device-link">
-                  <p>Nie widzisz swojego urządzenia? <a href="#" id="open-manual-device-modal">Dodaj je ręcznie...</a></p>
-                </div>
-                <div class="scan-results-actions">
-                  <button id="refresh-scan-results" class="btn btn-primary">
-                    <i class="fas fa-sync-alt"></i> Odśwież listę
+              </div>
+            </div>
+          </div>
+
+          <!-- Logs Tab -->
+          <div class="tab-content" id="logsTab">
+            <div class="logs-terminal">
+              <div class="logs-content" id="logsContent">
+                <!-- Logs will be populated here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Media Control Tab -->
+          <div class="tab-content" id="mediaTab">
+            <div class="media-controls">
+              <div class="media-section">
+                <h3>MEDIA_TRANSPORT_CONTROLS</h3>
+                <div class="media-buttons">
+                  <button class="media-btn" id="mediaPrevious">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="19,20 9,12 19,4"/>
+                      <line x1="5" y1="19" x2="5" y2="5"/>
+                    </svg>
+                    <span>PREV</span>
                   </button>
-                  <button id="clear-scan-results" class="btn btn-outline">Anuluj</button>
+                  <button class="media-btn primary" id="mediaPlayPause">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5,3 19,12 5,21"/>
+                    </svg>
+                    <span>PLAY</span>
+                  </button>
+                  <button class="media-btn" id="mediaNext">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5,4 15,12 5,20"/>
+                      <line x1="19" y1="5" x2="19" y2="19"/>
+                    </svg>
+                    <span>NEXT</span>
+                  </button>
+                  <button class="media-btn" id="mediaStop">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <rect x="6" y="6" width="12" height="12"/>
+                    </svg>
+                    <span>STOP</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="media-section">
+                <h3>VOLUME_CONTROLS</h3>
+                <div class="volume-controls">
+                  <button class="media-btn" id="volumeDown">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/>
+                      <line x1="23" y1="9" x2="17" y2="15"/>
+                      <line x1="17" y1="9" x2="23" y2="15"/>
+                    </svg>
+                    <span>VOL-</span>
+                  </button>
+                  <button class="media-btn" id="volumeMute">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/>
+                      <line x1="22" y1="9" x2="16" y2="15"/>
+                      <line x1="16" y1="9" x2="22" y2="15"/>
+                    </svg>
+                    <span>MUTE</span>
+                  </button>
+                  <button class="media-btn" id="volumeUp">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                    <span>VOL+</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -320,7 +417,52 @@
     </div>
   </div>
   
-  <!-- Wszystkie modaly -->
+  <!-- Modals for scanning and device details -->
+  <div class="modal-overlay" id="scanModal" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <h2>NEURAL_SCAN_PROTOCOL</h2>
+        </div>
+        <button class="modal-close" id="closeScanModal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-content" id="scanModalContent">
+        <!-- Scan content will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="deviceModal" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <h2>DEVICE_ANALYSIS</h2>
+        </div>
+        <button class="modal-close" id="closeDeviceModal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-content" id="deviceModalContent">
+        <!-- Device details will be populated here -->
+      </div>
+    </div>
+  </div>
+  
+  <!-- Wszystkie pozostałe modały -->
   
   <!-- Modal logowania -->
   <div id="login-modal" class="modal auth-modal">
@@ -941,6 +1083,9 @@
     </div>
   </div>
 
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <!-- JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script> 
   <script src="{{ url_for('static', filename='js/bluetooth.js') }}"></script>
@@ -949,6 +1094,7 @@
   <script src="{{ url_for('static', filename='js/debug-modal.js') }}"></script>
   <script src="{{ url_for('static', filename='js/header.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/terminal-main.js') }}"></script>
   
   {% if connect_script %}
     {{ connect_script|safe }}
