@@ -358,8 +358,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return `
             <div class="device-terminal-card" onclick="showDeviceModal('${deviceAddress}', '${device.name || 'Unknown Device'}')">
-                <div class="device-header">
-                    <div class="device-icon">${getDeviceIcon(device.type || 'other')}</div>
+                
+                    
                     <div class="device-badges">
                         ${isConnected ? `
                             <div class="device-badge connected">
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>${device.security || 'AES-256'}</span>
                         </div>
                     </div>
-                </div>
+                
                 
                 <div class="device-terminal-info">
                     <h3 title="${device.name || 'Unknown Device'}">${(truncatedName).toUpperCase()}</h3>
@@ -469,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getBatteryColor(battery) {
-        if (battery > 60) return '#00ff41';
+        if (battery > 60) return 'rgb(74 222 128)';
         if (battery > 30) return '#eab308';
         return '#ef4444';
     }
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getSignalColor(signal) {
-        if (signal > -70) return '#00ff41';
+        if (signal > -70) return 'rgb(74 222 128)';
         if (signal > -85) return '#eab308';
         return '#ef4444';
     }
@@ -540,8 +540,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     addLog(`Neural link established with ${address}`, 'SUCCESS');
                     
                     connectBtn.innerHTML = 'CONNECTED';
-                    connectBtn.style.backgroundColor = '#00ff41';
-                    connectBtn.style.borderColor = '#00ff41';
+                    connectBtn.style.backgroundColor = 'rgb(74 222 128)';
+                    connectBtn.style.borderColor = 'rgb(74 222 128)';
                     connectBtn.style.color = '#000';
                     connectBtn.disabled = true;
                     
@@ -1036,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', function() {
         scanModalContent.innerHTML = `
             <div class="scan-results">
                 <div style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
-                    <p style="color: #00ff41; font-family: 'JetBrains Mono', monospace;">
+                    <p style="color: rgb(74 222 128); font-family: 'JetBrains Mono', monospace;">
                         SCAN_COMPLETE: ${devices.length} TARGET${devices.length !== 1 ? 'S' : ''}_DETECTED
                     </p>
                     <div style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;">
@@ -1072,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }).join('')}
                 
                 <div style="margin-top: 1rem; text-align: center;">
-                    <button class="scan-connect-btn" onclick="scanModal.style.display = 'none';" style="background: rgba(0, 255, 65, 0.1); border-color: #00ff41; color: #00ff41;">
+                    <button class="scan-connect-btn" onclick="scanModal.style.display = 'none';" style="background: rgba(0, 255, 65, 0.1); border-color: rgb(74 222 128); color: rgb(74 222 128);">
                         VIEW_IN_TERMINAL
                     </button>
                 </div>

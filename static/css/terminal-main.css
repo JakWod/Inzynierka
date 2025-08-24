@@ -148,6 +148,7 @@
   border-radius: 0 0 8px 8px;
   overflow: hidden;
   position: relative;
+  min-height: 555px;
 }
 
 .tab-content {
@@ -164,7 +165,7 @@
 /* Devices Grid */
 .devices-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(335px, 1fr));
   gap: 1.5rem;
   height: 100%;
 }
@@ -178,6 +179,7 @@
   text-align: center;
   color: rgba(156, 163, 175, 0.7);
   height: 100%;
+  margin-top: 20px;
 }
 
 .empty-terminal-icon {
@@ -246,7 +248,7 @@
   background: #000;
   border: 1px solid rgba(0, 255, 65, 0.5);
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 0 1.5rem 1.5rem 1.5rem;
   position: relative;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -291,6 +293,10 @@
   flex-direction: column;
   gap: 0.25rem;
   align-items: flex-end;
+  margin-left: auto;
+  margin-right: 0;
+  position: relative;
+  top: 65px;
 }
 
 .device-badge {
@@ -325,7 +331,7 @@
 }
 
 .device-terminal-info h3 {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
   color: rgb(74 222 128);
   margin-bottom: 0.25rem;
@@ -456,6 +462,7 @@
   border-radius: 4px;
   padding: 1rem;
   overflow-y: auto;
+  min-height: 520px;
 }
 
 .logs-content {
@@ -508,7 +515,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  min-width: 60px;
+  min-width: 45px;
 }
 
 .log-level.success {
@@ -675,7 +682,7 @@
   border: 2px solid rgb(74 222 128);
   border-radius: 16px;
   width: 90%;
-  max-width: 600px;
+  max-width: 650px;
   max-height: 80vh;
   overflow: hidden;
   position: relative;
@@ -695,7 +702,6 @@
 
 .modal-header {
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(0, 255, 65, 0.3);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -752,7 +758,7 @@
 }
 
 .modal-content {
-  padding: 1.5rem;
+  padding: 0 1.5rem 1.5rem 1.5rem;
   max-height: 60vh;
   overflow-y: auto;
 }
