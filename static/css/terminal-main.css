@@ -179,28 +179,76 @@
   text-align: center;
   color: rgba(156, 163, 175, 0.7);
   height: 100%;
-  margin-top: 20px;
+  margin-top: 33px;
 }
 
 .empty-terminal-icon {
   margin-bottom: 2rem;
   position: relative;
+  background: #4ade8024;
+  box-shadow: 0px -2px 0 22px #4ade8024;
+  border-radius: 50%;
+  transform: scaleY(0.95);
 }
 
 .empty-terminal-icon svg {
   color: rgb(74 222 128);
   animation: pulse 3s ease-in-out infinite;
+  background: #4ade8024;
+  box-shadow: 0px 0px 0 24px #4ade8024;
+  border-radius: 50%;
+  position: relative;
+}
+
+.empty-terminal-icon svg::before {
+  content: "";
+  position: absolute;
+  inset: -30px;
+  background: transparent;
+  box-shadow: 0px 0px 20px 15px rgba(59, 130, 246, 0.3);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+.empty-terminal-icon svg::after {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  background: transparent;
+  box-shadow: 0px 0px 25px 20px rgba(239, 68, 68, 0.2);
+  border-radius: 50%;
+  animation: pulse 2.5s ease-in-out infinite;
+  z-index: -2;
 }
 
 .empty-terminal-icon::before {
   content: "";
   position: absolute;
-  inset: -1rem;
-  background: radial-gradient(circle, rgba(0, 255, 65, 0.2), transparent);
-  border-radius: 50%;
-  filter: blur(8px);
-  animation: pulse 3s ease-in-out infinite;
+  left: -180px;   /* rozciąga w lewo */
+  right: -180px;  /* rozciąga w prawo */
+  top: -40px;
+  bottom: -32px;
+  background: linear-gradient(135deg, #4ADE80, #334155, #475569);
+  border-radius: 60px;  /* kształt pigułki */
   z-index: -1;
+  filter:blur(8px);
+  animation: pulse-icon 3s ease-in-out infinite;
+  box-shadow: 
+    inset 0 2px 8px rgba(0,0,0,0.3),
+    inset 0 -2px 8px rgba(255,255,255,0.1),
+    0 4px 15px rgba(0,0,0,0.4);
+}
+
+
+@keyframes pulse-icon {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.125;
+  }
 }
 
 .empty-terminal-state h3 {
@@ -223,6 +271,7 @@
   border-radius: 8px;
   padding: 1.5rem;
   max-width: 400px;
+  width: 400px;
 }
 
 .scan-tips h4 {
@@ -777,6 +826,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #000;
   margin: 0 auto 2rem;
   position: relative;
   animation: spin 2s linear infinite;
