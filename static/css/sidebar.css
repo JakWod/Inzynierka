@@ -672,7 +672,7 @@
 .device-stats {
   display: grid;
   grid-template-columns: 0fr 1fr;
-  gap: 1.75rem;
+  gap: 2rem;
   margin: 0.5rem 0;
   position: absolute;
   top: 56px;

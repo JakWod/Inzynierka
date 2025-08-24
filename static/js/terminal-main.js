@@ -1,7 +1,7 @@
 /**
  * Terminal Main JavaScript - Cyberpunk Terminal Interface
  * Contains terminal functionality, tab switching, device management, and media controls
- * UPDATED: Integration with scanning system and device list management
+ * UPDATED: Fixed duplicate device display in scan results
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -250,8 +250,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    handleScanResults(data.devices);
-                    addLog(`Scan completed - ${data.devices.length} devices detected`, 'SUCCESS');
+                    const devices = data.devices || [];
+                    const uniqueDevices = devices.filter((device, index, array) => 
+                        array.findIndex(d => d.address === device.address) === index
+                    );
+                    handleScanResults(devices);
+                    addLog(`Scan completed - ${uniqueDevices.length} unique devices detected`, 'SUCCESS');
                 } else {
                     console.error('Failed to fetch scan results:', data.message);
                     showScanError();
@@ -265,26 +269,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function handleScanResults(devices) {
         discoveredDevices = devices || [];
+        
+        // Count unique devices for accurate reporting
+        const uniqueDevices = discoveredDevices.filter((device, index, array) => 
+            array.findIndex(d => d.address === device.address) === index
+        );
+        const uniqueCount = uniqueDevices.length;
+        
         completeScan(discoveredDevices);
         
-        // Update devices grid with scan results
-        updateDevicesGrid(discoveredDevices);
-        
         // Switch to devices tab to show results
+        // This will trigger refreshDevicesGrid() automatically via switchTab()
         if (currentTab !== 'devices') {
             switchTab('devices');
+        } else {
+            // If already on devices tab, manually refresh
+            refreshDevicesGrid();
         }
         
         isScanning = false;
         
         // Show notification
         if (typeof window.showToast === 'function') {
-            const deviceCount = discoveredDevices.length;
-            if (deviceCount === 0) {
+            if (uniqueCount === 0) {
                 window.showToast('No devices found during scan', 'warning', 4000);
             } else {
-                const deviceText = deviceCount === 1 ? 'device' : 'devices';
-                window.showToast(`Found ${deviceCount} ${deviceText}`, 'success', 4000);
+                const deviceText = uniqueCount === 1 ? 'device' : 'devices';
+                window.showToast(`Found ${uniqueCount} ${deviceText}`, 'success', 4000);
             }
         }
     }
@@ -343,8 +354,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        devicesGrid.innerHTML = devices.map(device => createDeviceTerminalCard(device)).join('');
-        addLog(`Updated devices grid with ${devices.length} devices`, 'INFO');
+        // Remove duplicates based on device address
+        const uniqueDevices = devices.filter((device, index, array) => 
+            array.findIndex(d => d.address === device.address) === index
+        );
+        
+        devicesGrid.innerHTML = uniqueDevices.map(device => createDeviceTerminalCard(device)).join('');
+        addLog(`Updated devices grid with ${uniqueDevices.length} unique devices`, 'INFO');
     }
     
     function createDeviceTerminalCard(device) {
@@ -1033,18 +1049,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Remove duplicates based on device address before showing in modal
+        const uniqueDevices = devices.filter((device, index, array) => 
+            array.findIndex(d => d.address === device.address) === index
+        );
+        
         scanModalContent.innerHTML = `
             <div class="scan-results">
                 <div style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
                     <p style="color: rgb(74 222 128); font-family: 'JetBrains Mono', monospace;">
-                        SCAN_COMPLETE: ${devices.length} TARGET${devices.length !== 1 ? 'S' : ''}_DETECTED
+                        SCAN_COMPLETE: ${uniqueDevices.length} UNIQUE_TARGET${uniqueDevices.length !== 1 ? 'S' : ''}_DETECTED
                     </p>
                     <div style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;">
                         STATUS: READY_FOR_CONNECTION
                     </div>
                 </div>
                 
-                ${devices.map(device => {
+                ${uniqueDevices.map(device => {
                     const truncatedName = truncateDeviceName(device.name || 'Unknown Device', 20);
                     return `
                         <div class="scan-result-item">
@@ -1080,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         isScanning = false;
-        addLog(`Scan completed - ${devices.length} devices detected`, 'SUCCESS');
+        addLog(`Scan completed - ${uniqueDevices.length} unique devices detected`, 'SUCCESS');
     }
     
     // ========================================
