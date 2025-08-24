@@ -1,4 +1,4 @@
-// Cyberpunk Sidebar functionality - NAPRAWIONA WERSJA Z CUSTOM NOTES
+// Cyberpunk Sidebar functionality - NAPRAWIONA WERSJA Z CUSTOM NOTES I BATTERY/SIGNAL
 // Features: 
 // - Gradient scrollbar working properly
 // - Devices save to localStorage properly (favorites + discovered)
@@ -19,6 +19,7 @@
 // - ADDED: Device name truncation for better UI (25 chars + "..." for cards, max 7 chars for header)
 // - INTEGRACJA: Nowy modal z zakładkami (podstawowe info + kontrola urządzenia)
 // - NAPRAWKA: Custom notes support - PRAWIDŁOWE zapisywanie i wczytywanie notatek
+// - ADDED: Battery level and signal strength display for devices
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -361,14 +362,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'other';
     }
 
+    /**
+     * UPDATED: Generates battery level (0-100%)
+     */
     function getBatteryLevel() {
         // Symulowana funkcja - w rzeczywistości można by pobierać te dane z API
         return Math.floor(Math.random() * 100);
     }
 
+    /**
+     * UPDATED: Generates signal strength (-100 to -40 dBm)
+     */
     function getSignalStrength() {
         // Symulowana funkcja - w rzeczywistości można by pobierać te dane z API
-        return Math.floor(Math.random() * 100);
+        // Typowy zakres Bluetooth: -100 dBm (bardzo słaby) do -40 dBm (bardzo mocny)
+        return Math.floor(Math.random() * 60) - 100; // -100 to -40 dBm
     }
     
     /**
@@ -417,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Ładuje urządzenia z API i localStorage - POPRAWIONA WERSJA Z CUSTOM NOTES
+     * Ładuje urządzenia z API i localStorage - POPRAWIONA WERSJA Z CUSTOM NOTES I BATTERY/SIGNAL
      */
     async function loadPairedDevices() {
         try {
@@ -427,13 +435,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Pobierz discovered devices z localStorage
             discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
             
-            // NAPRAWKA: Wczytaj custom notes dla wszystkich urządzeń
+            // NAPRAWKA: Wczytaj custom notes oraz dodaj battery/signal dla wszystkich urządzeń
             pairedDevices.forEach(device => {
                 device.customNotes = loadDeviceNotes(device.address);
+                // Dodaj battery i signal jeśli nie istnieją
+                if (device.battery === undefined) device.battery = getBatteryLevel();
+                if (device.signal === undefined) device.signal = getSignalStrength();
             });
             
             discoveredDevices.forEach(device => {
                 device.customNotes = loadDeviceNotes(device.address);
+                // Dodaj battery i signal jeśli nie istnieją
+                if (device.battery === undefined) device.battery = getBatteryLevel();
+                if (device.signal === undefined) device.signal = getSignalStrength();
             });
             
             addToLog(`Loaded from localStorage: ${pairedDevices.length} favorite devices and ${discoveredDevices.length} discovered devices`, 'INFO');
@@ -453,7 +467,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             type: getDeviceTypeFromName(apiDevice.name),
                             connected: false,
                             favorite: false,
-                            customNotes: loadDeviceNotes(apiDevice.address) // NAPRAWKA: Wczytaj notes
+                            customNotes: loadDeviceNotes(apiDevice.address), // NAPRAWKA: Wczytaj notes
+                            battery: getBatteryLevel(), // ADDED: Battery level
+                            signal: getSignalStrength()  // ADDED: Signal strength
                         };
                         
                         // Sprawdź czy urządzenie nie istnieje już w favorites lub discovered
@@ -479,13 +495,17 @@ document.addEventListener('DOMContentLoaded', function() {
             pairedDevices = JSON.parse(localStorage.getItem('favoriteDevices') || '[]');
             discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
             
-            // NAPRAWKA: Wczytaj notes w fallback
+            // NAPRAWKA: Wczytaj notes i dodaj battery/signal w fallback
             pairedDevices.forEach(device => {
                 device.customNotes = loadDeviceNotes(device.address);
+                if (device.battery === undefined) device.battery = getBatteryLevel();
+                if (device.signal === undefined) device.signal = getSignalStrength();
             });
             
             discoveredDevices.forEach(device => {
                 device.customNotes = loadDeviceNotes(device.address);
+                if (device.battery === undefined) device.battery = getBatteryLevel();
+                if (device.signal === undefined) device.signal = getSignalStrength();
             });
         }
         
@@ -742,7 +762,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA Z SKRACANIEM NAZW
+     * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA Z SKRACANIEM NAZW I BATTERY/SIGNAL
      * @param {Object} device - Obiekt urządzenia
      * @param {boolean} isConnectedSection - Czy to sekcja active connection
      * @param {boolean} showInLists - Czy to urządzenie w głównych listach
@@ -751,6 +771,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Skróć nazwę urządzenia dla lepszego wyświetlania
         const truncatedName = truncateDeviceName(device.name);
         
+        // Battery and signal colors
+        const batteryColor = (device.battery || 0) > 60 ? '#4ADE80' : (device.battery || 0) > 30 ? '#FACC15' : '#d95e5eff';
+        const signalColor = (device.signal || -100) > -70 ? '#4ADE80' : (device.signal || -100) > -85 ? '#FACC15' : '#d95e5eff';
+        const defaultColor = '#4ADE80';
+        
         if (isConnectedSection) {
             // Uproszczona wersja dla sekcji połączonego urządzenia (active connection)
             return `
@@ -758,6 +783,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="device-info connected-device-info">
                         <div class="device-name">${truncatedName.toUpperCase()}</div>
                         <div class="device-address">${device.address}</div>
+                        
+                        
                     </div>
                     
                     <div class="device-card-footer connected-device-footer">
@@ -783,6 +810,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="device-address">${device.address}</div>
                         <div class="device-type">${(device.type || 'other').toUpperCase()}</div>
+                        
+                        <div class="device-stats">
+                            <div class="device-stat">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke=${defaultColor} stroke-width="2">
+                                    <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
+                                    <line x1="23" y1="13" x2="23" y2="11"></line>
+                                </svg>
+                                <span style="color: ${batteryColor}">${device.battery || 0}%</span>
+                            </div>
+                            <div class="device-stat">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke=${defaultColor} stroke-width="2">
+                                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                                </svg>
+                                <span style="color: ${signalColor}">${device.signal || -100}dBm</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="device-card-footer">
@@ -806,6 +852,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="device-name">${truncatedName.toUpperCase()}</div>
                         <div class="device-address">${device.address}</div>
                         <div class="device-type">${(device.type || 'other').toUpperCase()}</div>
+                        
+                        <div class="device-stats">
+                            <div class="device-stat">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke=${defaultColor} stroke-width="2">
+                                    <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
+                                    <line x1="23" y1="13" x2="23" y2="11"></line>
+                                </svg>
+                                <span style="color: ${batteryColor}">${device.battery || 0}%</span>
+                            </div>
+                            <div class="device-stat">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke=${defaultColor} stroke-width="2">
+                                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                                </svg>
+                                <span style="color: ${signalColor}">${device.signal || -100}dBm</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="device-card-footer">
@@ -1063,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Dodaje urządzenie do discovered devices (nie favorites!) - POPRAWIONA WERSJA Z CUSTOM NOTES
+     * Dodaje urządzenie do discovered devices (nie favorites!) - POPRAWIONA WERSJA Z CUSTOM NOTES I BATTERY/SIGNAL
      */
     function addPairedDevice(device) {
         // Sprawdź czy urządzenie już istnieje w którejś z list
@@ -1076,7 +1141,9 @@ document.addEventListener('DOMContentLoaded', function() {
             pairedDevices[deviceIndex] = { 
                 ...pairedDevices[deviceIndex], 
                 ...device,
-                customNotes: device.customNotes || loadDeviceNotes(device.address) // NAPRAWKA: Zachowaj notes
+                customNotes: device.customNotes || loadDeviceNotes(device.address), // NAPRAWKA: Zachowaj notes
+                battery: device.battery || getBatteryLevel(), // ADDED: Battery
+                signal: device.signal || getSignalStrength()   // ADDED: Signal
             };
             localStorage.setItem('favoriteDevices', JSON.stringify(pairedDevices));
             addToLog(`Updated existing favorite device: ${device.name || 'Unknown Device'}`, 'INFO');
@@ -1086,7 +1153,9 @@ document.addEventListener('DOMContentLoaded', function() {
             discoveredDevices[deviceIndex] = { 
                 ...discoveredDevices[deviceIndex], 
                 ...device,
-                customNotes: device.customNotes || loadDeviceNotes(device.address) // NAPRAWKA: Zachowaj notes
+                customNotes: device.customNotes || loadDeviceNotes(device.address), // NAPRAWKA: Zachowaj notes
+                battery: device.battery || getBatteryLevel(), // ADDED: Battery
+                signal: device.signal || getSignalStrength()   // ADDED: Signal
             };
             localStorage.setItem('discoveredDevices', JSON.stringify(discoveredDevices));
             addToLog(`Updated existing discovered device: ${device.name || 'Unknown Device'}`, 'INFO');
@@ -1098,7 +1167,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: device.type || getDeviceTypeFromName(device.name || ''),
                 connected: device.connected || false,
                 favorite: false, // Domyślnie nie jest ulubione
-                customNotes: device.customNotes || '' // NAPRAWKA: Custom notes
+                customNotes: device.customNotes || '', // NAPRAWKA: Custom notes
+                battery: device.battery || getBatteryLevel(), // ADDED: Battery
+                signal: device.signal || getSignalStrength()   // ADDED: Signal
             };
             
             discoveredDevices.push(newDevice);
@@ -1113,7 +1184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Dodaje urządzenie bezpośrednio do ulubionych - Z CUSTOM NOTES
+     * Dodaje urządzenie bezpośrednio do ulubionych - Z CUSTOM NOTES I BATTERY/SIGNAL
      */
     function addDeviceToFavorites(device) {
         const existingDeviceIndex = pairedDevices.findIndex(d => d.address === device.address);
@@ -1124,7 +1195,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 ...pairedDevices[existingDeviceIndex], 
                 ...device, 
                 favorite: true,
-                customNotes: device.customNotes || loadDeviceNotes(device.address) // NAPRAWKA: Zachowaj notes
+                customNotes: device.customNotes || loadDeviceNotes(device.address), // NAPRAWKA: Zachowaj notes
+                battery: device.battery || getBatteryLevel(), // ADDED: Battery
+                signal: device.signal || getSignalStrength()   // ADDED: Signal
             };
         } else {
             // Dodaj nowe urządzenie do ulubionych
@@ -1134,7 +1207,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: device.type || getDeviceTypeFromName(device.name || ''),
                 connected: device.connected || false,
                 favorite: true,
-                customNotes: device.customNotes || '' // NAPRAWKA: Custom notes
+                customNotes: device.customNotes || '', // NAPRAWKA: Custom notes
+                battery: device.battery || getBatteryLevel(), // ADDED: Battery
+                signal: device.signal || getSignalStrength()   // ADDED: Signal
             });
         }
         
@@ -1392,7 +1467,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Udostępnij funkcje globalnie - ZAKTUALIZOWANE Z CUSTOM NOTES
+    // Udostępnij funkcje globalnie - ZAKTUALIZOWANE Z CUSTOM NOTES I BATTERY/SIGNAL
     window.toggleFavorite = toggleFavorite;
     window.addPairedDevice = addPairedDevice;
     window.addDeviceToFavorites = addDeviceToFavorites;
@@ -1416,4 +1491,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // NAPRAWKA: Funkcje obsługi custom notes
     window.saveDeviceNotes = saveDeviceNotes;
     window.loadDeviceNotes = loadDeviceNotes;
+    
+    // ADDED: Battery and signal functions
+    window.getBatteryLevel = getBatteryLevel;
+    window.getSignalStrength = getSignalStrength;
 });

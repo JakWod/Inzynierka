@@ -272,7 +272,7 @@
   color: rgb(219, 82, 77);
 }
 
-/* Podłączone urządzenie - STICKY */
+/* Połączone urządzenie - STICKY */
 .connected-device {
   position: sticky;
   top: 142px; /* Wysokość filters-section (~142px) */
@@ -666,6 +666,80 @@
   color: var(--cyberpunk-blue);
   text-transform: uppercase;
   font-family: "JetBrains Mono", monospace;
+}
+
+/* NOWE STYLE DLA DEVICE STATS - PASKI PROGRESOWE */
+.device-stats {
+  display: grid;
+  grid-template-columns: 0fr 1fr;
+  gap: 1.75rem;
+  margin: 0.5rem 0;
+  position: absolute;
+  top: 56px;
+  left: 5px;
+}
+
+.device-stat {
+  border-radius: 4px;
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+  font-size: 12.5px;
+  align-items: center;
+}
+
+.device-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.device-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  color: rgba(156, 163, 175, 0.7);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.device-stat-value {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.device-stat-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(75, 85, 99, 1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.device-stat-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 2px;
+}
+
+/* BATTERY PROGRESS STYLES */
+.device-stat-fill.battery {
+  background: linear-gradient(to right, #00ff41, #10b981);
+}
+
+.device-stat-fill.battery.medium {
+  background: linear-gradient(to right, #eab308, #f59e0b);
+}
+
+.device-stat-fill.battery.low {
+  background: linear-gradient(to right, #ef4444, #f97316);
+}
+
+/* SIGNAL PROGRESS STYLES */
+.device-stat-fill.signal {
+  background: linear-gradient(to right, #3b82f6, #06b6d4);
 }
 
 .device-card-footer {
@@ -1109,6 +1183,19 @@
 
 [data-theme="light"] .device-type {
   color: #1d4ed8;
+}
+
+[data-theme="light"] .device-stat {
+  background: rgba(17, 24, 39, 0.03);
+  border-color: rgba(75, 85, 99, 0.2);
+}
+
+[data-theme="light"] .device-stat-label {
+  color: rgba(75, 85, 99, 0.6);
+}
+
+[data-theme="light"] .device-stat-bar {
+  background: rgba(75, 85, 99, 0.2);
 }
 
 [data-theme="light"] .device-favorite {
