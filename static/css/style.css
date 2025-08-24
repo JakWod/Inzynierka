@@ -41,7 +41,7 @@ body {
 .main-content {
   flex-grow: 1;
   overflow-y: auto;
-  background-color: #f8f9fa;
+  background-color: #000;
   color: #333;
   height: 100vh;
 }
@@ -348,7 +348,6 @@ table th {
 
 .log-entry {
   margin: 5px 0;
-  border-bottom: 1px solid #eee;
   padding-bottom: 5px;
 }
 

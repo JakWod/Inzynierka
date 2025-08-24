@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 
                 <div class="device-terminal-info">
-                    <h3 title="${device.name || 'Unknown Device'}">${truncatedName}</h3>
+                    <h3 title="${device.name || 'Unknown Device'}">${(truncatedName).toUpperCase()}</h3>
                     <div class="device-address">${deviceAddress}</div>
                     <div class="device-type">${(device.type || 'other').toUpperCase()}_PROTOCOL</div>
                 </div>
@@ -1055,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </svg>
                                 </div>
                                 <div class="scan-result-details">
-                                    <h4 title="${device.name || 'Unknown Device'}">${truncatedName}</h4>
+                                    <h4 title="${device.name || 'Unknown Device'}">${truncatedName.toUpperCase()}</h4>
                                     <div class="device-address">${device.address}</div>
                                     <div class="scan-result-meta">
                                         <span class="device-type">${(device.type || 'other').toUpperCase()}_PROTOCOL</span>
