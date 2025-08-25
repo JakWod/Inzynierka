@@ -119,7 +119,7 @@
         <div class="connected-device" id="connected-device-section" style="display: none;">
           <h3 class="section-title-active toggle-section" data-target="connected-device-container">
             <div class="status-indicator active"></div>
-            <span> ACTIVE_CONNECTION</span>
+            <span> ACTIVE_CONNECTION</span>
             <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6,9 12,15 18,9"></polyline>
             </svg>
@@ -135,7 +135,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
               </svg>
-              <span> PRIORITY_DEVICES</span>
+              <span> PRIORITY_DEVICES</span>
               <svg class="dropdown-toggle open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6,9 12,15 18,9"></polyline>
               </svg>
@@ -548,7 +548,7 @@
       <span class="close-modal">&times;</span>
       
       <div class="modal-header device-edit-header">
-        <h2><i class="fas fa-edit"></i> Edytuj urządzenie</h2>
+        <h2><i class="fas fa-edit"></i> DEVICE_CONFIGURATION</h2>
         <p>Zmień ustawienia i właściwości urządzenia</p>
       </div>
       
@@ -576,8 +576,8 @@
               
               <div class="form-group">
                 <label for="edit-device-name">
-                  <i class="fas fa-tag"></i>
-                  Nazwa urządzenia:
+                  <!-- <i class="fas fa-tag"></i> -->
+                  DEVICE_NAME:
                 </label>
                 <input type="text" id="edit-device-name" required placeholder="np. Moje Słuchawki">
                 <div class="input-hint">Nazwa wyświetlana w aplikacji</div>
@@ -585,28 +585,28 @@
               
               <div class="form-group">
                 <label for="edit-device-type">
-                  <i class="fas fa-list"></i>
-                  Typ urządzenia:
+                  <!-- <i class="fas fa-list"></i> -->
+                  DEVICE_TYPE:
                 </label>
                 <select id="edit-device-type" required>
-                  <option value="headphones">🎧 Słuchawki</option>
-                  <option value="speaker">🔊 Głośnik</option>
-                  <option value="keyboard">⌨️ Klawiatura</option>
-                  <option value="mouse">🖱️ Mysz</option>
-                  <option value="gamepad">🎮 Kontroler</option>
-                  <option value="phone">📱 Telefon</option>
-                  <option value="tablet">📱 Tablet</option>
-                  <option value="laptop">💻 Laptop</option>
-                  <option value="desktop">🖥️ Komputer</option>
-                  <option value="other">📱 Inne</option>
+                  <option value="headphones">🎧 HEADPHONES</option>
+                  <option value="speaker">🔊 SPEAKER</option>
+                  <option value="keyboard">⌨️ KEYBOARD</option>
+                  <option value="mouse">🖱️ MOUSE</option>
+                  <option value="gamepad">🎮 CONTROLLER</option>
+                  <option value="phone">📱 PHONE</option>
+                  <option value="tablet">📱 TABLET</option>
+                  <option value="laptop">💻 LAPTOP</option>
+                  <option value="desktop">🖥️ COMPUTER</option>
+                  <option value="other">📱 OTHER</option>
                 </select>
                 <div class="input-hint">Wybierz typ dla lepszej organizacji</div>
               </div>
               
               <div class="form-group mac-address-display">
                 <label for="edit-device-address-display">
-                  <i class="fas fa-wifi"></i>
-                  Adres MAC:
+                  <!-- <i class="fas fa-wifi"></i> -->
+                  MAC_ADDRESS:
                 </label>
                 <input type="text" id="edit-device-address-display" disabled readonly>
                 <div class="input-hint">Adres MAC nie może być zmieniony</div>
@@ -615,8 +615,8 @@
               <!-- NOWE POLE: Custom Notes -->
               <div class="form-group">
                 <label for="edit-device-notes">
-                  <i class="fas fa-sticky-note"></i>
-                  Notatki niestandardowe:
+                  <!-- <i class="fas fa-sticky-note"></i> -->
+                  CUSTOM_NOTES:
                 </label>
                 <textarea id="edit-device-notes" rows="4" placeholder="Dodaj niestandardowe notatki o tym urządzeniu..."></textarea>
                 <div class="input-hint">Osobiste notatki i informacje o urządzeniu</div>
@@ -1089,7 +1089,6 @@
 
   <!-- JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script> 
-  <script src="{{ url_for('static', filename='js/bluetooth.js') }}"></script>
   <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
   <script src="{{ url_for('static', filename='js/device-modal.js') }}"></script>
   <script src="{{ url_for('static', filename='js/debug-modal.js') }}"></script>

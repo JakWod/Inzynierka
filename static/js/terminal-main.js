@@ -438,6 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="terminal-connect-btn" onclick="event.stopPropagation(); connectToDevice('${deviceAddress}', '${device.name || 'Unknown Device'}')">
                         ESTABLISH_CONNECTION
                     </button>
+
                 ` : `
                     <button class="terminal-connect-btn" onclick="event.stopPropagation(); disconnectDevice('${deviceAddress}')" style="border-color: #ef4444; color: #ef4444;">
                         DISCONNECT
