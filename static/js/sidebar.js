@@ -17,9 +17,10 @@
 // - Header connection status updates with device name and blinking indicator
 // - Red wifi icon for disconnection instead of X button
 // - ADDED: Device name truncation for better UI (25 chars + "..." for cards, max 7 chars for header)
-// - INTEGRACJA: Nowy modal z zakładkami (podstawowe info + kontrola urządzenia)
-// - NAPRAWKA: Custom notes support - PRAWIDŁOWE zapisywanie i wczytywanie notatek
+// - INTEGRACJA: Nowy modal z zakÅ‚adkami (podstawowe info + kontrola urzÄ…dzenia)
+// - NAPRAWKA: Custom notes support - PRAWIDÅOWE zapisywanie i wczytywanie notatek
 // - ADDED: Battery level and signal strength display for devices
+// - FIXED: Connect buttons now work properly with event delegation instead of inline onclick
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const sidebar = document.getElementById('sidebar');
@@ -45,15 +46,254 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPairedDevices();
     setupEditDeviceModal();
     initializeSectionStates();
+    setupEventDelegation(); // NOWE: Event delegation dla przycisków
+    
+    // ========================================
+    // EVENT DELEGATION SETUP - NOWE
+    // ========================================
+    
+    /**
+     * Konfiguruje event delegation dla wszystkich przycisków w sidebarze
+     * To rozwiązuje problem z przyciskami connect, które nie reagowały na kliknięcia
+     */
+    function setupEventDelegation() {
+        console.log('Setting up event delegation for sidebar buttons...');
+        
+        // Event delegation dla pairedDevicesList
+        if (pairedDevicesList) {
+            pairedDevicesList.addEventListener('click', handleDeviceListClick);
+        }
+        
+        // Event delegation dla discoveredDevicesList
+        if (discoveredDevicesList) {
+            discoveredDevicesList.addEventListener('click', handleDeviceListClick);
+        }
+        
+        // Event delegation dla connectedDeviceContainer
+        if (connectedDeviceContainer) {
+            connectedDeviceContainer.addEventListener('click', handleConnectedDeviceClick);
+        }
+        
+        console.log('Event delegation setup completed');
+    }
+    
+    /**
+     * NOWE: Obsługuje kliknięcia w listach urządzeń (favorites i discovered)
+     * @param {Event} e - Event kliknięcia
+     */
+    function handleDeviceListClick(e) {
+        e.stopPropagation(); // Zapobiega propagacji eventu
+        
+        const deviceCard = e.target.closest('.device-card');
+        if (!deviceCard) return;
+        
+        // Pobierz dane urządzenia z data attribute
+        let deviceData;
+        try {
+            deviceData = JSON.parse(deviceCard.dataset.device);
+        } catch (error) {
+            console.error('Error parsing device data:', error);
+            return;
+        }
+        
+        // Sprawdź typ klikniętego elementu
+        if (e.target.closest('.connect-btn') && !e.target.closest('.connect-btn').classList.contains('hidden')) {
+            // Przycisk Connect
+            console.log(`Connect button clicked for device: ${deviceData.address}`);
+            handleConnectClick(deviceData.address, e.target.closest('.connect-btn'));
+        } else if (e.target.closest('.device-favorite')) {
+            // Przycisk Favorite (gwiazdka)
+            console.log(`Favorite button clicked for device: ${deviceData.address}`);
+            toggleFavorite(deviceData.address);
+        } else if (e.target.closest('.device-edit')) {
+            // Przycisk Edit
+            console.log(`Edit button clicked for device: ${deviceData.address}`);
+            handleEditClick(deviceData.address, e.target.closest('.device-edit'));
+        }
+    }
+    
+    /**
+     * NOWE: Obsługuje kliknięcia w sekcji połączonego urządzenia
+     * @param {Event} e - Event kliknięcia
+     */
+    function handleConnectedDeviceClick(e) {
+        e.stopPropagation();
+        
+        if (e.target.closest('.disconnect-btn')) {
+            console.log('Disconnect button clicked');
+            disconnectFromDevice();
+        }
+    }
+    
+    /**
+     * NOWE: Obsługuje kliknięcie przycisku Connect z animacją
+     * @param {string} address - Adres MAC urządzenia
+     * @param {HTMLElement} button - Element przycisku
+     */
+    async function handleConnectClick(address, button) {
+        if (!button || button.disabled) return;
+        
+        console.log(`Attempting to connect to device: ${address}`);
+        
+        // Znajdź urządzenie w danych
+        const device = [...pairedDevices, ...discoveredDevices].find(d => d.address === address);
+        if (!device) {
+            console.error(`Device not found: ${address}`);
+            showToast('Urządzenie nie zostało znalezione', 'error');
+            return;
+        }
+        
+        // Animacja przycisku - spinner jak w scan
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CONNECTING...';
+        button.disabled = true;
+        button.style.opacity = "0.7";
+        button.style.transform = "translateY(-1px)";
+        
+        try {
+            addToLog(`Attempting to connect to ${address}...`, 'CONNECT');
+            
+            const formData = new FormData();
+            formData.append('address', address);
+            
+            const response = await fetch('/connect', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                // Opóźnienie dla efektu ładowania
+                setTimeout(async () => {
+                    await checkConnectionResult(address, device.name, button, originalContent);
+                }, 2000);
+                
+                addToLog(`Connection request sent for ${address}`, 'INFO');
+                showToast(`Connecting to device ${truncateDeviceName(device.name)}...`, 'info');
+            } else {
+                throw new Error('Connection failed');
+            }
+        } catch (error) {
+            console.error(`Connection error for ${address}:`, error);
+            addToLog(`Failed to connect to ${address}: ${error.message}`, 'ERROR');
+            showToast(`Failed to connect to device`, 'error');
+            
+            // Przywróć przycisk w przypadku błędu
+            button.innerHTML = originalContent;
+            button.disabled = false;
+            button.style.opacity = "1";
+            button.style.transform = "translateY(0)";
+        }
+    }
+    
+    /**
+     * NOWE: Sprawdza wynik połączenia i aktualizuje UI
+     * @param {string} address - Adres MAC urządzenia
+     * @param {string} name - Nazwa urządzenia
+     * @param {HTMLElement} button - Element przycisku
+     * @param {string} originalContent - Oryginalny content przycisku
+     */
+    async function checkConnectionResult(address, name, button, originalContent) {
+        try {
+            const response = await fetch('/connection_status');
+            if (response.ok) {
+                const result = await response.json();
+                const isConnectedNow = result.connected;
+                const connectedAddress = result.address || '';
+                
+                if (isConnectedNow && connectedAddress === address) {
+                    addToLog(`Neural link established with ${address}`, 'SUCCESS');
+                    
+                    // Aktualizuj status połączenia
+                    await checkConnectionStatus();
+                    displayPairedDevices();
+                    displayDiscoveredDevices();
+                    
+                    // Przycisk zostanie ukryty przez re-render, ale na wszelki wypadek
+                    if (button && button.parentNode) {
+                        button.innerHTML = 'CONNECTED';
+                        button.style.backgroundColor = '#2ecc71';
+                        button.style.borderColor = '#2ecc71';
+                        button.style.color = '#000';
+                        button.disabled = true;
+                    }
+                    
+                    // Trigger sidebar update event
+                    window.dispatchEvent(new CustomEvent('deviceConnectionChanged', {
+                        detail: {
+                            address: address,
+                            connected: true
+                        }
+                    }));
+                    
+                    showToast(`Successfully connected to ${truncateDeviceName(name)}`, 'success', 5000);
+                } else {
+                    addToLog(`Neural link failed with ${address}`, 'ERROR');
+                    
+                    // Przywróć przycisk
+                    if (button) {
+                        button.innerHTML = originalContent;
+                        button.disabled = false;
+                        button.style.opacity = "1";
+                        button.style.transform = "translateY(0)";
+                    }
+                    
+                    showToast(`Failed to connect to ${truncateDeviceName(name)}`, 'error', 5000);
+                }
+            }
+        } catch (error) {
+            console.error('Error checking connection status:', error);
+            addToLog(`Error checking connection status`, 'ERROR');
+            
+            // Przywróć przycisk w przypadku błędu
+            if (button) {
+                button.innerHTML = originalContent;
+                button.disabled = false;
+                button.style.opacity = "1";
+                button.style.transform = "translateY(0)";
+            }
+        }
+    }
+    
+    /**
+     * NOWE: Obsługuje kliknięcie przycisku Edit z animacją
+     * @param {string} address - Adres MAC urządzenia
+     * @param {HTMLElement} button - Element przycisku
+     */
+    function handleEditClick(address, button) {
+        if (!button || button.disabled) return;
+        
+        const device = [...pairedDevices, ...discoveredDevices].find(d => d.address === address);
+        if (!device) {
+            console.error(`Device not found for edit: ${address}`);
+            return;
+        }
+        
+        // Animacja przycisku edit
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        button.style.opacity = "0.7";
+        
+        // Krótkie opóźnienie dla efektu ładowania
+        setTimeout(() => {
+            addToLog(`Opening edit dialog for device: ${device.name}`, 'INFO');
+            openEditDeviceModal(device);
+            
+            // Przywróć przycisk
+            button.innerHTML = originalContent;
+            button.disabled = false;
+            button.style.opacity = "1";
+        }, 300);
+    }
     
     // ========================================
     // DEVICE NAME TRUNCATION FUNCTIONS
     // ========================================
     
     /**
-     * Skraca nazwę urządzenia dla kart urządzeń (27 znaków + "...")
+     * Skraca nazwę urządzenia dla wyników skanowania (25 znaków + "...")
      * @param {string} name - Nazwa urządzenia
-     * @param {number} maxLength - Maksymalna długość (domyślnie 27)
+     * @param {number} maxLength - Maksymalna długość (domyślnie 25)
      * @returns {string} - Skrócona nazwa
      */
     function truncateDeviceName(name, maxLength = 27) {
@@ -763,6 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Tworzy kartę urządzenia - ZMODYFIKOWANA WERSJA Z SKRACANIEM NAZW I BATTERY/SIGNAL
+     * FIXED: Usunięto inline onclick handlers, teraz używa event delegation
      * @param {Object} device - Obiekt urządzenia
      * @param {boolean} isConnectedSection - Czy to sekcja active connection
      * @param {boolean} showInLists - Czy to urządzenie w głównych listach
@@ -779,16 +1020,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isConnectedSection) {
             // Uproszczona wersja dla sekcji połączonego urządzenia (active connection)
             return `
-                <div class="device-card connected" data-device='${JSON.stringify(device)}'>
+                <div class="device-card connected" data-device='${JSON.stringify(device).replace(/'/g, '&#39;')}'>
                     <div class="device-info connected-device-info">
                         <div class="device-name">${truncatedName.toUpperCase()}</div>
                         <div class="device-address">${device.address}</div>
-                        
-                        
                     </div>
                     
                     <div class="device-card-footer connected-device-footer">
-                        <button class="disconnect-btn full-width" onclick="disconnectFromDevice()">TERMINATE_CONNECTION</button>
+                        <button class="disconnect-btn full-width">TERMINATE_CONNECTION</button>
                     </div>
                 </div>
             `;
@@ -796,13 +1035,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Wersja dla urządzeń w głównych listach - bez zmiany ramki/tła, ale z migającą lampką i ukrytym connect
             const isConnected = device.connected === true;
             const connectBtnClass = isConnected ? 'connect-btn hidden' : 'connect-btn';
-            const connectAction = isConnected ? '' : `onclick="connectToDevice('${device.address}')"`;
             
             // Migająca lampka dla połączonych urządzeń
             const connectionIndicator = isConnected ? '<div class="connection-indicator"></div>' : '';
             
             return `
-                <div class="device-card" data-device='${JSON.stringify(device)}'>
+                <div class="device-card" data-device='${JSON.stringify(device).replace(/'/g, '&#39;')}'>
                     <div class="device-info">
                         <div class="device-name">
                             ${truncatedName.toUpperCase()}
@@ -832,14 +1070,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     
                     <div class="device-card-footer">
-                        <div class="device-favorite ${device.favorite ? 'active' : ''}" onclick="toggleFavorite('${device.address}')" title="${device.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
+                        <div class="device-favorite ${device.favorite ? 'active' : ''}" title="${device.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="${device.favorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
                                 <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
                             </svg>
                         </div>
                         <div class="device-actions">
-                            <button class="device-edit" onclick="editDevice('${device.address}')" title="Edytuj urządzenie">EDIT</button>
-                            <button class="${connectBtnClass}" ${connectAction}>CONNECT</button>
+                            <button class="device-edit" title="Edytuj urządzenie">EDIT</button>
+                            <button class="${connectBtnClass}">CONNECT</button>
                         </div>
                     </div>
                 </div>
@@ -847,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Standardowa wersja dla innych przypadków
             return `
-                <div class="device-card" data-device='${JSON.stringify(device)}'>
+                <div class="device-card" data-device='${JSON.stringify(device).replace(/'/g, '&#39;')}'>
                     <div class="device-info">
                         <div class="device-name">${truncatedName.toUpperCase()}</div>
                         <div class="device-address">${device.address}</div>
@@ -874,14 +1112,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     
                     <div class="device-card-footer">
-                        <div class="device-favorite ${device.favorite ? 'active' : ''}" onclick="toggleFavorite('${device.address}')" title="${device.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
+                        <div class="device-favorite ${device.favorite ? 'active' : ''}" title="${device.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="${device.favorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
                                 <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
                             </svg>
                         </div>
                         <div class="device-actions">
-                            <button class="device-edit" onclick="editDevice('${device.address}')" title="Edytuj urządzenie">EDIT</button>
-                            <button class="connect-btn" onclick="connectToDevice('${device.address}')">CONNECT</button>
+                            <button class="device-edit" title="Edytuj urządzenie">EDIT</button>
+                            <button class="connect-btn">CONNECT</button>
                         </div>
                     </div>
                 </div>
@@ -930,97 +1168,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * Łączy z urządzeniem - ULEPSZONA WERSJA Z ANIMACJĄ
-     * ADDED: Spinner animation similar to scan button
-     */
-    window.connectToDevice = async function(address) {
-        try {
-            addToLog(`Attempting to connect to ${address}...`, 'CONNECT');
-            
-            // Znajdź przycisk connect dla tego urządzenia i dodaj animację
-            const deviceCards = document.querySelectorAll('.device-card');
-            let connectButton = null;
-            
-            deviceCards.forEach(card => {
-                try {
-                    const deviceData = JSON.parse(card.dataset.device);
-                    if (deviceData.address === address) {
-                        connectButton = card.querySelector('.connect-btn:not(.hidden)');
-                    }
-                } catch (error) {
-                    console.warn('Error parsing device data:', error);
-                }
-            });
-            
-            // Animacja przycisku - spinner jak w scan
-            let originalButtonContent = 'CONNECT';
-            if (connectButton) {
-                originalButtonContent = connectButton.innerHTML;
-                connectButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CONNECTING...';
-                connectButton.disabled = true;
-                connectButton.style.opacity = "0.7";
-                connectButton.style.transform = "translateY(-1px)";
-            }
-            
-            const formData = new FormData();
-            formData.append('address', address);
-            
-            const response = await fetch('/connect', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                // Opóźnienie dla efektu ładowania
-                setTimeout(async () => {
-                    await checkConnectionStatus();
-                    displayPairedDevices();
-                    displayDiscoveredDevices();
-                    
-                    // Przywróć przycisk po zakończeniu
-                    if (connectButton) {
-                        connectButton.innerHTML = originalButtonContent;
-                        connectButton.disabled = false;
-                        connectButton.style.opacity = "1";
-                        connectButton.style.transform = "translateY(0)";
-                    }
-                }, 2000);
-                
-                addToLog(`Connection request sent for ${address}`, 'INFO');
-                showToast(`Connecting to device ${address}...`, 'info');
-            } else {
-                throw new Error('Connection failed');
-            }
-        } catch (error) {
-            addToLog(`Failed to connect to ${address}: ${error.message}`, 'ERROR');
-            showToast(`Failed to connect to device`, 'error');
-            
-            // Przywróć przycisk w przypadku błędu
-            const deviceCards = document.querySelectorAll('.device-card');
-            deviceCards.forEach(card => {
-                try {
-                    const deviceData = JSON.parse(card.dataset.device);
-                    if (deviceData.address === address) {
-                        const connectButton = card.querySelector('.connect-btn');
-                        if (connectButton) {
-                            connectButton.innerHTML = 'CONNECT';
-                            connectButton.disabled = false;
-                            connectButton.style.opacity = "1";
-                            connectButton.style.transform = "translateY(0)";
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Error restoring button:', error);
-                }
-            });
-        }
-    };
-    
-    /**
      * Rozłącza urządzenie - POPRAWIONA WERSJA
      * ADDED: Aktualizacja headera po rozłączeniu
      */
-    window.disconnectFromDevice = async function() {
+    async function disconnectFromDevice() {
         try {
             addToLog('Disconnecting device...', 'DISCONNECT');
             
@@ -1062,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.showToast('Nie udało się rozłączyć urządzenia', 'error');
             }
         }
-    };
+    }
     
     /**
      * Przełącza status ulubionego dla urządzenia - POPRAWIONA WERSJA
@@ -1227,51 +1378,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Odśwież wyświetlanie
         displayPairedDevices();
         displayDiscoveredDevices();
-    }
-    
-    /**
-     * Edytuje urządzenie - ZINTEGROWANA Z NOWYM MODALEM
-     */
-    function editDevice(address) {
-        const device = [...pairedDevices, ...discoveredDevices].find(d => d.address === address);
-        if (device) {
-            // Znajdź przycisk edit dla tego urządzenia i dodaj animację
-            const deviceCards = document.querySelectorAll('.device-card');
-            let editButton = null;
-            
-            deviceCards.forEach(card => {
-                try {
-                    const deviceData = JSON.parse(card.dataset.device);
-                    if (deviceData.address === address) {
-                        editButton = card.querySelector('.device-edit');
-                    }
-                } catch (error) {
-                    console.warn('Error parsing device data for edit:', error);
-                }
-            });
-            
-            // Animacja przycisku edit
-            let originalButtonContent = 'EDIT';
-            if (editButton) {
-                originalButtonContent = editButton.innerHTML;
-                editButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                editButton.disabled = true;
-                editButton.style.opacity = "0.7";
-            }
-            
-            // Krótkie opóźnienie dla efektu ładowania
-            setTimeout(() => {
-                addToLog(`Opening edit dialog for device: ${device.name}`, 'INFO');
-                openEditDeviceModal(device);
-                
-                // Przywróć przycisk
-                if (editButton) {
-                    editButton.innerHTML = originalButtonContent;
-                    editButton.disabled = false;
-                    editButton.style.opacity = "1";
-                }
-            }, 300);
-        }
     }
     
     /**
@@ -1473,7 +1579,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addDeviceToFavorites = addDeviceToFavorites;
     window.loadPairedDevices = loadPairedDevices;
     window.checkConnectionStatus = checkConnectionStatus;
-    window.editDevice = editDevice;
     window.openEditDeviceModal = openEditDeviceModal;
     window.closeEditDeviceModal = closeEditDeviceModal;
     window.saveDeviceChanges = saveDeviceChanges;
@@ -1495,4 +1600,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ADDED: Battery and signal functions
     window.getBatteryLevel = getBatteryLevel;
     window.getSignalStrength = getSignalStrength;
+    
+    // NOWE: Funkcje dla nowego systemu event delegation
+    window.handleConnectClick = handleConnectClick;
+    window.handleEditClick = handleEditClick;
+    window.disconnectFromDevice = disconnectFromDevice;
 });
