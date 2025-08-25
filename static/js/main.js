@@ -755,6 +755,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
+   * Clear all fields in the ADD manual device modal
+   */
+  function clearAddDeviceModalFields() {
+    const deviceNameInput = document.getElementById('manual-device-name');
+    const deviceAddressInput = document.getElementById('manual-device-address');
+    const deviceTypeSelect = document.getElementById('manual-device-type');
+    const deviceNotesTextarea = document.getElementById('manual-device-notes');
+    
+    if (deviceNameInput) deviceNameInput.value = '';
+    if (deviceAddressInput) deviceAddressInput.value = '';
+    if (deviceTypeSelect) deviceTypeSelect.value = 'other'; // Reset to default
+    if (deviceNotesTextarea) deviceNotesTextarea.value = '';
+    
+    console.log('Cleared ADD device modal fields');
+  }
+
+  /**
    * Setup modal close handlers
    */
   function setupModalHandlers() {
@@ -768,6 +785,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modal) {
           modal.style.display = 'none';
           modal.classList.remove('show');
+          
+          // Clear ADD device modal fields if this is the ADD modal
+          if (modal.id === 'add-manual-device-modal') {
+            clearAddDeviceModalFields();
+          }
         }
       });
     });
@@ -777,6 +799,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === modal) {
           modal.style.display = 'none';
           modal.classList.remove('show');
+          
+          // Clear ADD device modal fields if this is the ADD modal
+          if (modal.id === 'add-manual-device-modal') {
+            clearAddDeviceModalFields();
+          }
         }
       });
     });
@@ -787,6 +814,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modal) {
           modal.style.display = 'none';
           modal.classList.remove('show');
+          
+          // Clear ADD device modal fields if this is the ADD modal
+          if (modal.id === 'add-manual-device-modal') {
+            clearAddDeviceModalFields();
+          }
         }
       });
     });
