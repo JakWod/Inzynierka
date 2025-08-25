@@ -615,7 +615,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Pokaż modal na pierwszej zakładce
         switchToTab('basic-info-tab');
-        deviceEditModal.style.display = 'block';
+        deviceEditModal.style.display = 'flex';
+        deviceEditModal.classList.add('show');
         
         // Auto-focus na nazwie urządzenia jeśli nie jest połączone
         if (!device.connected) {
@@ -634,6 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeDeviceEditModal() {
         if (deviceEditModal) {
             deviceEditModal.style.display = 'none';
+            deviceEditModal.classList.remove('show');
             
             // Reset stanu
             currentDevice = null;
@@ -702,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Klawisz ESC
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && deviceEditModal.style.display === 'block') {
+            if (e.key === 'Escape' && deviceEditModal.classList.contains('show')) {
                 closeDeviceEditModal();
             }
         });

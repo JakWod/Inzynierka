@@ -181,10 +181,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Open the modal immediately - no delay needed
         try {
           // Make sure modal is not already visible
-          if (manualDeviceModal.style.display === 'block') {
+          if (manualDeviceModal.classList.contains('show')) {
             console.log('Modal is already open');
           } else {
-            manualDeviceModal.style.display = 'block';
+            manualDeviceModal.style.display = 'flex';
+            manualDeviceModal.classList.add('show');
             console.log('Manual device modal opened successfully');
             showToast('Otwarto formularz ręcznego dodawania urządzenia', 'success', 3000);
             
@@ -1327,7 +1328,8 @@ document.addEventListener('DOMContentLoaded', function() {
   window.testOpenManualDeviceModal = function() {
     const modal = document.getElementById('add-manual-device-modal');
     if (modal) {
-      modal.style.display = 'block';
+      modal.style.display = 'flex';
+      modal.classList.add('show');
       console.log('Manual device modal opened via test function');
       return true;
     } else {

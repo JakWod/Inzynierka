@@ -459,18 +459,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeButtons.forEach(button => {
                     button.addEventListener('click', function() {
                         editModal.style.display = 'none';
+                        editModal.classList.remove('show');
                     });
                 });
                 
                 editModal.addEventListener('click', function(e) {
                     if (e.target === editModal) {
                         editModal.style.display = 'none';
+                        editModal.classList.remove('show');
                     }
                 });
                 
                 document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && editModal.style.display === 'block') {
+                    if (e.key === 'Escape' && editModal.classList.contains('show')) {
                         editModal.style.display = 'none';
+                        editModal.classList.remove('show');
                     }
                 });
             }
@@ -491,6 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const editModal = document.getElementById('device-edit-modal');
             if (editModal) {
                 editModal.style.display = 'none';
+                editModal.classList.remove('show');
                 addToLog('Edit modal closed (fallback)', 'INFO');
             }
         }
@@ -1411,7 +1415,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log(`FALLBACK: Loaded notes for ${device.address}: "${customNotes}"`);
                 }
                 
-                modal.style.display = 'block';
+                modal.style.display = 'flex';
+                modal.classList.add('show');
                 
                 addToLog('Edit modal opened (fallback)', 'INFO');
             }

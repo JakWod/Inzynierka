@@ -686,7 +686,8 @@ document.addEventListener('DOMContentLoaded', function() {
       openManualDeviceModal.addEventListener('click', function(e) {
         e.preventDefault();
         if (manualDeviceModal) {
-          manualDeviceModal.style.display = 'block';
+          manualDeviceModal.style.display = 'flex';
+          manualDeviceModal.classList.add('show');
         }
       });
     }
@@ -738,6 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(`Urządzenie "${truncatedDeviceName}" zostało dodane ręcznie do listy`, 'success', 5000);
         
         manualDeviceModal.style.display = 'none';
+        manualDeviceModal.classList.remove('show');
         addManualDeviceForm.reset();
         
         setTimeout(() => {
@@ -763,7 +765,10 @@ document.addEventListener('DOMContentLoaded', function() {
     closeButtons.forEach(button => {
       button.addEventListener('click', function() {
         const modal = button.closest('.modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+          modal.style.display = 'none';
+          modal.classList.remove('show');
+        }
       });
     });
     
@@ -771,6 +776,7 @@ document.addEventListener('DOMContentLoaded', function() {
       modals.forEach(modal => {
         if (e.target === modal) {
           modal.style.display = 'none';
+          modal.classList.remove('show');
         }
       });
     });
@@ -778,7 +784,10 @@ document.addEventListener('DOMContentLoaded', function() {
     cancelButtons.forEach(button => {
       button.addEventListener('click', function() {
         const modal = button.closest('.modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+          modal.style.display = 'none';
+          modal.classList.remove('show');
+        }
       });
     });
   }
