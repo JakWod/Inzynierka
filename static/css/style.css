@@ -1470,6 +1470,10 @@ div#device-edit-modal.modal .device-edit-modal-content {
   border-bottom: 1px solid rgba(74, 222, 128, 0.3);
   position: relative;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: flex-start;
 }
 
 #device-edit-modal .device-edit-header h2 {
