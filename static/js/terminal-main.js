@@ -866,64 +866,405 @@ document.addEventListener('DOMContentLoaded', function() {
         if (volumeUp) {
             volumeUp.addEventListener('click', () => executeMediaCommand('volume_up'));
         }
+        
+        // Initially update media controls based on connection status
+        updateMediaControlsForConnection();
+        
+        // Update media controls every 2 seconds to check connection status
+        setInterval(updateMediaControlsForConnection, 2000);
     }
     
-    function executeMediaCommand(command) {
-        addLog(`Executing media command: ${command.toUpperCase()}`, 'MEDIA');
-        
-        // Update button states with visual feedback
-        const button = event.target.closest('.media-btn');
-        if (button) {
-            const originalContent = button.innerHTML;
-            button.style.transform = 'scale(0.95)';
-            button.style.opacity = '0.7';
-            
-            setTimeout(() => {
-                button.style.transform = 'scale(1)';
-                button.style.opacity = '1';
-            }, 150);
-        }
-        
-        switch(command) {
-            case 'play_pause':
-                mediaPlaying = !mediaPlaying;
-                updatePlayPauseButton();
-                break;
-            case 'volume_down':
-                currentVolume = Math.max(0, currentVolume - 10);
-                addLog(`Volume decreased to ${currentVolume}%`, 'MEDIA');
-                break;
-            case 'volume_up':
-                currentVolume = Math.min(100, currentVolume + 10);
-                addLog(`Volume increased to ${currentVolume}%`, 'MEDIA');
-                break;
-            case 'mute':
-                isMuted = !isMuted;
-                updateMuteButton();
-                addLog(`Audio ${isMuted ? 'muted' : 'unmuted'}`, 'MEDIA');
-                break;
-            case 'stop':
-                mediaPlaying = false;
-                updatePlayPauseButton();
-                addLog('Media playback stopped', 'MEDIA');
-                break;
-            case 'previous':
-                addLog('Skipped to previous track', 'MEDIA');
-                break;
-            case 'next':
-                addLog('Skipped to next track', 'MEDIA');
-                break;
-        }
-        
-        // Show toast notification
-        if (typeof window.showToast === 'function') {
-            window.showToast(`Media: ${command.replace('_', ' ').toUpperCase()}`, 'info', 2000);
-        }
-    }
     
     function updateMediaControls() {
         updatePlayPauseButton();
         updateMuteButton();
+    }
+    
+    function updateMediaControlsForConnection() {
+        fetch('/connection_status')
+            .then(response => response.json())
+            .then(data => {
+                const mediaControlsSection = document.querySelector('#mediaTab .media-controls');
+                if (!mediaControlsSection) return;
+                
+                if (data.connected && data.address) {
+                    // Show media controls for connected device
+                    showMediaControlsForDevice(data.address);
+                } else {
+                    // Show no device connected message
+                    showNoDeviceMessage();
+                }
+            })
+            .catch(error => {
+                console.error('Failed to check connection status for media controls:', error);
+                showNoDeviceMessage();
+            });
+    }
+    
+    function showMediaControlsForDevice(deviceAddress) {
+        const mediaControlsSection = document.querySelector('#mediaTab .media-controls');
+        if (!mediaControlsSection) return;
+        
+        // Get device info from stored devices and load buttons
+        let deviceName = 'Connected Device';
+        let deviceType = 'Unknown';
+        let deviceButtons = [];
+        
+        try {
+            const storedDevices = JSON.parse(localStorage.getItem('pairedDevices') || '[]');
+            const connectedDevice = storedDevices.find(device => device.address === deviceAddress);
+            if (connectedDevice) {
+                deviceName = connectedDevice.name;
+                deviceType = connectedDevice.type || 'Unknown';
+            }
+            
+            // Load device buttons from localStorage (same as device modal)
+            deviceButtons = getStoredDeviceButtons(deviceAddress);
+        } catch (error) {
+            console.error('Error loading device info:', error);
+        }
+        
+        mediaControlsSection.innerHTML = `
+            <div class="media-device-info-panel">
+                <h3 class="media-device-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    CONNECTED_DEVICE
+                </h3>
+                <div class="media-device-connection-row">
+                    <div class="media-connection-indicator active"></div>
+                    <div class="media-device-info-text">
+                        <div class="media-device-name">${deviceName.toUpperCase()}</div>
+                        <div class="media-device-address">${deviceAddress}</div>
+                        <div class="media-device-protocol">${deviceType.toUpperCase()}_PROTOCOL</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="media-custom-buttons-section">
+                <h3 class="media-custom-buttons-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                    </svg>
+                    DEVICE_CONTROLS
+                </h3>
+                <div class="media-custom-buttons-grid" id="customButtonsGrid">
+                    ${deviceButtons.length > 0 ? generateDeviceButtons(deviceButtons, deviceAddress) : generateEmptyButtonsState()}
+                </div>
+            </div>
+            
+            <div class="media-device-logs-section">
+                <h3 class="media-device-logs-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                    </svg>
+                    CONNECTION_LOGS
+                </h3>
+                <div class="media-device-logs-container" id="mediaLogsContent">
+                    <div class="log-entry info">
+                        <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                        <span class="log-level info">[INFO]</span>
+                        <span class="log-message">Device controls ready for ${deviceName}</span>
+                    </div>
+                </div>
+                <div class="media-device-logs-actions">
+                    <button class="media-logs-refresh-btn" id="refreshDeviceLogs">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23,4 23,10 17,10"></polyline>
+                            <polyline points="1,20 1,14 7,14"></polyline>
+                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64l1.27 1.27m4.84 13.45a9 9 0 0 0 14.85-4.36l-1.27-1.27"/>
+                        </svg>
+                        <span>REFRESH</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Attach event listener to refresh logs button
+        const refreshLogsBtn = document.getElementById('refreshDeviceLogs');
+        if (refreshLogsBtn) {
+            refreshLogsBtn.addEventListener('click', () => refreshDeviceSpecificLogs(deviceAddress));
+        }
+        
+        // Load device-specific logs
+        refreshDeviceSpecificLogs(deviceAddress);
+        
+        addLog(`Device controls activated for ${deviceAddress} with ${deviceButtons.length} buttons`, 'MEDIA');
+    }
+    
+    function showNoDeviceMessage() {
+        const mediaControlsSection = document.querySelector('#mediaTab .media-controls');
+        if (!mediaControlsSection) return;
+        
+        mediaControlsSection.innerHTML = `
+            <div class="media-no-device-state">
+                <div class="media-no-device-icon">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </div>
+                <h3>NO_DEVICE_CONNECTED</h3>
+                <p>MEDIA_CONTROLS_REQUIRE_ACTIVE_CONNECTION</p>
+                <div class="media-connection-guide">
+                    <h4 class="media-guide-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11l3 3l8-8"/>
+                            <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9s4.03-9 9-9c1.51 0 2.93.37 4.18 1.03"/>
+                        </svg>
+                        ACTIVATION_PROTOCOL
+                    </h4>
+                    <ul class="media-guide-steps">
+                        <li>SCAN_FOR_DEVICES</li>
+                        <li>ESTABLISH_NEURAL_LINK</li>
+                        <li>CONFIGURE_CUSTOM_BUTTONS</li>
+                        <li>RETURN_TO_MEDIA_TAB</li>
+                    </ul>
+                </div>
+                <button class="media-navigation-btn" onclick="switchTab('devices');">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span>GO_TO_DEVICES</span>
+                </button>
+            </div>
+        `;
+    }
+    
+    function generateDeviceButtons(buttons, deviceAddress) {
+        if (!buttons || buttons.length === 0) {
+            return generateEmptyButtonsState();
+        }
+        
+        return buttons.map((button, index) => {
+            const functionIcon = getFunctionIcon(button.function);
+            const functionLabel = getFunctionLabel(button.function);
+            return `
+                <div class="media-device-button-item" data-button-index="${index}">
+                    <div class="media-button-header">
+                        <div class="media-button-icon">${functionIcon}</div>
+                        <div class="media-button-info">
+                            <div class="media-button-name">${button.name}</div>
+                            <div class="media-button-function">${functionLabel}</div>
+                        </div>
+                    </div>
+                    <div class="media-button-details">
+                        <span class="media-button-commands">${button.commands.length} ${button.commands.length === 1 ? 'komenda' : 'komend'}</span>
+                    </div>
+                    <div class="media-button-actions">
+                        <button class="media-test-btn" onclick="testDeviceButtonInMedia(${index}, '${deviceAddress}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                            <span>EXECUTE</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function generateEmptyButtonsState() {
+        return `
+            <div class="media-custom-buttons-empty">
+                <div class="media-custom-buttons-empty-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                        <path d="M9 9l6 6m0-6l-6 6"/>
+                    </svg>
+                </div>
+                <h4>NO_DEVICE_BUTTONS</h4>
+                <p>Configure device buttons in EDIT modal</p>
+            </div>
+        `;
+    }
+    
+    function getFunctionIcon(functionType) {
+        const icons = {
+            power: '<i class="fas fa-power-off"></i>',
+            'volume-up': '<i class="fas fa-volume-up"></i>',
+            'volume-down': '<i class="fas fa-volume-down"></i>',
+            'play-pause': '<i class="fas fa-play"></i>',
+            next: '<i class="fas fa-step-forward"></i>',
+            previous: '<i class="fas fa-step-backward"></i>',
+            light: '<i class="fas fa-lightbulb"></i>',
+            custom: '<i class="fas fa-cog"></i>'
+        };
+        
+        return icons[functionType] || '<i class="fas fa-hand-pointer"></i>';
+    }
+    
+    function getFunctionLabel(functionType) {
+        const labels = {
+            power: 'Zasilanie',
+            'volume-up': 'Głośność +',
+            'volume-down': 'Głośność -',
+            'play-pause': 'Play/Pause',
+            next: 'Następny',
+            previous: 'Poprzedni',
+            light: 'Światło/LED',
+            custom: 'Niestandardowa'
+        };
+        
+        return labels[functionType] || 'Standardowy';
+    }
+    
+    function getStoredDeviceButtons(deviceAddress) {
+        try {
+            const key = `device_buttons_${deviceAddress}`;
+            const stored = localStorage.getItem(key);
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error loading device buttons:', error);
+            return [];
+        }
+    }
+    
+    function testDeviceButtonInMedia(buttonIndex, deviceAddress) {
+        const deviceButtons = getStoredDeviceButtons(deviceAddress);
+        const button = deviceButtons[buttonIndex];
+        
+        if (!button) {
+            addLog('Button not found', 'ERROR');
+            return;
+        }
+        
+        addLog(`Executing button: ${button.name}`, 'MEDIA');
+        
+        // Find the button element and add visual feedback
+        const buttonElement = document.querySelector(`[data-button-index="${buttonIndex}"] .media-test-btn`);
+        if (buttonElement) {
+            const originalContent = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="2"/>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3">
+                        <animate attributeName="r" values="2;10;2" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+                <span>SENDING...</span>
+            `;
+            
+            setTimeout(() => {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalContent;
+            }, 2000);
+        }
+        
+        // Execute button commands (same logic as device modal)
+        executeButtonCommands(button.commands, deviceAddress);
+        
+        if (typeof window.showToast === 'function') {
+            window.showToast(`Executed: ${button.name}`, 'info', 2000);
+        }
+    }
+    
+    function executeButtonCommands(commands, deviceAddress) {
+        if (!commands || commands.length === 0) {
+            addLog('No commands to execute', 'WARNING');
+            return;
+        }
+        
+        console.log('Executing button commands:', commands);
+        addLog(`Executing ${commands.length} command${commands.length > 1 ? 's' : ''} for device ${deviceAddress}`, 'MEDIA');
+        
+        // Execute each command with proper delay
+        commands.forEach((cmd, index) => {
+            setTimeout(() => {
+                const command = cmd.command || cmd.hex;
+                if (command) {
+                    sendCommandToDevice(command, deviceAddress);
+                } else {
+                    addLog(`Empty command at index ${index}`, 'WARNING');
+                }
+            }, cmd.delay || 0);
+        });
+    }
+    
+    function sendCommandToDevice(command, deviceAddress) {
+        if (!command) {
+            addLog('Empty command - skipping', 'WARNING');
+            return;
+        }
+        
+        addLog(`Sending command: ${command} to device ${deviceAddress}`, 'MEDIA');
+        
+        fetch('/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `data=${encodeURIComponent(command)}`
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result.includes('success') || result.includes('sent')) {
+                addLog(`Command ${command} sent successfully`, 'SUCCESS');
+            } else {
+                addLog(`Command response: ${result}`, 'INFO');
+            }
+        })
+        .catch(error => {
+            console.error('Command send error:', error);
+            addLog(`Error sending command ${command}: ${error.message}`, 'ERROR');
+        });
+    }
+    
+    // Global function for onclick handlers
+    window.testDeviceButtonInMedia = testDeviceButtonInMedia;
+    
+    function refreshDeviceSpecificLogs(deviceAddress) {
+        const mediaLogsContent = document.getElementById('mediaLogsContent');
+        if (!mediaLogsContent) return;
+        
+        // Filter logs for the specific device
+        const deviceLogs = logs.filter(log => 
+            log.message.includes(deviceAddress) || 
+            log.level === 'MEDIA' ||
+            log.level === 'SUCCESS' && log.message.toLowerCase().includes('media') ||
+            log.level === 'SUCCESS' && log.message.toLowerCase().includes('command') ||
+            log.level === 'ERROR' && log.message.toLowerCase().includes('media') ||
+            log.level === 'ERROR' && log.message.toLowerCase().includes('command')
+        );
+        
+        if (deviceLogs.length === 0) {
+            mediaLogsContent.innerHTML = `
+                <div class="media-logs-empty-state">
+                    <div class="media-logs-empty-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14,2 14,8 20,8"></polyline>
+                        </svg>
+                    </div>
+                    <h4>NO_DEVICE_LOGS_AVAILABLE</h4>
+                    <p>Device commands will appear here</p>
+                </div>
+            `;
+            return;
+        }
+        
+        mediaLogsContent.innerHTML = deviceLogs.slice(0, 15).map(log => `
+            <div class="log-entry ${log.level.toLowerCase()}">
+                <span class="log-timestamp">[${formatTimestamp(log.timestamp)}]</span>
+                <span class="log-level ${log.level.toLowerCase()}">[${log.level}]</span>
+                <span class="log-message">${log.message}</span>
+            </div>
+        `).join('');
+        
+        // Auto-scroll to top (newest first)
+        mediaLogsContent.scrollTop = 0;
+        
+        addLog(`Refreshed device logs for ${deviceAddress}`, 'INFO');
     }
     
     function updatePlayPauseButton() {
