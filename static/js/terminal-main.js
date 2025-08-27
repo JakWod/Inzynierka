@@ -163,6 +163,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function showControlPanelForDevice(deviceAddress) {
         if (!controlPanelContent) return;
         
+        // Show header and border when device is connected
+        const controlPanelHeader = document.querySelector('.control-panel-header');
+        const deviceControlPanel = document.querySelector('.device-control-panel');
+        
+        if (controlPanelHeader) {
+            controlPanelHeader.style.display = 'flex';
+        }
+        
+        if (deviceControlPanel) {
+            const controlPanelContentEl = deviceControlPanel.querySelector('.control-panel-content');
+            if (controlPanelContentEl) {
+                controlPanelContentEl.style.border = '2px solid rgb(74 222 128)';
+                controlPanelContentEl.style.borderTop = 'none';
+                controlPanelContentEl.style.borderRadius = '0 0 8px 8px';
+            }
+        }
+        
         // Get device info from stored devices and load buttons
         let deviceName = 'Connected Device';
         let deviceType = 'Unknown';
@@ -252,11 +269,25 @@ document.addEventListener('DOMContentLoaded', function() {
     function showControlPanelEmptyState() {
         if (!controlPanelContent) return;
         
+        // Hide header and border when no device is connected
+        const controlPanelHeader = document.querySelector('.control-panel-header');
+        const deviceControlPanel = document.querySelector('.device-control-panel');
+        
+        if (controlPanelHeader) {
+            controlPanelHeader.style.display = 'none';
+        }
+        
+        if (deviceControlPanel) {
+            deviceControlPanel.querySelector('.control-panel-content').style.border = 'none';
+            deviceControlPanel.querySelector('.control-panel-content').style.borderRadius = '8px';
+        }
+        
         controlPanelContent.innerHTML = `
             <div class="control-panel-empty-state">
                 <div class="control-panel-empty-icon">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <circle cx="12" cy="12" r="8" fill="none" stroke="#6b7280" stroke-width="1"/>
+                        <circle cx="12" cy="12" r="4" fill="#6b7280" stroke="none"/>
                     </svg>
                 </div>
                 <h3>NO_ACTIVE_CONNECTION</h3>
