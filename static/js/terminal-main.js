@@ -1,7 +1,7 @@
 /**
  * Terminal Main JavaScript - Cyberpunk Terminal Interface
- * Contains terminal functionality, tab switching, device management, and media controls
- * UPDATED: Fixed duplicate device display in scan results
+ * Contains terminal functionality, tab switching, device management, and device control panel
+ * UPDATED: Removed media controls, added device control panel
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,15 +24,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const logsTab = document.getElementById('logsTab');
     const logsContent = document.getElementById('logsContent');
     
-    // Media controls
-    const mediaTab = document.getElementById('mediaTab');
-    const mediaPrevious = document.getElementById('mediaPrevious');
-    const mediaPlayPause = document.getElementById('mediaPlayPause');
-    const mediaNext = document.getElementById('mediaNext');
-    const mediaStop = document.getElementById('mediaStop');
-    const volumeDown = document.getElementById('volumeDown');
-    const volumeMute = document.getElementById('volumeMute');
-    const volumeUp = document.getElementById('volumeUp');
+    // Device Control Panel
+    const controlPanelContent = document.getElementById('controlPanelContent');
     
     // Modal elements
     const scanModal = document.getElementById('scanModal');
@@ -53,9 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTab = 'devices';
     let logs = [];
     let isScanning = false;
-    let mediaPlaying = false;
-    let currentVolume = 50;
-    let isMuted = false;
     let discoveredDevices = [];
     let pairedDevices = [];
     
@@ -66,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTerminal();
     setupTabSwitching();
     setupScanningIntegration();
-    setupMediaControls();
+    setupDeviceControlPanel();
     setupModals();
     loadInitialData();
     
@@ -130,10 +120,378 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize logs display
         updateLogsDisplay();
         
-        // Set initial media state
-        updateMediaControls();
+        // Initialize device control panel
+        updateDeviceControlPanel();
         
         addLog('Terminal ready for neural link operations', 'SUCCESS');
+    }
+    
+    // ========================================
+    // DEVICE CONTROL PANEL
+    // ========================================
+    
+    function setupDeviceControlPanel() {
+        // Update control panel every 2 seconds to check connection status
+        setInterval(updateDeviceControlPanelForConnection, 2000);
+        updateDeviceControlPanelForConnection();
+    }
+    
+    function updateDeviceControlPanel() {
+        updateDeviceControlPanelForConnection();
+    }
+    
+    function updateDeviceControlPanelForConnection() {
+        fetch('/connection_status')
+            .then(response => response.json())
+            .then(data => {
+                if (!controlPanelContent) return;
+                
+                if (data.connected && data.address) {
+                    // Show control panel for connected device
+                    showControlPanelForDevice(data.address);
+                } else {
+                    // Show no device connected message
+                    showControlPanelEmptyState();
+                }
+            })
+            .catch(error => {
+                console.error('Failed to check connection status for control panel:', error);
+                showControlPanelEmptyState();
+            });
+    }
+    
+    function showControlPanelForDevice(deviceAddress) {
+        if (!controlPanelContent) return;
+        
+        // Get device info from stored devices and load buttons
+        let deviceName = 'Connected Device';
+        let deviceType = 'Unknown';
+        let deviceButtons = [];
+        
+        try {
+            const storedDevices = JSON.parse(localStorage.getItem('pairedDevices') || '[]');
+            const connectedDevice = storedDevices.find(device => device.address === deviceAddress);
+            if (connectedDevice) {
+                deviceName = connectedDevice.name;
+                deviceType = connectedDevice.type || 'Unknown';
+            }
+            
+            // Load device buttons from localStorage
+            deviceButtons = getStoredDeviceButtons(deviceAddress);
+        } catch (error) {
+            console.error('Error loading device info:', error);
+        }
+        
+        controlPanelContent.innerHTML = `
+            <div class="control-panel-connected-state">
+                <div class="control-device-info-panel">
+                    <h3 class="control-device-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        CONNECTED_DEVICE
+                    </h3>
+                    <div class="control-device-connection-row">
+                        <div class="control-connection-indicator active"></div>
+                        <div class="control-device-info-text">
+                            <div class="control-device-name">${deviceName.toUpperCase()}</div>
+                            <div class="control-device-address">${deviceAddress}</div>
+                            <div class="control-device-protocol">${deviceType.toUpperCase()}_PROTOCOL</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-custom-buttons-section">
+                    <h3 class="control-custom-buttons-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                        </svg>
+                        DEVICE_CONTROLS
+                    </h3>
+                    <div class="control-custom-buttons-grid" id="controlButtonsGrid">
+                        ${deviceButtons.length > 0 ? generateControlDeviceButtons(deviceButtons, deviceAddress) : generateControlEmptyButtonsState()}
+                    </div>
+                </div>
+                
+                <div class="control-device-actions-section">
+                    <h3 class="control-device-actions-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        QUICK_ACTIONS
+                    </h3>
+                    <div class="control-device-actions-container">
+                        <button class="control-action-btn disconnect-btn" onclick="disconnectCurrentDevice('${deviceAddress}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                                <rect x="2" y="9" width="4" height="12"/>
+                                <circle cx="4" cy="4" r="2"/>
+                                <line x1="22" y1="4" x2="16" y2="10"/>
+                                <line x1="16" y1="4" x2="22" y2="10"/>
+                            </svg>
+                            <span>DISCONNECT</span>
+                        </button>
+                        <button class="control-action-btn edit-btn" onclick="openDeviceEditModal('${deviceAddress}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            <span>EDIT</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        addLog(`Device control panel activated for ${deviceAddress} with ${deviceButtons.length} buttons`, 'INFO');
+    }
+    
+    function showControlPanelEmptyState() {
+        if (!controlPanelContent) return;
+        
+        controlPanelContent.innerHTML = `
+            <div class="control-panel-empty-state">
+                <div class="control-panel-empty-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <h3>NO_ACTIVE_CONNECTION</h3>
+                <p>Connect to a device to access control panel</p>
+                <div class="control-panel-info">
+                    <h4>CONTROL_FEATURES:</h4>
+                    <ul>
+                        <li>• Device status monitoring</li>
+                        <li>• Custom button controls</li>
+                        <li>• Quick disconnect option</li>
+                        <li>• Real-time command execution</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+    
+    function generateControlDeviceButtons(buttons, deviceAddress) {
+        if (!buttons || buttons.length === 0) {
+            return generateControlEmptyButtonsState();
+        }
+        
+        return buttons.map((button, index) => {
+            const functionIcon = getControlFunctionIcon(button.function);
+            const functionLabel = getControlFunctionLabel(button.function);
+            return `
+                <div class="control-device-button-item" data-button-index="${index}">
+                    <div class="control-button-header">
+                        <div class="control-button-icon">${functionIcon}</div>
+                        <div class="control-button-info">
+                            <div class="control-button-name">${button.name}</div>
+                            <div class="control-button-function">${functionLabel}</div>
+                        </div>
+                    </div>
+                    <div class="control-button-details">
+                        <span class="control-button-commands">${button.commands.length} ${button.commands.length === 1 ? 'command' : 'commands'}</span>
+                    </div>
+                    <div class="control-button-actions">
+                        <button class="control-test-btn" onclick="testDeviceButtonInControl(${index}, '${deviceAddress}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                            <span>EXECUTE</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function generateControlEmptyButtonsState() {
+        return `
+            <div class="control-custom-buttons-empty">
+                <div class="control-custom-buttons-empty-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                        <path d="M9 9l6 6m0-6l-6 6"/>
+                    </svg>
+                </div>
+                <h4>NO_DEVICE_BUTTONS</h4>
+                <p>Configure device buttons in EDIT modal</p>
+            </div>
+        `;
+    }
+    
+    function getControlFunctionIcon(functionType) {
+        const icons = {
+            power: '<i class="fas fa-power-off"></i>',
+            'volume-up': '<i class="fas fa-volume-up"></i>',
+            'volume-down': '<i class="fas fa-volume-down"></i>',
+            'play-pause': '<i class="fas fa-play"></i>',
+            next: '<i class="fas fa-step-forward"></i>',
+            previous: '<i class="fas fa-step-backward"></i>',
+            light: '<i class="fas fa-lightbulb"></i>',
+            custom: '<i class="fas fa-cog"></i>'
+        };
+        
+        return icons[functionType] || '<i class="fas fa-hand-pointer"></i>';
+    }
+    
+    function getControlFunctionLabel(functionType) {
+        const labels = {
+            power: 'Power Control',
+            'volume-up': 'Volume Up',
+            'volume-down': 'Volume Down',
+            'play-pause': 'Play/Pause',
+            next: 'Next Track',
+            previous: 'Previous Track',
+            light: 'Light/LED',
+            custom: 'Custom Function'
+        };
+        
+        return labels[functionType] || 'Standard Control';
+    }
+    
+    function testDeviceButtonInControl(buttonIndex, deviceAddress) {
+        const deviceButtons = getStoredDeviceButtons(deviceAddress);
+        const button = deviceButtons[buttonIndex];
+        
+        if (!button) {
+            addLog('Button not found', 'ERROR');
+            return;
+        }
+        
+        addLog(`Executing button: ${button.name}`, 'INFO');
+        
+        // Find the button element and add visual feedback
+        const buttonElement = document.querySelector(`[data-button-index="${buttonIndex}"] .control-test-btn`);
+        if (buttonElement) {
+            const originalContent = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="2"/>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3">
+                        <animate attributeName="r" values="2;10;2" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+                <span>SENDING...</span>
+            `;
+            
+            setTimeout(() => {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalContent;
+            }, 2000);
+        }
+        
+        // Execute button commands
+        executeButtonCommands(button.commands, deviceAddress);
+        
+        if (typeof window.showToast === 'function') {
+            window.showToast(`Executed: ${button.name}`, 'info', 2000);
+        }
+    }
+    
+    // Global function for onclick handlers
+    window.testDeviceButtonInControl = testDeviceButtonInControl;
+    
+    window.disconnectCurrentDevice = function(deviceAddress) {
+        addLog(`Disconnecting from device ${deviceAddress}...`, 'DISCONNECT');
+        
+        fetch('/disconnect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `address=${encodeURIComponent(deviceAddress)}`
+        })
+        .then(response => {
+            addLog(`Disconnected from device ${deviceAddress}`, 'SUCCESS');
+            updateDeviceConnectionStatus(deviceAddress, false);
+            refreshDevicesGrid();
+            updateDeviceControlPanelForConnection();
+            
+            if (typeof window.showToast === 'function') {
+                window.showToast(`Disconnected from device`, 'info', 3000);
+            }
+        })
+        .catch(error => {
+            console.error('Disconnect error:', error);
+            addLog(`Failed to disconnect from ${deviceAddress}`, 'ERROR');
+        });
+    };
+    
+    window.openDeviceEditModal = function(deviceAddress) {
+        // This would trigger the device edit modal from the main application
+        // For now, we'll just log the action
+        addLog(`Opening edit modal for device ${deviceAddress}`, 'INFO');
+        
+        if (typeof window.showToast === 'function') {
+            window.showToast(`Edit functionality will be available soon`, 'info', 3000);
+        }
+    };
+    
+    function executeButtonCommands(commands, deviceAddress) {
+        if (!commands || commands.length === 0) {
+            addLog('No commands to execute', 'WARNING');
+            return;
+        }
+        
+        console.log('Executing button commands:', commands);
+        addLog(`Executing ${commands.length} command${commands.length > 1 ? 's' : ''} for device ${deviceAddress}`, 'INFO');
+        
+        // Execute each command with proper delay
+        commands.forEach((cmd, index) => {
+            setTimeout(() => {
+                const command = cmd.command || cmd.hex;
+                if (command) {
+                    sendCommandToDevice(command, deviceAddress);
+                } else {
+                    addLog(`Empty command at index ${index}`, 'WARNING');
+                }
+            }, cmd.delay || 0);
+        });
+    }
+    
+    function sendCommandToDevice(command, deviceAddress) {
+        if (!command) {
+            addLog('Empty command - skipping', 'WARNING');
+            return;
+        }
+        
+        addLog(`Sending command: ${command} to device ${deviceAddress}`, 'INFO');
+        
+        fetch('/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `data=${encodeURIComponent(command)}`
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result.includes('success') || result.includes('sent')) {
+                addLog(`Command ${command} sent successfully`, 'SUCCESS');
+            } else {
+                addLog(`Command response: ${result}`, 'INFO');
+            }
+        })
+        .catch(error => {
+            console.error('Command send error:', error);
+            addLog(`Error sending command ${command}: ${error.message}`, 'ERROR');
+        });
+    }
+    
+    function getStoredDeviceButtons(deviceAddress) {
+        try {
+            const key = `device_buttons_${deviceAddress}`;
+            const stored = localStorage.getItem(key);
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error loading device buttons:', error);
+            return [];
+        }
     }
     
     // ========================================
@@ -178,9 +536,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'logs':
                 updateLogsDisplay();
-                break;
-            case 'media':
-                updateMediaControls();
                 break;
         }
     }
@@ -832,473 +1187,6 @@ document.addEventListener('DOMContentLoaded', function() {
             minute: '2-digit', 
             second: '2-digit' 
         });
-    }
-    
-    // ========================================
-    // MEDIA CONTROLS
-    // ========================================
-    
-    function setupMediaControls() {
-        if (mediaPrevious) {
-            mediaPrevious.addEventListener('click', () => executeMediaCommand('previous'));
-        }
-        
-        if (mediaPlayPause) {
-            mediaPlayPause.addEventListener('click', () => executeMediaCommand('play_pause'));
-        }
-        
-        if (mediaNext) {
-            mediaNext.addEventListener('click', () => executeMediaCommand('next'));
-        }
-        
-        if (mediaStop) {
-            mediaStop.addEventListener('click', () => executeMediaCommand('stop'));
-        }
-        
-        if (volumeDown) {
-            volumeDown.addEventListener('click', () => executeMediaCommand('volume_down'));
-        }
-        
-        if (volumeMute) {
-            volumeMute.addEventListener('click', () => executeMediaCommand('mute'));
-        }
-        
-        if (volumeUp) {
-            volumeUp.addEventListener('click', () => executeMediaCommand('volume_up'));
-        }
-        
-        // Initially update media controls based on connection status
-        updateMediaControlsForConnection();
-        
-        // Update media controls every 2 seconds to check connection status
-        setInterval(updateMediaControlsForConnection, 2000);
-    }
-    
-    
-    function updateMediaControls() {
-        updatePlayPauseButton();
-        updateMuteButton();
-    }
-    
-    function updateMediaControlsForConnection() {
-        fetch('/connection_status')
-            .then(response => response.json())
-            .then(data => {
-                const mediaControlsSection = document.querySelector('#mediaTab .media-controls');
-                if (!mediaControlsSection) return;
-                
-                if (data.connected && data.address) {
-                    // Show media controls for connected device
-                    showMediaControlsForDevice(data.address);
-                } else {
-                    // Show no device connected message
-                    showNoDeviceMessage();
-                }
-            })
-            .catch(error => {
-                console.error('Failed to check connection status for media controls:', error);
-                showNoDeviceMessage();
-            });
-    }
-    
-    function showMediaControlsForDevice(deviceAddress) {
-        const mediaControlsSection = document.querySelector('#mediaTab .media-controls');
-        if (!mediaControlsSection) return;
-        
-        // Get device info from stored devices and load buttons
-        let deviceName = 'Connected Device';
-        let deviceType = 'Unknown';
-        let deviceButtons = [];
-        
-        try {
-            const storedDevices = JSON.parse(localStorage.getItem('pairedDevices') || '[]');
-            const connectedDevice = storedDevices.find(device => device.address === deviceAddress);
-            if (connectedDevice) {
-                deviceName = connectedDevice.name;
-                deviceType = connectedDevice.type || 'Unknown';
-            }
-            
-            // Load device buttons from localStorage (same as device modal)
-            deviceButtons = getStoredDeviceButtons(deviceAddress);
-        } catch (error) {
-            console.error('Error loading device info:', error);
-        }
-        
-        mediaControlsSection.innerHTML = `
-            <div class="media-device-info-panel">
-                <h3 class="media-device-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                    </svg>
-                    CONNECTED_DEVICE
-                </h3>
-                <div class="media-device-connection-row">
-                    <div class="media-connection-indicator active"></div>
-                    <div class="media-device-info-text">
-                        <div class="media-device-name">${deviceName.toUpperCase()}</div>
-                        <div class="media-device-address">${deviceAddress}</div>
-                        <div class="media-device-protocol">${deviceType.toUpperCase()}_PROTOCOL</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="media-custom-buttons-section">
-                <h3 class="media-custom-buttons-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-                    </svg>
-                    DEVICE_CONTROLS
-                </h3>
-                <div class="media-custom-buttons-grid" id="customButtonsGrid">
-                    ${deviceButtons.length > 0 ? generateDeviceButtons(deviceButtons, deviceAddress) : generateEmptyButtonsState()}
-                </div>
-            </div>
-            
-            <div class="media-device-logs-section">
-                <h3 class="media-device-logs-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                    </svg>
-                    CONNECTION_LOGS
-                </h3>
-                <div class="media-device-logs-container" id="mediaLogsContent">
-                    <div class="log-entry info">
-                        <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
-                        <span class="log-level info">[INFO]</span>
-                        <span class="log-message">Device controls ready for ${deviceName}</span>
-                    </div>
-                </div>
-                <div class="media-device-logs-actions">
-                    <button class="media-logs-refresh-btn" id="refreshDeviceLogs">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23,4 23,10 17,10"></polyline>
-                            <polyline points="1,20 1,14 7,14"></polyline>
-                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64l1.27 1.27m4.84 13.45a9 9 0 0 0 14.85-4.36l-1.27-1.27"/>
-                        </svg>
-                        <span>REFRESH</span>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Attach event listener to refresh logs button
-        const refreshLogsBtn = document.getElementById('refreshDeviceLogs');
-        if (refreshLogsBtn) {
-            refreshLogsBtn.addEventListener('click', () => refreshDeviceSpecificLogs(deviceAddress));
-        }
-        
-        // Load device-specific logs
-        refreshDeviceSpecificLogs(deviceAddress);
-        
-        addLog(`Device controls activated for ${deviceAddress} with ${deviceButtons.length} buttons`, 'MEDIA');
-    }
-    
-    function showNoDeviceMessage() {
-        const mediaControlsSection = document.querySelector('#mediaTab .media-controls');
-        if (!mediaControlsSection) return;
-        
-        mediaControlsSection.innerHTML = `
-            <div class="media-no-device-state">
-                <div class="media-no-device-icon">
-                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </div>
-                <h3>NO_DEVICE_CONNECTED</h3>
-                <p>MEDIA_CONTROLS_REQUIRE_ACTIVE_CONNECTION</p>
-                <div class="media-connection-guide">
-                    <h4 class="media-guide-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 11l3 3l8-8"/>
-                            <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9s4.03-9 9-9c1.51 0 2.93.37 4.18 1.03"/>
-                        </svg>
-                        ACTIVATION_PROTOCOL
-                    </h4>
-                    <ul class="media-guide-steps">
-                        <li>SCAN_FOR_DEVICES</li>
-                        <li>ESTABLISH_NEURAL_LINK</li>
-                        <li>CONFIGURE_CUSTOM_BUTTONS</li>
-                        <li>RETURN_TO_MEDIA_TAB</li>
-                    </ul>
-                </div>
-                <button class="media-navigation-btn" onclick="switchTab('devices');">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <span>GO_TO_DEVICES</span>
-                </button>
-            </div>
-        `;
-    }
-    
-    function generateDeviceButtons(buttons, deviceAddress) {
-        if (!buttons || buttons.length === 0) {
-            return generateEmptyButtonsState();
-        }
-        
-        return buttons.map((button, index) => {
-            const functionIcon = getFunctionIcon(button.function);
-            const functionLabel = getFunctionLabel(button.function);
-            return `
-                <div class="media-device-button-item" data-button-index="${index}">
-                    <div class="media-button-header">
-                        <div class="media-button-icon">${functionIcon}</div>
-                        <div class="media-button-info">
-                            <div class="media-button-name">${button.name}</div>
-                            <div class="media-button-function">${functionLabel}</div>
-                        </div>
-                    </div>
-                    <div class="media-button-details">
-                        <span class="media-button-commands">${button.commands.length} ${button.commands.length === 1 ? 'komenda' : 'komend'}</span>
-                    </div>
-                    <div class="media-button-actions">
-                        <button class="media-test-btn" onclick="testDeviceButtonInMedia(${index}, '${deviceAddress}')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="5,3 19,12 5,21"/>
-                            </svg>
-                            <span>EXECUTE</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function generateEmptyButtonsState() {
-        return `
-            <div class="media-custom-buttons-empty">
-                <div class="media-custom-buttons-empty-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-                        <path d="M9 9l6 6m0-6l-6 6"/>
-                    </svg>
-                </div>
-                <h4>NO_DEVICE_BUTTONS</h4>
-                <p>Configure device buttons in EDIT modal</p>
-            </div>
-        `;
-    }
-    
-    function getFunctionIcon(functionType) {
-        const icons = {
-            power: '<i class="fas fa-power-off"></i>',
-            'volume-up': '<i class="fas fa-volume-up"></i>',
-            'volume-down': '<i class="fas fa-volume-down"></i>',
-            'play-pause': '<i class="fas fa-play"></i>',
-            next: '<i class="fas fa-step-forward"></i>',
-            previous: '<i class="fas fa-step-backward"></i>',
-            light: '<i class="fas fa-lightbulb"></i>',
-            custom: '<i class="fas fa-cog"></i>'
-        };
-        
-        return icons[functionType] || '<i class="fas fa-hand-pointer"></i>';
-    }
-    
-    function getFunctionLabel(functionType) {
-        const labels = {
-            power: 'Zasilanie',
-            'volume-up': 'Głośność +',
-            'volume-down': 'Głośność -',
-            'play-pause': 'Play/Pause',
-            next: 'Następny',
-            previous: 'Poprzedni',
-            light: 'Światło/LED',
-            custom: 'Niestandardowa'
-        };
-        
-        return labels[functionType] || 'Standardowy';
-    }
-    
-    function getStoredDeviceButtons(deviceAddress) {
-        try {
-            const key = `device_buttons_${deviceAddress}`;
-            const stored = localStorage.getItem(key);
-            return stored ? JSON.parse(stored) : [];
-        } catch (error) {
-            console.error('Error loading device buttons:', error);
-            return [];
-        }
-    }
-    
-    function testDeviceButtonInMedia(buttonIndex, deviceAddress) {
-        const deviceButtons = getStoredDeviceButtons(deviceAddress);
-        const button = deviceButtons[buttonIndex];
-        
-        if (!button) {
-            addLog('Button not found', 'ERROR');
-            return;
-        }
-        
-        addLog(`Executing button: ${button.name}`, 'MEDIA');
-        
-        // Find the button element and add visual feedback
-        const buttonElement = document.querySelector(`[data-button-index="${buttonIndex}"] .media-test-btn`);
-        if (buttonElement) {
-            const originalContent = buttonElement.innerHTML;
-            buttonElement.disabled = true;
-            buttonElement.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="12" r="2"/>
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3">
-                        <animate attributeName="r" values="2;10;2" dur="1s" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-                <span>SENDING...</span>
-            `;
-            
-            setTimeout(() => {
-                buttonElement.disabled = false;
-                buttonElement.innerHTML = originalContent;
-            }, 2000);
-        }
-        
-        // Execute button commands (same logic as device modal)
-        executeButtonCommands(button.commands, deviceAddress);
-        
-        if (typeof window.showToast === 'function') {
-            window.showToast(`Executed: ${button.name}`, 'info', 2000);
-        }
-    }
-    
-    function executeButtonCommands(commands, deviceAddress) {
-        if (!commands || commands.length === 0) {
-            addLog('No commands to execute', 'WARNING');
-            return;
-        }
-        
-        console.log('Executing button commands:', commands);
-        addLog(`Executing ${commands.length} command${commands.length > 1 ? 's' : ''} for device ${deviceAddress}`, 'MEDIA');
-        
-        // Execute each command with proper delay
-        commands.forEach((cmd, index) => {
-            setTimeout(() => {
-                const command = cmd.command || cmd.hex;
-                if (command) {
-                    sendCommandToDevice(command, deviceAddress);
-                } else {
-                    addLog(`Empty command at index ${index}`, 'WARNING');
-                }
-            }, cmd.delay || 0);
-        });
-    }
-    
-    function sendCommandToDevice(command, deviceAddress) {
-        if (!command) {
-            addLog('Empty command - skipping', 'WARNING');
-            return;
-        }
-        
-        addLog(`Sending command: ${command} to device ${deviceAddress}`, 'MEDIA');
-        
-        fetch('/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `data=${encodeURIComponent(command)}`
-        })
-        .then(response => response.text())
-        .then(result => {
-            if (result.includes('success') || result.includes('sent')) {
-                addLog(`Command ${command} sent successfully`, 'SUCCESS');
-            } else {
-                addLog(`Command response: ${result}`, 'INFO');
-            }
-        })
-        .catch(error => {
-            console.error('Command send error:', error);
-            addLog(`Error sending command ${command}: ${error.message}`, 'ERROR');
-        });
-    }
-    
-    // Global function for onclick handlers
-    window.testDeviceButtonInMedia = testDeviceButtonInMedia;
-    
-    function refreshDeviceSpecificLogs(deviceAddress) {
-        const mediaLogsContent = document.getElementById('mediaLogsContent');
-        if (!mediaLogsContent) return;
-        
-        // Filter logs for the specific device
-        const deviceLogs = logs.filter(log => 
-            log.message.includes(deviceAddress) || 
-            log.level === 'MEDIA' ||
-            log.level === 'SUCCESS' && log.message.toLowerCase().includes('media') ||
-            log.level === 'SUCCESS' && log.message.toLowerCase().includes('command') ||
-            log.level === 'ERROR' && log.message.toLowerCase().includes('media') ||
-            log.level === 'ERROR' && log.message.toLowerCase().includes('command')
-        );
-        
-        if (deviceLogs.length === 0) {
-            mediaLogsContent.innerHTML = `
-                <div class="media-logs-empty-state">
-                    <div class="media-logs-empty-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14,2 14,8 20,8"></polyline>
-                        </svg>
-                    </div>
-                    <h4>NO_DEVICE_LOGS_AVAILABLE</h4>
-                    <p>Device commands will appear here</p>
-                </div>
-            `;
-            return;
-        }
-        
-        mediaLogsContent.innerHTML = deviceLogs.slice(0, 15).map(log => `
-            <div class="log-entry ${log.level.toLowerCase()}">
-                <span class="log-timestamp">[${formatTimestamp(log.timestamp)}]</span>
-                <span class="log-level ${log.level.toLowerCase()}">[${log.level}]</span>
-                <span class="log-message">${log.message}</span>
-            </div>
-        `).join('');
-        
-        // Auto-scroll to top (newest first)
-        mediaLogsContent.scrollTop = 0;
-        
-        addLog(`Refreshed device logs for ${deviceAddress}`, 'INFO');
-    }
-    
-    function updatePlayPauseButton() {
-        if (!mediaPlayPause) return;
-        
-        const icon = mediaPlayPause.querySelector('svg');
-        const text = mediaPlayPause.querySelector('span');
-        
-        if (mediaPlaying) {
-            icon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
-            text.textContent = 'PAUSE';
-            mediaPlayPause.classList.add('playing');
-        } else {
-            icon.innerHTML = '<polygon points="5,3 19,12 5,21"></polygon>';
-            text.textContent = 'PLAY';
-            mediaPlayPause.classList.remove('playing');
-        }
-    }
-    
-    function updateMuteButton() {
-        if (!volumeMute) return;
-        
-        const icon = volumeMute.querySelector('svg');
-        const text = volumeMute.querySelector('span');
-        
-        if (isMuted) {
-            icon.innerHTML = '<polygon points="11,5 6,9 2,9 2,15 6,15 11,19"></polygon><line x1="22" y1="9" x2="16" y2="15"></line><line x1="16" y1="9" x2="22" y2="15"></line>';
-            text.textContent = 'UNMUTE';
-            volumeMute.classList.add('muted');
-        } else {
-            icon.innerHTML = '<polygon points="11,5 6,9 2,9 2,15 6,15 11,19"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
-            text.textContent = 'MUTE';
-            volumeMute.classList.remove('muted');
-        }
     }
     
     // ========================================
