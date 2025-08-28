@@ -122,6 +122,183 @@
   text-transform: uppercase;
 }
 
+/* Device Info Section - Between Header and Content */
+.device-info-section {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid rgb(74 222 128);
+  border-top: none;
+  border-bottom: 2px solid rgb(74 222 128);
+  padding: 1rem;
+  position: relative;
+}
+
+.device-info-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.05), rgba(59, 130, 246, 0.05));
+  z-index: -1;
+}
+
+.device-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.device-info-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(to right, rgb(74 222 128), #3b82f6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  position: relative;
+}
+
+.device-info-icon::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(to right, rgba(0, 255, 65, 0.3), rgba(59, 130, 246, 0.3));
+  border-radius: 50%;
+  filter: blur(4px);
+  animation: pulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+.device-info-details h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgb(74 222 128);
+  margin-bottom: 0.25rem;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.device-info-mac {
+  font-size: 0.875rem;
+  color: rgba(156, 163, 175, 0.8);
+  margin-bottom: 0.5rem;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.device-info-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.device-info-stats-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.device-spec-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.device-spec-item.protocol {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.device-spec-label {
+  font-size: 0.75rem;
+  color: rgba(156, 163, 175, 0.7);
+  text-transform: uppercase;
+}
+
+.device-spec-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgb(74 222 128);
+}
+
+.device-spec-item.protocol .device-spec-value {
+  color: #3b82f6;
+  text-transform: uppercase;
+}
+
+/* Stats with inline progress bars */
+.device-info-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.device-info-stat-icon {
+  color: rgba(156, 163, 175, 0.7);
+  flex-shrink: 0;
+}
+
+.device-info-stat-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(75, 85, 99, 1);
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.device-info-stat-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  flex-shrink: 0;
+}
+
+.device-info-stat-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.device-info-stat-fill.battery {
+  background: linear-gradient(to right, rgb(74 222 128), #10b981);
+}
+
+.device-info-stat-fill.battery.low {
+  background: linear-gradient(to right, #ef4444, #f97316);
+}
+
+.device-info-stat-fill.battery.medium {
+  background: linear-gradient(to right, #eab308, #f59e0b);
+}
+
+.device-info-stat-fill.signal {
+  background: linear-gradient(to right, #3b82f6, #06b6d4);
+}
+
+.device-info-stat-value.battery {
+  color: #10b981;
+}
+
+.device-info-stat-value.battery.low {
+  color: #ef4444;
+}
+
+.device-info-stat-value.battery.medium {
+  color: #eab308;
+}
+
+.device-info-stat-value.signal {
+  color: #06b6d4;
+}
+
 .control-panel-content {
   flex: 1;
   background: rgba(0, 0, 0, 0.9);
@@ -130,7 +307,7 @@
   border-radius: 0 0 8px 8px;
   overflow: hidden;
   position: relative;
-  min-height: 555px;
+  min-height: 400px;
   padding: 1rem;
   display: flex;
   align-items: center;

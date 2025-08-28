@@ -143,13 +143,16 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/connection_status')
             .then(response => response.json())
             .then(data => {
+                console.log('Connection status response:', data);
                 if (!controlPanelContent) return;
                 
                 if (data.connected && data.address) {
                     // Show control panel for connected device
+                    console.log('Showing control panel for device:', data.address);
                     showControlPanelForDevice(data.address);
                 } else {
                     // Show no device connected message
+                    console.log('No device connected, showing empty state');
                     showControlPanelEmptyState();
                 }
             })
@@ -165,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show header and border when device is connected
         const controlPanelHeader = document.querySelector('.control-panel-header');
         const deviceControlPanel = document.querySelector('.device-control-panel');
+        const deviceInfoSection = document.getElementById('deviceInfoSection');
         
         if (controlPanelHeader) {
             controlPanelHeader.style.display = 'flex';
@@ -213,14 +217,44 @@ document.addEventListener('DOMContentLoaded', function() {
         let deviceName = 'Connected Device';
         let deviceType = 'Unknown';
         let deviceButtons = [];
+        let deviceBattery = 85;
+        let deviceSignal = -65;
         
         try {
-            const storedDevices = JSON.parse(localStorage.getItem('pairedDevices') || '[]');
-            const connectedDevice = storedDevices.find(device => device.address === deviceAddress);
-            if (connectedDevice) {
-                deviceName = connectedDevice.name;
-                deviceType = connectedDevice.type || 'Unknown';
+            // Use same data sources as sidebar: favoriteDevices and discoveredDevices
+            const favoriteDevices = JSON.parse(localStorage.getItem('favoriteDevices') || '[]');
+            const sidebarDiscoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
+            
+            console.log('Device lookup:', { 
+                deviceAddress, 
+                favoriteDevices, 
+                sidebarDiscoveredDevices,
+                terminalDiscoveredDevices: discoveredDevices 
+            });
+            
+            // Check favorite devices first
+            let connectedDevice = favoriteDevices.find(device => device.address === deviceAddress);
+            
+            // Then check sidebar's discovered devices
+            if (!connectedDevice) {
+                connectedDevice = sidebarDiscoveredDevices.find(device => device.address === deviceAddress);
             }
+            
+            // Finally check terminal's discovered devices
+            if (!connectedDevice) {
+                connectedDevice = discoveredDevices.find(device => device.address === deviceAddress);
+            }
+            
+            console.log('Found device:', connectedDevice);
+            
+            if (connectedDevice) {
+                deviceName = connectedDevice.name || 'Connected Device';
+                deviceType = connectedDevice.type || 'Unknown';
+                deviceBattery = connectedDevice.battery || Math.floor(Math.random() * 100) + 1;
+                deviceSignal = connectedDevice.signal || -65;
+            }
+            
+            console.log('Final device data:', { deviceName, deviceType, deviceBattery, deviceSignal });
             
             // Load device buttons from localStorage
             deviceButtons = getStoredDeviceButtons(deviceAddress);
@@ -228,25 +262,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading device info:', error);
         }
         
+        // Show and populate device info section
+        if (deviceInfoSection) {
+            deviceInfoSection.style.display = 'block';
+            populateDeviceInfoSection(deviceName, deviceAddress, deviceType, deviceBattery, deviceSignal);
+        }
+        
         controlPanelContent.innerHTML = `
             <div class="control-panel-connected-state">
-                <div class="control-device-info-panel">
-                    <h3 class="control-device-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                        </svg>
-                        CONNECTED_DEVICE
-                    </h3>
-                    <div class="control-device-connection-row">
-                        <div class="control-connection-indicator active"></div>
-                        <div class="control-device-info-text">
-                            <div class="control-device-name">${deviceName.toUpperCase()}</div>
-                            <div class="control-device-address">${deviceAddress}</div>
-                            <div class="control-device-protocol">${deviceType.toUpperCase()}_PROTOCOL</div>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="control-custom-buttons-section">
                     <h3 class="control-custom-buttons-title">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -301,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide header and border when no device is connected
         const controlPanelHeader = document.querySelector('.control-panel-header');
         const deviceControlPanel = document.querySelector('.device-control-panel');
+        const deviceInfoSection = document.getElementById('deviceInfoSection');
         
         if (controlPanelHeader) {
             controlPanelHeader.style.display = 'none';
@@ -310,6 +334,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (statusElement) {
                 statusElement.remove();
             }
+        }
+        
+        // Hide device info section
+        if (deviceInfoSection) {
+            deviceInfoSection.style.display = 'none';
         }
         
         if (deviceControlPanel) {
@@ -456,6 +485,53 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (typeof window.showToast === 'function') {
             window.showToast(`Executed: ${button.name}`, 'info', 2000);
+        }
+    }
+    
+    function populateDeviceInfoSection(deviceName, deviceAddress, deviceType, battery, signal) {
+        const deviceInfoName = document.getElementById('deviceInfoName');
+        const deviceInfoMac = document.getElementById('deviceInfoMac');
+        const deviceInfoProtocol = document.getElementById('deviceInfoProtocol');
+        const deviceInfoBattery = document.getElementById('deviceInfoBattery');
+        const deviceInfoBatteryBar = document.getElementById('deviceInfoBatteryBar');
+        const deviceInfoSignal = document.getElementById('deviceInfoSignal');
+        const deviceInfoSignalBar = document.getElementById('deviceInfoSignalBar');
+        
+        if (deviceInfoName) {
+            deviceInfoName.textContent = deviceName.toUpperCase();
+        }
+        
+        if (deviceInfoMac) {
+            deviceInfoMac.textContent = deviceAddress;
+        }
+        
+        if (deviceInfoProtocol) {
+            deviceInfoProtocol.textContent = `${deviceType.toUpperCase()}_PROTOCOL`;
+        }
+        
+        if (deviceInfoBattery && deviceInfoBatteryBar) {
+            deviceInfoBattery.textContent = `${battery}%`;
+            deviceInfoBatteryBar.style.width = `${battery}%`;
+            
+            // Update battery color classes
+            deviceInfoBattery.classList.remove('low', 'medium');
+            deviceInfoBatteryBar.classList.remove('low', 'medium');
+            
+            if (battery <= 30) {
+                deviceInfoBattery.classList.add('low');
+                deviceInfoBatteryBar.classList.add('low');
+            } else if (battery <= 60) {
+                deviceInfoBattery.classList.add('medium');
+                deviceInfoBatteryBar.classList.add('medium');
+            }
+        }
+        
+        if (deviceInfoSignal && deviceInfoSignalBar) {
+            deviceInfoSignal.textContent = `${signal}dBm`;
+            
+            // Calculate signal strength percentage like in device cards
+            const signalStrength = Math.min(100, Math.max(0, ((signal + 100) * 1.25)));
+            deviceInfoSignalBar.style.width = `${signalStrength}%`;
         }
     }
     
@@ -986,6 +1062,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update device status in grid
                     updateDeviceConnectionStatus(address, true);
                     
+                    // Update device control panel
+                    updateDeviceControlPanelForConnection();
+                    
                     // Trigger sidebar update
                     window.dispatchEvent(new CustomEvent('deviceConnectionChanged', {
                         detail: {
@@ -1029,6 +1108,9 @@ document.addEventListener('DOMContentLoaded', function() {
             addLog(`Disconnected from device ${address}`, 'SUCCESS');
             updateDeviceConnectionStatus(address, false);
             refreshDevicesGrid();
+            
+            // Update device control panel after disconnect
+            updateDeviceControlPanelForConnection();
             
             if (typeof window.showToast === 'function') {
                 window.showToast(`Disconnected from device`, 'info', 3000);
@@ -1431,6 +1513,9 @@ document.addEventListener('DOMContentLoaded', function() {
             addLog(`Connection status changed for ${e.detail.address}`, 'INFO');
             updateDeviceConnectionStatus(e.detail.address, e.detail.connected);
             refreshDevicesGrid();
+            
+            // Update device control panel when connection status changes
+            updateDeviceControlPanelForConnection();
         }
     });
     
@@ -1463,6 +1548,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Export device name truncation
     window.truncateDeviceNameTerminal = truncateDeviceName;
+    
+    // Debug function to manually check connection status
+    window.debugConnectionStatus = function() {
+        console.log('=== DEBUG CONNECTION STATUS ===');
+        fetch('/connection_status')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Connection status:', data);
+                console.log('pairedDevices:', JSON.parse(localStorage.getItem('pairedDevices') || '[]'));
+                console.log('discoveredDevices:', discoveredDevices);
+                updateDeviceControlPanelForConnection();
+            })
+            .catch(error => console.error('Error:', error));
+    };
     
     console.log('Terminal main functionality loaded successfully');
 });

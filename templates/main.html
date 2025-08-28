@@ -366,6 +366,53 @@
             </div>
           </div>
 
+          <!-- Device Info Section - Between Header and Content -->
+          <div class="device-info-section" id="deviceInfoSection" style="display: none;">
+            <div class="device-info-header">
+              <div class="device-info-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+              </div>
+              <div class="device-info-details">
+                <h3 id="deviceInfoName">Device Name</h3>
+                <div class="device-info-mac" id="deviceInfoMac">00:00:00:00:00:00</div>
+                <div class="device-info-specs">
+                  <div class="device-spec-item protocol">
+                    <span class="device-spec-value" id="deviceInfoProtocol">BLUETOOTH_PROTOCOL</span>
+                  </div>
+                  
+                  <div class="device-info-stats-grid">
+                    <div class="device-info-stat-card">
+                      <div class="device-info-stat-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
+                          <line x1="23" y1="13" x2="23" y2="11"></line>
+                        </svg>
+                      </div>
+                      <div class="device-info-stat-bar">
+                        <div class="device-info-stat-fill battery" id="deviceInfoBatteryBar" style="width: 85%"></div>
+                      </div>
+                      <span class="device-info-stat-value battery" id="deviceInfoBattery">85%</span>
+                    </div>
+                    
+                    <div class="device-info-stat-card">
+                      <div class="device-info-stat-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M2 17h20v2H2zm1.15-4.05L4 11l.85 1.95L6.8 13l-1.95.85L4 15.8l-.85-1.95L1.2 13l1.95-.85zM17 3l.85 1.95L19.8 5l-1.95.85L17 7.8l-.85-1.95L14.2 5l1.95-.85L17 3zm-5 4l.85 1.95L14.8 9l-1.95.85L12 11.8l-.85-1.95L9.2 9l1.95-.85L12 7z"></path>
+                        </svg>
+                      </div>
+                      <div class="device-info-stat-bar">
+                        <div class="device-info-stat-fill signal" id="deviceInfoSignalBar" style="width: 75%"></div>
+                      </div>
+                      <span class="device-info-stat-value signal" id="deviceInfoSignal">-65dBm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="control-panel-content" id="controlPanelContent">
             <div class="control-panel-empty-state">
               <div class="control-panel-empty-icon">
