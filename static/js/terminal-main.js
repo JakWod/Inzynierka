@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="control-panel-empty-state">
                 <div class="control-panel-empty-icon">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                        <circle cx="12" cy="12" r="8" fill="none" stroke="#6b7280" stroke-width="1"/>
+                        <circle cx="12" cy="12" r="8" fill="none" stroke="#6b7280" stroke-width="0.5"/>
                         <circle cx="12" cy="12" r="4" fill="#6b7280" stroke="none"/>
                     </svg>
                 </div>
