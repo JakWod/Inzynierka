@@ -128,7 +128,7 @@
   border: 2px solid rgb(74 222 128);
   border-top: none;
   border-bottom: 2px solid rgb(74 222 128);
-  padding: 1rem;
+  padding: 1rem 1rem 0rem 1rem;
   position: relative;
 }
 
@@ -171,24 +171,24 @@
 }
 
 .device-info-details h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: rgb(74 222 128);
-  margin-bottom: 0.25rem;
+  /* margin-bottom: 0.25rem; */
   font-family: "JetBrains Mono", monospace;
 }
 
 .device-info-mac {
   font-size: 0.875rem;
   color: rgba(156, 163, 175, 0.8);
-  margin-bottom: 0.5rem;
+  /* margin-bottom: 0.5rem; */
   font-family: "JetBrains Mono", monospace;
 }
 
 .device-info-specs {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  /* gap: 0.75rem; */
 }
 
 .device-info-stats-grid {
