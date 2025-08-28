@@ -97,12 +97,29 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
+.control-panel-title-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .control-panel-title h2 {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: rgb(74 222 128);
   letter-spacing: 0.1em;
   font-family: "JetBrains Mono", monospace;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.control-panel-subtitle {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgba(156, 163, 175, 0.8);
+  letter-spacing: 0.05em;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
 }
 
 .control-panel-content {
@@ -134,7 +151,7 @@
   margin-bottom: 2rem;
   position: relative;
   background: #6b728024;
-  box-shadow: 0px -2px 0 22px #6b728024;
+  box-shadow: 0px -2px 0 18px #6b728024;
   border-radius: 50%;
   transform: scaleY(0.95);
 }
@@ -143,7 +160,7 @@
   color: #6b7280;
   animation: pulse 3s ease-in-out infinite;
   background: #6b728024;
-  box-shadow: 0px 0px 0 24px #6b728024;
+  box-shadow: 0px 0px 0 20px #6b728024;
   border-radius: 50%;
   position: relative;
 }
@@ -151,10 +168,10 @@
 .control-panel-empty-icon::before {
   content: "";
   position: absolute;
-  left: -180px;
-  right: -180px;
-  top: -40px;
-  bottom: -32px;
+  left: -165px;
+  right: -165px;
+  top: -27px;
+  bottom: -21px;
   background: linear-gradient(135deg, #6b7280, #374151, #4b5563);
   border-radius: 60px;
   z-index: -1;

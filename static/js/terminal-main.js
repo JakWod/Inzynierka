@@ -131,8 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     
     function setupDeviceControlPanel() {
-        // Update control panel every 2 seconds to check connection status
-        setInterval(updateDeviceControlPanelForConnection, 2000);
+        // Initial load only - no auto-refresh to allow editing
         updateDeviceControlPanelForConnection();
     }
     
@@ -169,6 +168,36 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (controlPanelHeader) {
             controlPanelHeader.style.display = 'flex';
+            
+            // Add ONLINE status to header
+            let statusElement = controlPanelHeader.querySelector('.control-panel-status');
+            if (!statusElement) {
+                statusElement = document.createElement('div');
+                statusElement.className = 'control-panel-status connection-status';
+                statusElement.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(74 222 128)" stroke-width="2">
+                        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                    </svg>
+                    <span>ONLINE</span>
+                `;
+                statusElement.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: rgba(16, 185, 129, 0.1);
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    color: rgb(74 222 128);
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                `;
+                controlPanelHeader.appendChild(statusElement);
+            }
         }
         
         if (deviceControlPanel) {
@@ -275,6 +304,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (controlPanelHeader) {
             controlPanelHeader.style.display = 'none';
+            
+            // Remove status element if it exists
+            const statusElement = controlPanelHeader.querySelector('.control-panel-status');
+            if (statusElement) {
+                statusElement.remove();
+            }
         }
         
         if (deviceControlPanel) {
@@ -286,8 +321,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="control-panel-empty-state">
                 <div class="control-panel-empty-icon">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                        <circle cx="12" cy="12" r="8" fill="none" stroke="#6b7280" stroke-width="0.5"/>
-                        <circle cx="12" cy="12" r="4" fill="#6b7280" stroke="none"/>
+                        <circle cx="12" cy="12" r="9.5" fill="none" stroke="#6b7280" stroke-width="0.5"/>
+                        <circle cx="12" cy="12" r="5" fill="#6b7280" stroke="none"/>
                     </svg>
                 </div>
                 <h3>NO_ACTIVE_CONNECTION</h3>
