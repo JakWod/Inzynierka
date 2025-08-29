@@ -308,10 +308,288 @@
   overflow: hidden;
   position: relative;
   min-height: 400px;
-  padding: 1rem;
+   padding: 1rem; 
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Control Interface Section */
+.control-interface-section {
+  width: 104.5%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar for main control interface section */
+.control-interface-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.control-interface-section::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+}
+
+.control-interface-section::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(74 222 128), #3b82f6);
+  border-radius: 4px;
+  border: 1px solid rgba(74, 222, 128, 0.5);
+}
+
+.control-interface-section::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgba(74, 222, 128, 1), rgba(59, 130, 246, 1));
+  border-color: rgb(74 222 128);
+}
+
+.control-interface-section::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Firefox scrollbar for main section */
+.control-interface-section {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(74, 222, 128) rgba(0, 0, 0, 0.5);
+}
+
+.control-interface-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.control-interface-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgb(74 222 128);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.control-interface-title svg {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.control-configure-btn {
+  background: none;
+  border: 1px solid rgba(147, 51, 234, 0.5);
+  color: #9333ea;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+  text-transform: uppercase;
+}
+
+.control-configure-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: rgba(147, 51, 234, 0.2);
+  border-radius: 4px;
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.control-configure-btn:hover::before {
+  opacity: 0.5;
+}
+
+.control-configure-btn:hover {
+  border-color: #9333ea;
+}
+
+/* Quick Actions Section */
+.control-quick-actions-section {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.control-quick-actions-title {
+  color: rgba(156, 163, 175, 0.7);
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.control-quick-actions-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.control-quick-action-btn {
+  background: none;
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  color: rgba(156, 163, 175, 0.8);
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+  text-transform: uppercase;
+  font-weight: 500;
+  flex-direction: column;
+}
+
+.control-quick-action-btn:hover {
+  color: rgba(156, 163, 175, 1);
+  background: rgba(156, 163, 175, 0.1);
+}
+
+.control-quick-action-btn.unpair-btn {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+.control-quick-action-btn.unpair-btn:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.control-quick-action-btn.disconnect-btn {
+  border-color: rgba(234, 179, 8, 0.5);
+  color: #eab308;
+}
+
+.control-quick-action-btn.disconnect-btn:hover {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+}
+
+.control-quick-action-btn.refresh-btn {
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #3b82f6;
+}
+
+.control-quick-action-btn.refresh-btn:hover {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.control-quick-action-btn.add-btn {
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #10b981;
+}
+
+.control-quick-action-btn.add-btn:hover {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+/* Custom Controls Section */
+.control-custom-controls-section {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.control-custom-controls-title {
+  color: rgb(74 222 128);
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.control-custom-controls-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Cyberpunk scrollbar styles */
+.control-custom-controls-grid::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.control-custom-controls-grid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 4px !important;
+}
+
+.control-custom-controls-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(74 222 128), rgba(59, 130, 246, 0.8)) !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(0, 255, 65, 0.3) !important;
+}
+
+.control-custom-controls-grid::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgba(74, 222, 128, 0.9), rgba(59, 130, 246, 0.9)) !important;
+  border-color: rgba(0, 255, 65, 0.5) !important;
+}
+
+.control-custom-controls-grid::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Firefox scrollbar */
+.control-custom-controls-grid {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(74, 222, 128, 0.8) rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Alternative scrollbar for better compatibility */
+.control-custom-controls-section {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(74, 222, 128) rgba(0, 0, 0, 0.5);
+}
+
+.control-custom-controls-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.control-custom-controls-section::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+}
+
+.control-custom-controls-section::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(74 222 128), #3b82f6);
+  border-radius: 4px;
+  border: 1px solid rgba(74, 222, 128, 0.5);
+}
+
+.control-custom-controls-section::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgba(74, 222, 128, 1), rgba(59, 130, 246, 1));
+  border-color: rgb(74 222 128);
 }
 
 .control-panel-empty-state {

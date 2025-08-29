@@ -270,46 +270,66 @@ document.addEventListener('DOMContentLoaded', function() {
         
         controlPanelContent.innerHTML = `
             <div class="control-panel-connected-state">
-                <div class="control-custom-buttons-section">
-                    <h3 class="control-custom-buttons-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-                        </svg>
-                        DEVICE_CONTROLS
-                    </h3>
-                    <div class="control-custom-buttons-grid" id="controlButtonsGrid">
-                        ${deviceButtons.length > 0 ? generateControlDeviceButtons(deviceButtons, deviceAddress) : generateControlEmptyButtonsState()}
+                <div class="control-interface-section">
+                    <div class="control-interface-header">
+                        <h3 class="control-interface-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            CONTROL_INTERFACE
+                        </h3>
+                        <button class="control-configure-btn" onclick="openDeviceEditModal('${deviceAddress}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            <span>CONFIGURE</span>
+                        </button>
                     </div>
-                </div>
-                
-                <div class="control-device-actions-section">
-                    <h3 class="control-device-actions-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        QUICK_ACTIONS
-                    </h3>
-                    <div class="control-device-actions-container">
-                        <button class="control-action-btn disconnect-btn" onclick="disconnectCurrentDevice('${deviceAddress}')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-                                <rect x="2" y="9" width="4" height="12"/>
-                                <circle cx="4" cy="4" r="2"/>
-                                <line x1="22" y1="4" x2="16" y2="10"/>
-                                <line x1="16" y1="4" x2="22" y2="10"/>
-                            </svg>
-                            <span>DISCONNECT</span>
-                        </button>
-                        <button class="control-action-btn edit-btn" onclick="openDeviceEditModal('${deviceAddress}')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                            <span>EDIT</span>
-                        </button>
+                    
+                    <div class="control-quick-actions-section">
+                        <h4 class="control-quick-actions-title">QUICK_ACTIONS</h4>
+                        <div class="control-quick-actions-grid">
+                            <button class="control-quick-action-btn unpair-btn" onclick="unpairCurrentDevice('${deviceAddress}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                                    <rect x="2" y="9" width="4" height="12"/>
+                                    <circle cx="4" cy="4" r="2"/>
+                                    <line x1="22" y1="4" x2="16" y2="10"/>
+                                    <line x1="16" y1="4" x2="22" y2="10"/>
+                                </svg>
+                                <span>UNPAIR</span>
+                            </button>
+                            <button class="control-quick-action-btn disconnect-btn" onclick="disconnectDevice('${deviceAddress}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                                </svg>
+                                <span>DISCONNECT</span>
+                            </button>
+                            <button class="control-quick-action-btn refresh-btn" onclick="refreshDeviceConnection('${deviceAddress}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="1,4 1,10 7,10"></polyline>
+                                    <polyline points="23,20 23,14 17,14"></polyline>
+                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                </svg>
+                                <span>REFRESH</span>
+                            </button>
+                            <button class="control-quick-action-btn add-btn" onclick="addCustomButton('${deviceAddress}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>ADD BUTTON</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-custom-controls-section">
+                        <h4 class="control-custom-controls-title">CUSTOM_CONTROLS</h4>
+                        <div class="control-custom-controls-grid" id="controlCustomButtonsGrid">
+                            ${deviceButtons.length > 0 ? generateControlDeviceButtons(deviceButtons, deviceAddress) : generateControlEmptyButtonsState()}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -571,6 +591,82 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (typeof window.showToast === 'function') {
             window.showToast(`Edit functionality will be available soon`, 'info', 3000);
+        }
+    };
+    
+    window.unpairCurrentDevice = function(deviceAddress) {
+        addLog(`Unpairing device ${deviceAddress}...`, 'WARNING');
+        
+        if (confirm(`Are you sure you want to unpair device ${deviceAddress}?`)) {
+            // Remove from localStorage
+            try {
+                const favoriteDevices = JSON.parse(localStorage.getItem('favoriteDevices') || '[]');
+                const discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
+                
+                const updatedFavorites = favoriteDevices.filter(d => d.address !== deviceAddress);
+                const updatedDiscovered = discoveredDevices.filter(d => d.address !== deviceAddress);
+                
+                localStorage.setItem('favoriteDevices', JSON.stringify(updatedFavorites));
+                localStorage.setItem('discoveredDevices', JSON.stringify(updatedDiscovered));
+                
+                // Also remove from pairedDevices if it exists
+                const pairedDevices = JSON.parse(localStorage.getItem('pairedDevices') || '[]');
+                const updatedPaired = pairedDevices.filter(d => d.address !== deviceAddress);
+                localStorage.setItem('pairedDevices', JSON.stringify(updatedPaired));
+                
+                addLog(`Device ${deviceAddress} unpaired successfully`, 'SUCCESS');
+                
+                // Disconnect first if connected
+                disconnectCurrentDevice(deviceAddress);
+                
+                // Update UI
+                refreshDevicesGrid();
+                updateDeviceControlPanelForConnection();
+                
+                if (typeof window.showToast === 'function') {
+                    window.showToast(`Device unpaired successfully`, 'success', 3000);
+                }
+            } catch (error) {
+                console.error('Error unpairing device:', error);
+                addLog(`Failed to unpair device ${deviceAddress}`, 'ERROR');
+            }
+        }
+    };
+    
+    window.refreshDeviceConnection = function(deviceAddress) {
+        addLog(`Refreshing connection for device ${deviceAddress}...`, 'INFO');
+        
+        // First disconnect
+        disconnectCurrentDevice(deviceAddress);
+        
+        // Wait a bit then reconnect
+        setTimeout(() => {
+            // Find device name for connection
+            try {
+                const favoriteDevices = JSON.parse(localStorage.getItem('favoriteDevices') || '[]');
+                const discoveredDevices = JSON.parse(localStorage.getItem('discoveredDevices') || '[]');
+                
+                let device = favoriteDevices.find(d => d.address === deviceAddress) || 
+                           discoveredDevices.find(d => d.address === deviceAddress);
+                
+                if (device) {
+                    connectToDevice(deviceAddress, device.name);
+                }
+            } catch (error) {
+                console.error('Error refreshing connection:', error);
+            }
+        }, 2000);
+        
+        if (typeof window.showToast === 'function') {
+            window.showToast(`Refreshing connection...`, 'info', 3000);
+        }
+    };
+    
+    window.addCustomButton = function(deviceAddress) {
+        addLog(`Adding custom button for device ${deviceAddress}...`, 'INFO');
+        
+        if (typeof window.showToast === 'function') {
+            window.showToast(`Custom button functionality will be available soon`, 'info', 3000);
         }
     };
     
