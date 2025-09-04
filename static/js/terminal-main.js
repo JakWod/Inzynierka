@@ -392,26 +392,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         return buttons.map((button, index) => {
-            const functionIcon = getControlFunctionIcon(button.function);
-            const functionLabel = getControlFunctionLabel(button.function);
+            const isSystemButton = button.type === 'system';
+            const iconHtml = isSystemButton ? 
+                `<i class="${button.icon}"></i>` : 
+                getControlFunctionIcon(button.function);
+            
+            const functionLabel = isSystemButton ? 
+                'Systemowy' : 
+                getControlFunctionLabel(button.function);
+            
+            const executeFunction = isSystemButton ? 
+                `executeSystemButton(${JSON.stringify(button).replace(/"/g, '&quot;')}, '${deviceAddress}')` :
+                `testDeviceButtonInControl(${index}, '${deviceAddress}')`;
+
             return `
                 <div class="control-device-button-item" data-button-index="${index}">
                     <div class="control-button-header">
-                        <div class="control-button-icon">${functionIcon}</div>
+                        <div class="control-button-icon">${iconHtml}</div>
                         <div class="control-button-info">
                             <div class="control-button-name">${button.name}</div>
                             <div class="control-button-function">${functionLabel}</div>
                         </div>
                     </div>
                     <div class="control-button-details">
-                        <span class="control-button-commands">${button.commands.length} ${button.commands.length === 1 ? 'command' : 'commands'}</span>
+                        <span class="control-button-commands">
+                            ${isSystemButton ? 'API Route' : `${button.commands?.length || 0} ${button.commands?.length === 1 ? 'command' : 'commands'}`}
+                        </span>
                     </div>
                     <div class="control-button-actions">
-                        <button class="control-test-btn" onclick="testDeviceButtonInControl(${index}, '${deviceAddress}')">
+                        <button class="control-test-btn" onclick="${executeFunction}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                 <polygon points="5,3 19,12 5,21"/>
                             </svg>
                             <span>EXECUTE</span>
+                        </button>
+                        ${!isSystemButton ? `
+                        <button class="control-edit-btn" onclick="editDeviceButton('${deviceAddress}', ${index})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                            </svg>
+                            Edit
+                        </button>
+                        ` : ''}
+                        <button class="control-delete-btn" onclick="deleteDeviceButton('${deviceAddress}', ${button.id || index}, '${button.name}', ${isSystemButton})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            </svg>
+                            Delete
                         </button>
                     </div>
                 </div>
@@ -662,8 +689,159 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addCustomButton = function(deviceAddress) {
         addLog(`Adding custom button for device ${deviceAddress}...`, 'INFO');
         
-        if (typeof window.showToast === 'function') {
-            window.showToast(`Custom button functionality will be available soon`, 'info', 3000);
+        // Pokaż modal z opcjami systemowymi i custom
+        showAddButtonModal(deviceAddress);
+    };
+
+    /**
+     * Pokazuje modal do wyboru typu przycisku
+     */
+    function showAddButtonModal(deviceAddress) {
+        const modalContent = `
+            <div class="modal-overlay" id="addButtonModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div class="modal-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <h2>Dodaj przycisk</h2>
+                        </div>
+                        <button class="modal-close" onclick="closeAddButtonModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="button-options-grid">
+                            <h3>Opcje systemowe (multimedia):</h3>
+                            <div class="system-buttons-grid">
+                                <button class="system-option-btn" onclick="addSystemButton('${deviceAddress}', 'volume-up')">
+                                    <i class="fas fa-volume-up"></i>
+                                    <span>Głośność +</span>
+                                </button>
+                                <button class="system-option-btn" onclick="addSystemButton('${deviceAddress}', 'volume-down')">
+                                    <i class="fas fa-volume-down"></i>
+                                    <span>Głośność -</span>
+                                </button>
+                                <button class="system-option-btn" onclick="addSystemButton('${deviceAddress}', 'play-pause')">
+                                    <i class="fas fa-play"></i>
+                                    <span>Play/Pause</span>
+                                </button>
+                                <button class="system-option-btn" onclick="addSystemButton('${deviceAddress}', 'next')">
+                                    <i class="fas fa-step-forward"></i>
+                                    <span>Następny</span>
+                                </button>
+                                <button class="system-option-btn" onclick="addSystemButton('${deviceAddress}', 'previous')">
+                                    <i class="fas fa-step-backward"></i>
+                                    <span>Poprzedni</span>
+                                </button>
+                            </div>
+                            
+                            <h3>Opcje niestandardowe:</h3>
+                            <div class="custom-buttons-grid">
+                                <button class="custom-option-btn" onclick="openCustomButtonCreator('${deviceAddress}')">
+                                    <i class="fas fa-cog"></i>
+                                    <span>Przycisk niestandardowy</span>
+                                    <small>Z własnymi komendami</small>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Dodaj modal do DOM
+        document.body.insertAdjacentHTML('beforeend', modalContent);
+    }
+
+    /**
+     * Zamyka modal dodawania przycisku
+     */
+    window.closeAddButtonModal = function() {
+        const modal = document.getElementById('addButtonModal');
+        if (modal) {
+            modal.remove();
+        }
+    };
+
+    /**
+     * Dodaje systemowy przycisk do urządzenia
+     */
+    window.addSystemButton = function(deviceAddress, systemFunction) {
+        addLog(`Adding system button: ${systemFunction} for device ${deviceAddress}`, 'INFO');
+        
+        const systemButtons = {
+            'volume-up': { name: 'Głośność +', icon: 'fas fa-volume-up', apiRoute: '/api/media/volume_up' },
+            'volume-down': { name: 'Głośność -', icon: 'fas fa-volume-down', apiRoute: '/api/media/volume_down' },
+            'play-pause': { name: 'Play/Pause', icon: 'fas fa-play', apiRoute: '/api/media/play' },
+            'next': { name: 'Następny', icon: 'fas fa-step-forward', apiRoute: '/api/media/next' },
+            'previous': { name: 'Poprzedni', icon: 'fas fa-step-backward', apiRoute: '/api/media/previous' }
+        };
+        
+        const buttonConfig = systemButtons[systemFunction];
+        if (!buttonConfig) {
+            addLog(`Unknown system function: ${systemFunction}`, 'ERROR');
+            return;
+        }
+        
+        // Pobierz istniejące przyciski
+        let deviceButtons = getDeviceButtonsFromStorage(deviceAddress) || [];
+        
+        // Sprawdź czy przycisk już istnieje
+        const existingButton = deviceButtons.find(btn => btn.systemFunction === systemFunction);
+        if (existingButton) {
+            window.showToast(`Przycisk "${buttonConfig.name}" już istnieje`, 'warning');
+            closeAddButtonModal();
+            return;
+        }
+        
+        // Dodaj nowy systemowy przycisk
+        const newButton = {
+            id: Date.now(),
+            name: buttonConfig.name,
+            systemFunction: systemFunction,
+            apiRoute: buttonConfig.apiRoute,
+            icon: buttonConfig.icon,
+            type: 'system',
+            created: new Date().toISOString()
+        };
+        
+        deviceButtons.push(newButton);
+        saveDeviceButtonsToStorage(deviceAddress, deviceButtons);
+        
+        // Odśwież interfejs
+        updateControlPanel(deviceAddress);
+        
+        window.showToast(`Dodano przycisk "${buttonConfig.name}"`, 'success');
+        closeAddButtonModal();
+        
+        addLog(`System button "${buttonConfig.name}" added successfully`, 'SUCCESS');
+    };
+
+    /**
+     * Otwiera kreator niestandardowego przycisku
+     */
+    window.openCustomButtonCreator = function(deviceAddress) {
+        closeAddButtonModal();
+        
+        // Tutaj można otworzyć modal device-modal.js lub inny interfejs
+        if (typeof window.openEditDeviceModal === 'function') {
+            // Znajdź urządzenie i otwórz modal w trybie tworzenia przycisku
+            const device = { address: deviceAddress, name: 'Current Device' };
+            window.openEditDeviceModal(device);
+            // Przełącz na zakładkę kontroli urządzenia
+            setTimeout(() => {
+                if (typeof window.deviceModalFunctions?.switchToTab === 'function') {
+                    window.deviceModalFunctions.switchToTab('device-control-tab');
+                }
+            }, 100);
+        } else {
+            window.showToast('Funkcjonalność niestandardowych przycisków będzie dostępna wkrótce', 'info');
         }
     };
     
@@ -1655,6 +1833,113 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => console.error('Error:', error));
     };
+
+    // ========================================
+    // SYSTEM BUTTON FUNCTIONALITY
+    // ========================================
+
+    /**
+     * Pobiera przyciski urządzenia z localStorage
+     */
+    function getDeviceButtonsFromStorage(deviceAddress) {
+        try {
+            const key = `device_buttons_${deviceAddress}`;
+            const stored = localStorage.getItem(key);
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error loading device buttons:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Zapisuje przyciski urządzenia do localStorage
+     */
+    function saveDeviceButtonsToStorage(deviceAddress, buttons) {
+        try {
+            const key = `device_buttons_${deviceAddress}`;
+            localStorage.setItem(key, JSON.stringify(buttons));
+            console.log(`Saved ${buttons.length} buttons for device ${deviceAddress}`);
+        } catch (error) {
+            console.error('Error saving device buttons:', error);
+        }
+    }
+
+    /**
+     * Wykonuje systemowy przycisk (wywołuje odpowiednie API)
+     */
+    window.executeSystemButton = function(button, deviceAddress) {
+        if (!button.apiRoute) {
+            addLog(`System button ${button.name} has no API route`, 'ERROR');
+            return;
+        }
+
+        addLog(`Executing system button: ${button.name}`, 'INFO');
+
+        fetch(button.apiRoute, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addLog(`System command executed successfully: ${button.name}`, 'SUCCESS');
+                window.showToast(`Wykonano: ${button.name}`, 'success');
+            } else {
+                addLog(`System command failed: ${data.message || 'Unknown error'}`, 'ERROR');
+                window.showToast(`Błąd: ${data.message || 'Nieznany błąd'}`, 'error');
+            }
+        })
+        .catch(error => {
+            addLog(`Error executing system command: ${error.message}`, 'ERROR');
+            window.showToast('Błąd połączenia z API', 'error');
+            console.error('System button error:', error);
+        });
+    };
+
+
+    /**
+     * Usuwa przycisk urządzenia
+     */
+    window.deleteDeviceButton = function(deviceAddress, buttonId, buttonName, isSystemButton) {
+        if (confirm(`Czy na pewno chcesz usunąć przycisk "${buttonName}"?`)) {
+            let deviceButtons = getDeviceButtonsFromStorage(deviceAddress) || [];
+            
+            // Usuń przycisk po ID lub indeksie
+            if (typeof buttonId === 'string' || (typeof buttonId === 'number' && buttonId > 1000000)) {
+                // ID-based removal
+                deviceButtons = deviceButtons.filter(btn => btn.id !== buttonId);
+            } else {
+                // Index-based removal (fallback)
+                deviceButtons.splice(buttonId, 1);
+            }
+            
+            saveDeviceButtonsToStorage(deviceAddress, deviceButtons);
+            updateControlPanel(deviceAddress);
+            
+            window.showToast(`Usunięto przycisk "${buttonName}"`, 'info');
+            addLog(`Button "${buttonName}" removed from device ${deviceAddress}`, 'INFO');
+        }
+    };
+
+    /**
+     * Aktualizuje panel kontroli dla urządzenia
+     */
+    function updateControlPanel(deviceAddress) {
+        // Sprawdź czy to urządzenie jest aktualnie połączone
+        fetch('/connection_status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.connected && data.address === deviceAddress) {
+                    showControlPanelForDevice(deviceAddress);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating control panel:', error);
+            });
+    }
     
     console.log('Terminal main functionality loaded successfully');
 });
