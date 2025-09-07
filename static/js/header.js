@@ -71,6 +71,19 @@ document.addEventListener('DOMContentLoaded', function() {
           sidebarFilter.value = searchValue;
           sidebarFilter.dispatchEvent(new Event('input'));
         }
+        
+        // Also filter scan results if they are visible
+        const devicesGrid = document.getElementById('devicesGrid');
+        const scanResultsContainer = document.getElementById('scan-results-container');
+        
+        // Check if either devices grid or scan results container has devices
+        const devicesGridHasDevices = devicesGrid && devicesGrid.querySelectorAll('.device-terminal-card').length > 0;
+        const scanResultsVisible = scanResultsContainer && scanResultsContainer.closest('#scan-results-section') && 
+                                  scanResultsContainer.closest('#scan-results-section').style.display !== 'none';
+        
+        if (devicesGridHasDevices || scanResultsVisible) {
+          filterScanResultsFromHeader(searchValue);
+        }
       });
     }
     
@@ -1352,6 +1365,129 @@ document.addEventListener('DOMContentLoaded', function() {
   };
   
   // ========================================
+  // SCAN RESULTS FILTERING
+  // ========================================
+  
+  /**
+   * Filter scan results from header search
+   * @param {string} searchValue - Search query from header input
+   */
+  function filterScanResultsFromHeader(searchValue) {
+    // Try both possible containers for device results
+    const devicesGrid = document.getElementById('devicesGrid');
+    const scanResultsContainer = document.getElementById('scan-results-container');
+    
+    const filterValue = searchValue.toLowerCase();
+    let visibleCount = 0;
+    let totalCount = 0;
+    let containerUsed = null;
+    
+    // Check devicesGrid first (terminal interface)
+    if (devicesGrid) {
+      const deviceCards = devicesGrid.querySelectorAll('.device-terminal-card');
+      totalCount = deviceCards.length;
+      
+      if (totalCount > 0) {
+        containerUsed = devicesGrid;
+        
+        deviceCards.forEach(device => {
+        // Extract device name and address from the onclick attribute or data attributes
+        const onclickAttr = device.getAttribute('onclick');
+        let deviceName = '';
+        let deviceAddress = '';
+        
+        if (onclickAttr) {
+          // Extract from onclick="showDeviceModal('address', 'name')"
+          const matches = onclickAttr.match(/showDeviceModal\('([^']+)',\s*'([^']+)'\)/);
+          if (matches) {
+            deviceAddress = matches[1].toLowerCase();
+            deviceName = matches[2].toLowerCase();
+          }
+        }
+        
+        // Also try to get name and address from the card content
+        const nameElement = device.querySelector('.device-terminal-info h3');
+        const addressElement = device.querySelector('.device-address');
+        
+        if (nameElement && !deviceName) {
+          deviceName = nameElement.textContent.toLowerCase();
+        }
+        
+        if (addressElement && !deviceAddress) {
+          deviceAddress = addressElement.textContent.toLowerCase();
+        }
+        
+        const shouldShow = deviceName.includes(filterValue) || deviceAddress.includes(filterValue);
+        device.style.display = shouldShow ? 'block' : 'none';
+        
+        if (shouldShow) visibleCount++;
+        });
+        
+        // Handle no results message for devicesGrid
+        handleNoResultsMessage(devicesGrid, visibleCount, totalCount);
+      }
+    } 
+    // Fallback to scan-results-container (if it exists)
+    else if (scanResultsContainer && scanResultsContainer.style.display !== 'none') {
+      const deviceItems = scanResultsContainer.querySelectorAll('.scan-device-item');
+      totalCount = deviceItems.length;
+      containerUsed = scanResultsContainer;
+      
+      deviceItems.forEach(device => {
+        const deviceNameEl = device.querySelector('.scan-device-name');
+        const deviceAddressEl = device.querySelector('.scan-device-address');
+        
+        if (deviceNameEl && deviceAddressEl) {
+          const deviceName = deviceNameEl.textContent.toLowerCase();
+          const deviceAddress = deviceAddressEl.textContent.toLowerCase();
+          
+          const shouldShow = deviceName.includes(filterValue) || deviceAddress.includes(filterValue);
+          device.style.display = shouldShow ? 'flex' : 'none';
+          
+          if (shouldShow) visibleCount++;
+        }
+      });
+      
+      // Handle no results message for scanResultsContainer
+      handleNoResultsMessage(scanResultsContainer, visibleCount, totalCount);
+    }
+    
+    console.log(`Header search filtered ${containerUsed ? containerUsed.id : 'no container'}: ${visibleCount} visible out of ${totalCount} total`);
+  }
+  
+  /**
+   * Handle no results message for device containers
+   * @param {HTMLElement} container - Container element
+   * @param {number} visibleCount - Number of visible items
+   * @param {number} totalCount - Total number of items
+   */
+  function handleNoResultsMessage(container, visibleCount, totalCount) {
+    const existingNoResultsMsg = container.querySelector('.no-filter-results');
+    
+    if (visibleCount === 0 && totalCount > 0) {
+      if (!existingNoResultsMsg) {
+        const noResultsMsg = document.createElement('div');
+        noResultsMsg.className = 'no-filter-results empty-terminal-state';
+        noResultsMsg.innerHTML = `
+          <div class="empty-terminal-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </div>
+          <h3>NO_DEVICES_MATCH_FILTER</h3>
+          <p>ADJUST_SEARCH_PARAMETERS</p>
+        `;
+        container.appendChild(noResultsMsg);
+      }
+    } else {
+      if (existingNoResultsMsg) {
+        existingNoResultsMsg.remove();
+      }
+    }
+  }
+  
+  // ========================================
   // GLOBAL EXPORTS
   // ========================================
   
@@ -1366,7 +1502,9 @@ document.addEventListener('DOMContentLoaded', function() {
     applyTheme: applyTheme,
     updateUserMenuItems,
     testOpenManualDeviceModal: window.testOpenManualDeviceModal,
-    testUserDropdown: window.testUserDropdown
+    testUserDropdown: window.testUserDropdown,
+    filterScanResultsFromHeader,
+    handleNoResultsMessage
   };
   
   console.log('Header functionality initialized successfully');

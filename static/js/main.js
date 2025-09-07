@@ -217,6 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
           displayScanResults(data.devices);
           addToMainLog(`[SKANOWANIE] Znaleziono ${data.devices.length} urządzeń`);
           
+          // Update terminal-main.js devices grid if available
+          if (typeof window.terminalFunctions !== 'undefined' && window.terminalFunctions.updateDevicesGrid) {
+            window.terminalFunctions.updateDevicesGrid(data.devices);
+          }
+          
           if (data.devices.length === 0) {
             showToast('Nie znaleziono żadnych urządzeń Bluetooth', 'warning', 4000);
           } else {
@@ -302,6 +307,17 @@ document.addEventListener('DOMContentLoaded', function() {
     scanResultsVisible = true;
     
     updateScanButtonText();
+    
+    // Apply any existing header search filter to the new results
+    const headerSearch = document.getElementById('header-search');
+    if (headerSearch && headerSearch.value.trim()) {
+      // Use the header filtering function if available
+      setTimeout(() => {
+        if (typeof window.headerFunctions !== 'undefined' && window.headerFunctions.filterScanResultsFromHeader) {
+          window.headerFunctions.filterScanResultsFromHeader(headerSearch.value);
+        }
+      }, 100); // Small delay to ensure DOM is updated
+    }
     
     if (wasHidden) {
       setTimeout(() => {
@@ -653,6 +669,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (scanResultsFilterInput) {
       scanResultsFilterInput.value = '';
+    }
+    
+    // Also clear header search input and sidebar filter when hiding scan results
+    const headerSearch = document.getElementById('header-search');
+    const sidebarFilter = document.getElementById('sidebar-filter-name');
+    if (headerSearch) {
+      headerSearch.value = '';
+    }
+    if (sidebarFilter) {
+      sidebarFilter.value = '';
+      sidebarFilter.dispatchEvent(new Event('input')); // Clear sidebar filtering
+    }
+    
+    // Clear any filtering on devices grid as well
+    const devicesGrid = document.getElementById('devicesGrid');
+    if (devicesGrid) {
+      const deviceCards = devicesGrid.querySelectorAll('.device-terminal-card');
+      deviceCards.forEach(card => {
+        card.style.display = 'block'; // Show all cards
+      });
+      
+      // Remove any no results messages
+      const noResultsMsg = devicesGrid.querySelector('.no-filter-results');
+      if (noResultsMsg) {
+        noResultsMsg.remove();
+      }
     }
     
     updateScanButtonText();
